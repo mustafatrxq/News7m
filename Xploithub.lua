@@ -1,3 +1,4 @@
+
 loadstring(game:HttpGet(("https://raw.githubusercontent.com/Y0dp/R7/refs/heads/main/TT.Lua")))()
 MakeWindow({
   Hub = {
