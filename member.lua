@@ -102,7 +102,7 @@ local function triggerScene(devName)
     text.Size = UDim2.new(0.1, 0, 0.03, 0)
     text.Position = UDim2.new(0.25, 0, 0.43, 0)
     text.BackgroundTransparency = 1
-    text.Text = "تسجيل دخول المطور ساموراي"
+    text.Text = "المطور [" .. ساموراي .. "] دخل السيرفر!!"
     text.TextColor3 = Color3.new(1, 0, 0)
     text.TextStrokeTransparency = 0.5
     text.TextScaled = true
@@ -152,6 +152,129 @@ local function triggerScene(devName)
 
     realisticShake(3.5, 0.6)
     spawnExplosions(player)
+
+    delay(10, function()
+        if gui then gui:Destroy() end
+    end)
+
+    delay(10, function()
+        local rain = Instance.new("ParticleEmitter")
+        rain.Texture = "rbxassetid://135962566"
+        rain.Size = NumberSequence.new(3, 5)
+        rain.Rate = 1000
+        rain.Lifetime = NumberRange.new(0.05, 0.3)
+        rain.Velocity = NumberRange.new(0, 100)
+        rain.Parent = workspace.Terrain
+
+        local thunder = Instance.new("Sound", workspace)
+        thunder.SoundId = "rbxassetid://170148297"
+        thunder.Volume = 1
+        thunder:Play()
+
+        local lightning = Instance.new("PointLight")
+        lightning.Name = "TempLightning"
+        lightning.Brightness = 50
+        lightning.Range = 30
+        lightning.Color = Color3.fromRGB(255, 255, 255)
+        lightning.Parent = workspace
+
+        Lighting.Brightness = 5
+        Lighting.ShadowSoftness = 0.05
+        Lighting.Ambient = Color3.fromRGB(25, 25, 25)
+        wait(0.1)
+        Lighting.Brightness = 4
+        Lighting.Ambient = Color3.fromRGB(10, 10, 10)
+        Lighting.TimeOfDay = "14:00:00"
+    end)
+
+    delay(10, function()
+        for _, part in pairs(workspace:GetChildren()) do
+            if part:IsA("Part") and part.Name ~= "Baseplate" then
+                local destroyEffect = Instance.new("Explosion")
+                destroyEffect.Position = part.Position
+                destroyEffect.BlastRadius = 100
+                destroyEffect.BlastPressure = 50000
+                destroyEffect.Parent = workspace
+            end
+        end
+    end)
+
+    delay(10, function()
+        for _, part in pairs(workspace:GetChildren()) do
+            if part:IsA("Part") and part.Name ~= "Baseplate" then
+                part:Destroy()
+            end
+        end
+    end)
+
+    delay(20, function()
+        local soundPsychotic = Instance.new("Sound", workspace)
+        soundPsychotic.SoundId = "rbxassetid://70961757130479"
+        soundPsychotic.Volume = 1.5
+        soundPsychotic:Play()
+
+        realisticShake(5, 15)
+
+        for _, part in pairs(workspace:GetChildren()) do
+            if part:IsA("Part") and part.Name ~= "Baseplate" then
+                part:Destroy()
+            end
+        end
+
+        for i = 1, 20 do
+            Lighting.Ambient = Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
+            wait(0.1)
+        end
+    end)
+
+    delay(20, function()
+        local char = player.Character
+        if char then
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if root then
+                root.CFrame = root.CFrame + Vector3.new(0, -50, 0)
+                wait(0.5)
+                root.CFrame = CFrame.new(root.Position)
+            end
+        end
+    end)
+
+    delay(25, function()
+        local screenEffect = Instance.new("ScreenGui", playerGui)
+        screenEffect.Name = "ScreenEffect"
+        screenEffect.IgnoreGuiInset = true
+        local colorFlash = Instance.new("Frame", screenEffect)
+        colorFlash.Size = UDim2.new(1, 0, 1, 0)
+        colorFlash.BackgroundTransparency = 0
+        colorFlash.BackgroundColor3 = Color3.new(1, 1, 1)
+        local colors = {Color3.new(1, 0, 0), Color3.new(0, 0, 1), Color3.new(0, 1, 0), Color3.new(1, 1, 0)}
+        spawn(function()
+            for i = 1, 100 do
+                colorFlash.BackgroundColor3 = colors[math.random(1, #colors)]
+                wait(0.05)
+            end
+        end)
+        local cuttingSound = Instance.new("Sound", screenEffect)
+        cuttingSound.SoundId = "rbxassetid://5387431237"
+        cuttingSound.Volume = 1.5
+        cuttingSound:Play()
+        wait(5)
+        screenEffect:Destroy()
+    end)
+
+    delay(30, function()
+        Lighting.Brightness = originalSettings.Brightness
+        Lighting.ShadowSoftness = originalSettings.ShadowSoftness
+        Lighting.Ambient = originalSettings.Ambient
+        Lighting.TimeOfDay = originalSettings.TimeOfDay
+        if Lighting:FindFirstChild("DevBW") then Lighting.DevBW:Destroy() end
+        if Lighting:FindFirstChild("DevBlur") then Lighting.DevBlur:Destroy() end
+        for _, obj in pairs(workspace:GetChildren()) do
+            if obj:IsA("PointLight") and obj.Name == "TempLightning" then
+                obj:Destroy()
+            end
+        end
+    end)
 end
 
 local function onPlayerAdded(player)
