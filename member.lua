@@ -102,7 +102,7 @@ local function triggerScene(devName)
     text.Size = UDim2.new(0.1, 0, 0.03, 0)
     text.Position = UDim2.new(0.25, 0, 0.43, 0)
     text.BackgroundTransparency = 1
-    text.Text = "المطور [" .. ساموراي .. "] دخل السيرفر!!"
+    text.Text = "المطور [" .. "ساموراي" .. "] دخل السيرفر!!"
     text.TextColor3 = Color3.new(1, 0, 0)
     text.TextStrokeTransparency = 0.5
     text.TextScaled = true
