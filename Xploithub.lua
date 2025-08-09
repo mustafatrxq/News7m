@@ -116,3 +116,141 @@ AddButton(DevelopersTab, {
         })
     end
 })
+
+local ScriptsTab = MakeTab({
+    Name = "السكربتات",
+    Image = "rbxassetid://88122625843089",
+    TabTitle = false
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت Antikick - من تطويري",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ALSAMORAYT/N3na3/refs/heads/main/AntiKick.lua"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت Antikick شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت متنوع عربي جميل",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/xc-i7/-/refs/heads/main/C39TnCJn.txt"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت متنوع عربي جميل شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت vr7",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-VR7-45290"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت vr7 شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت صلمه",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-AntiAFK-System-SOLARA-21775"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت صلمه شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت صلمه v3",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-AntiAFK-v-AntiKick-V3-v-Kick-Attempt-Logger-27977"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت صلمه v3 شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت ما اعرف شسمه بس حلو",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Murim-Cultivation-SECT-UPDATE-NK-8125"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت ما اعرف شسمه بس حلو شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت الهلال",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Ragdoll-Engine-ATOMIC-HUB-8295"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت الهلال شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت sand",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-sand-47889"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت sand شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت ساندر",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Sander-XY-35845"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت ساندر شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت Tiger",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Tiger-X-39488"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت Tiger شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت رقصات AFEM",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-AFEM-14048"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت رقصات AFEM شغال الآن",
+            Duration = 3
+        })
+    end
+})
