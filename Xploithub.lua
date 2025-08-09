@@ -82,12 +82,36 @@ local DevelopersTab = MakeTab({
 })
 
 AddButton(DevelopersTab, {
-    Name = "زر داخلي في تبويب المطورين",
+    Name = "يوزر تيك توك المطور ساموراي",
     Callback = function()
-        setclipboard("محتوى الزر في تبويب المطورين")
+        setclipboard("@alsamorayt")
         game.StarterGui:SetCore("SendNotification", {
             Title = "تم النسخ ✅",
-            Text = "تم نسخ محتوى زر المطورين",
+            Text = "نسخت يوزر تيك توك المطور ساموراي",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(DevelopersTab, {
+    Name = "يوزر تيك توك المطور عرك",
+    Callback = function()
+        setclipboard("@dmc_ark")
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم النسخ ✅",
+            Text = "نسخت يوزر تيك توك المطور عرك",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(DevelopersTab, {
+    Name = "يوزر تيليجرام المطور ساموراي",
+    Callback = function()
+        setclipboard("@D_hh_313")
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم النسخ ✅",
+            Text = "نسخت يوزر تيليجرام المطور ساموراي",
             Duration = 3
         })
     end
