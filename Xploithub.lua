@@ -1,5 +1,3 @@
-loadstring(game:HttpGet(("https://raw.githubusercontent.com/Y0dp/R7/refs/heads/main/TT.Lua")))()
-
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local greeting = "منوّر السكربت"
