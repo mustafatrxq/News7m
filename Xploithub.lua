@@ -208,18 +208,6 @@ AddButton(ScriptsTab, {
 })
 
 AddButton(ScriptsTab, {
-    Name = "سكربت sand",
-    Callback = function()
-        loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-sand-47889"))()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم التشغيل ✅",
-            Text = "سكربت sand شغال الآن",
-            Duration = 3
-        })
-    end
-})
-
-AddButton(ScriptsTab, {
     Name = "سكربت ساندر",
     Callback = function()
         loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Sander-XY-35845"))()
