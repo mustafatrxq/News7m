@@ -1,157 +1,4 @@
-loadstring(game:HttpGet(("https://raw.githubusercontent.com/Y0dp/R7/refs/heads/main/TT.Lua")))()
-
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local greeting = "منوّر السكربت"
-
-if LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Shirt") then
-    local shirtId = LocalPlayer.Character:FindFirstChildOfClass("Shirt").ShirtTemplate
-    if shirtId and shirtId:lower():find("girl") then
-        greeting = "منوّرة السكربت"
-    end
-end
-
-MakeWindow({
-    Hub = {
-        Title = "Xploit  ساموراي  V0.1",
-        Animation = greeting
-    },
-    Key = {
-        KeySystem = false,
-        Title = "Key System",
-        Description = "",
-        KeyLink = "",
-        Keys = {"1234"},
-        Notifi = {
-            Notifications = true,
-            CorrectKey = "Running the Script...",
-            Incorrectkey = "The key is incorrect",
-            CopyKeyLink = "Copied to Clipboard"
-        }
-    }
-})
-
-MinimizeButton({
-    Image = "rbxassetid://88122625843089",
-    Size = {40, 40},
-    Color = Color3.fromRGB(255, 125, 0),
-    Corner = true,
-    Stroke = false,
-    StrokeColor = Color3.fromRGB(255, 125, 0)
-})
-
-local Main = MakeTab({
-    Name = "المعلومات",
-    Image = "rbxassetid://88122625843089",
-    TabTitle = false
-})
-
-AddImageLabel(Main, {
-    Name = "قناة السكربت",
-    Image = "rbxassetid://88122625843089"
-})
-
-AddButton(Main, {
-    Name = "انضم",
-    Callback = function()
-        setclipboard('https://t.me/Prov_development')
-    end
-})
-
-local Label = AddTextLabel(Main,
-    "User: " .. LocalPlayer.Name .. "\n" ..
-    "Map: " .. game.PlaceId .. "\n" ..
-    "Time: " .. os.date("%H:%M:%S")
-)
-
-task.spawn(function()
-    while true do
-        task.wait(1)
-        Label.Update(
-            "User: " .. LocalPlayer.Name .. "\n" ..
-            "Map: " .. game.PlaceId .. "\n" ..
-            "Time: " .. os.date("%H:%M:%S")
-        )
-    end
-end)
-
-local DevelopersTab = MakeTab({
-    Name = "المطورين",
-    Image = "rbxassetid://88122625843089",
-    TabTitle = false
-})
-
-AddButton(DevelopersTab, {
-    Name = "يوزر تيك توك المطور ساموراي",
-    Callback = function()
-        setclipboard("@alsamorayt")
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم النسخ ✅",
-            Text = "نسخت يوزر تيك توك المطور ساموراي",
-            Duration = 3
-        })
-    end
-})
-
-AddButton(DevelopersTab, {
-    Name = "يوزر تيك توك المطور عرك",
-    Callback = function()
-        setclipboard("@dmc_ark")
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم النسخ ✅",
-            Text = "نسخت يوزر تيك توك المطور عرك",
-            Duration = 3
-        })
-    end
-})
-
-AddButton(DevelopersTab, {
-    Name = "يوزر تيليجرام المطور ساموراي",
-    Callback = function()
-        setclipboard("@D_hh_313")
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم النسخ ✅",
-            Text = "نسخت يوزر تيليجرام المطور ساموراي",
-            Duration = 3
-        })
-    end
-})
-
-local ScriptsTab = MakeTab({
-    Name = "السكربتات",
-    Image = "rbxassetid://88122625843089",
-    TabTitle = false
-})
-
-AddButton(ScriptsTab, {
-    Name = "سكربت Antikick - من تطويري",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/ALSAMORAYT/N3na3/refs/heads/main/AntiKick.lua"))()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم التشغيل ✅",
-            Text = "سكربت Antikick شغال الآن",
-            Duration = 3
-        })
-    end
-})
-
-AddButton(ScriptsTab, {
-    Name = "سكربت متنوع عربي جميل",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/xc-i7/-/refs/heads/main/C39TnCJn.txt"))()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم التشغيل ✅",
-            Text = "سكربت متنوع عربي جميل شغال الآن",
-            Duration = 3
-        })
-    end
-})
-
-AddButton(ScriptsTab, {
-    Name = "سكربت vr7",
-    Callback = function()
-        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-VR7-45290"))()
-        game.StarterGui:SetCore("SendNotification", {
+StarterGui:SetCore("SendNotification", {
             Title = "تم التشغيل ✅",
             Text = "سكربت vr7 شغال الآن",
             Duration = 3
@@ -273,9 +120,9 @@ AddDropdown(TrollTab, {
 AddButton(TrollTab, {
     Name = "تحديث القائمة",
     Callback = function()
-‎        -- تحديث قائمة اللاعبين في القائمة المنسدلة
+        -- تحديث قائمة اللاعبين في القائمة المنسدلة
         local newNames = getPlayerNames()
-‎        -- منطق التحديث حسب مكتبتك
+        -- منطق التحديث حسب مكتبتك
     end    
 })
 
@@ -314,7 +161,7 @@ AddToggle(TrollTab, {
     end
 })
 
-‎-- كود قتل اللاعب بالباص
+-- كود قتل اللاعب بالباص
 
 AddButton(TrollTab, {
     Name = "قتل اللاعب بالباص",
@@ -387,7 +234,7 @@ AddButton(TrollTab, {
     end
 })
 
-‎-- كود السحب بالباص (مشابه)
+-- كود السحب بالباص (مشابه)
 
 AddButton(TrollTab, {
     Name = "سحب اللاعب بالباص",
@@ -445,7 +292,7 @@ AddButton(TrollTab, {
                                 task.wait(0.2)
                                 humanoidRootPart.CFrame = originalPosition
 
-‎                                -- حذف الباص
+                                -- حذف الباص
                                 local args = {
                                     [1] = "DeleteAllVehicles"
                                 }
@@ -467,7 +314,7 @@ AddButton(TrollTab, {
     end
 })
 
-‎-- كود التتبع والكاميرا
+-- كود التتبع والكاميرا
 
 local followHead = false
 local connection = nil
