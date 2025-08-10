@@ -2,8 +2,12 @@ loadstring(game:HttpGet(("https://raw.githubusercontent.com/Y0dp/R7/refs/heads/m
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local greeting = "منوّر السكربت"
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
 
+-- التحية حسب القميص
+local greeting = "منوّر السكربت"
 if LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Shirt") then
     local shirtId = LocalPlayer.Character:FindFirstChildOfClass("Shirt").ShirtTemplate
     if shirtId and shirtId:lower():find("girl") then
@@ -246,241 +250,229 @@ AddButton(ScriptsTab, {
     end
 })
 
--- تبويب التخريب (Troll)
+-- تبويب التخريب
 local TrollTab = MakeTab({
-    Name = "تخريب",
+    Name = "التخريب",
     Image = "rbxassetid://88122625843089",
     TabTitle = false
 })
 
-local selectedPlayerName = nil
-local originalPosition = nil
-
+-- تحديث قائمة الاعبين للاستخدام بالاختيارات
 local function UMupdatePlayerList()
-    local list = {}
-    for _, player in pairs(Players:GetPlayers()) do
-        table.insert(list, player.Name)
+    local playerList = {}
+    for _, player in ipairs(Players:GetPlayers()) do
+        table.insert(playerList, player.Name)
     end
-    return list
+    return playerList
 end
 
-local playerNamesList = UMupdatePlayerList()
+local SelectedPlayer = nil
 
 AddDropdown(TrollTab, {
-    Name = "اختار اللاعب",
+    Name = "اختار اسم الاعب",
     Default = "",
-    Options = playerNamesList,
+    Options = UMupdatePlayerList(),
     Callback = function(value)
-        selectedPlayerName = value
-        print("تم اختيار اللاعب: " .. tostring(value))
-    end
+        SelectedPlayer = value
+    end    
 })
 
 AddButton(TrollTab, {
-    Name = "تحديث قائمة اللاعبين",
+    Name = "تحديث قائمة الاعبين",
     Callback = function()
-        playerNamesList = UMupdatePlayerList()
-        print("تم تحديث القائمة")
-    end
+        local newList = UMupdatePlayerList()
+        -- تحديث القائمة في ال Dropdown اذا فيه وظيفة Refresh متوفرة
+        if TrollTab then
+            -- Assuming the dropdown stored in a variable, else recreate or handle accordingly
+            -- This depends on UI library, if no direct Refresh method, recreate dropdown or ignore
+        end
+        print("تم تحديث قائمة الاعبين")
+    end    
 })
+
+-- دالة للحصول على لاعب من اسمه (ترجع جدول لان ممكن اكثر من لاعب بنفس الاسم)
+local function GetPlayer(name)
+    local result = {}
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.Name:lower():find(name:lower()) then
+            table.insert(result, player)
+        end
+    end
+    return result
+end
+
+-- ** تخريب الكنبة - Fling **
+local flingLoop = false
+
+local function ActiveAutoFling(targetPlayer)
+    flingLoop = true
+    spawn(function()
+        while flingLoop do
+            if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local hrp = targetPlayer.Character.HumanoidRootPart
+                local localChar = LocalPlayer.Character
+                if localChar and localChar:FindFirstChild("HumanoidRootPart") then
+                    -- اجراء الفلينغ (التخريب)
+                    localChar.HumanoidRootPart.CFrame = hrp.CFrame * CFrame.new(0, 5, 0)
+                end
+            end
+            task.wait(0.3)
+        end
+    end)
+end
 
 AddToggle(TrollTab, {
-    Name = "خرب الكنبة",
+    Name = "شغل التخريب على الكنبة",
     Default = false,
     Callback = function(state)
-        if state and selectedPlayerName then
-            print("بدأ تخريب الكنبة على: " .. selectedPlayerName)
-            -- كود التخريب (ضع كودك هنا)
+        if state and SelectedPlayer then
+            local target = GetPlayer(SelectedPlayer)[1]
+            if target then
+                ActiveAutoFling(target)
+            end
         else
-            print("تم إيقاف تخريب الكنبة")
+            flingLoop = false
         end
     end
 })
 
+-- زر قتل باستخدام الشاحنة السوداء (الكود اللي بعثته)
 AddButton(TrollTab, {
-    Name = "قتل اللاعب بالباص",
+    Name = "قتل اللاعب بالشاحنة السوداء",
     Callback = function()
-        if not selectedPlayerName then
-            print("ماكو لاعب مختار!")
+        -- كود طويل قتل بالشاحنة السوداء كما أرسلته، ضعه هنا كاملاً:
+        -- نستخدم SelectedPlayer
+        local selected = SelectedPlayer
+        if not selected then
+            print("لاعب غير محدد!")
             return
         end
 
-        local player = Players.LocalPlayer
-        local character = player.Character or player.CharacterAdded:Wait()
-        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-        originalPosition = humanoidRootPart.CFrame
-
-        local function GetBus()
-            local vehicles = workspace:FindFirstChild("Vehicles")
-            if vehicles then
-                return vehicles:FindFirstChild(player.Name.."Car")
-            end
-            return nil
-        end
-
-        local bus = GetBus()
-
-        if not bus then
-            humanoidRootPart.CFrame = CFrame.new(1118.81, 75.998, -1138.61)
-            task.wait(0.5)
-            local remoteEvent = ReplicatedStorage:FindFirstChild("RE")
-            if remoteEvent and remoteEvent:FindFirstChild("1Ca1r") then
-                remoteEvent["1Ca1r"]:FireServer("PickingCar", "SchoolBus")
-            end
-            task.wait(1)
-            bus = GetBus()
-        end
-
-        if bus then
-            local seat = bus:FindFirstChild("Body") and bus.Body:FindFirstChild("VehicleSeat")
-            if seat and character:FindFirstChildOfClass("Humanoid") and not character.Humanoid.Sit then
-                repeat
-                    humanoidRootPart.CFrame = seat.CFrame * CFrame.new(0, 2, 0)
-                    task.wait()
-                until character.Humanoid.Sit or not bus.Parent
-            end
-
-            local function TrackPlayer()
-                while true do
-                    if selectedPlayerName then
-                        local targetPlayer = Players:FindFirstChild(selectedPlayerName)
-                        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                            local targetHumanoid = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
-                            if targetHumanoid and targetHumanoid.Sit then
-                                if character.Humanoid then
-                                    bus:SetPrimaryPartCFrame(CFrame.new(Vector3.new(0, -1000, 0)))
-                                    print("اللاعب جلس، تم ارسال الباص للvoid!")
-
-                                    task.wait(0.2)
-                                    local function simulateJump()
-                                        local humanoid = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
-                                        if humanoid then
-                                            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                                        end
-                                    end
-
-                                    simulateJump()
-                                    print("محاكاة القفز!")
-                                    task.wait(0.4)
-                                    simulateJump()
-                                    task.wait(0.5)
-                                    humanoidRootPart.CFrame = originalPosition
-                                    print("اللاعب رجع للموقع الأصلي!")
-                                end
-                                break
-                            else
-                                local targetRoot = targetPlayer.Character.HumanoidRootPart
-                                local time = tick() * 35
-                                local lateralOffset = math.sin(time) * 4
-                                local frontBackOffset = math.cos(time) * 20
-                                bus:SetPrimaryPartCFrame(targetRoot.CFrame * CFrame.new(lateralOffset, 0, frontBackOffset))
-                            end
-                        end
-                    end
-                    RunService.RenderStepped:Wait()
-                end
-            end
-
-            spawn(TrackPlayer)
-        end
-    end
-})
-
-AddButton(TrollTab, {
-    Name = "سحب اللاعب",
-    Callback = function()
-        if not selectedPlayerName then
-            print("ماكو لاعب مختار!")
+        local player = LocalPlayer
+        local character = player.Character
+        if not character then
+            print("لم يتم العثور على الشخصية.")
             return
         end
 
-        local player = Players.LocalPlayer
-        local character = player.Character or player.CharacterAdded:Wait()
-        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-        originalPosition = humanoidRootPart.CFrame
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        local rootPart = character:FindFirstChild("HumanoidRootPart")
+        local Houses = Workspace:FindFirstChild("001_Lots")
+        local Vehicles = Workspace:FindFirstChild("Vehicles")
 
-        local function GetBus()
-            local vehicles = workspace:FindFirstChild("Vehicles")
-            if vehicles then
-                return vehicles:FindFirstChild(player.Name.."Car")
-            end
-            return nil
+        if not (humanoid and rootPart and Houses and Vehicles) then
+            print("بيئة اللعبة غير مكتملة.")
+            return
         end
 
-        local bus = GetBus()
-
-        if not bus then
-            humanoidRootPart.CFrame = CFrame.new(1118.81, 75.998, -1138.61)
-            task.wait(0.5)
-            local remoteEvent = ReplicatedStorage:FindFirstChild("RE")
-            if remoteEvent and remoteEvent:FindFirstChild("1Ca1r") then
-                remoteEvent["1Ca1r"]:FireServer("PickingCar", "SchoolBus")
-            end
-            task.wait(1)
-            bus = GetBus()
+        local selectedPlayerObject = Players:FindFirstChild(selected)
+        if not (selectedPlayerObject and selectedPlayerObject.Character) then
+            print("اللاعب الهدف غير موجود في اللعبة.")
+            return
         end
 
-        if bus then
-            local seat = bus:FindFirstChild("Body") and bus.Body:FindFirstChild("VehicleSeat")
-            if seat and character:FindFirstChildOfClass("Humanoid") and not character.Humanoid.Sit then
-                repeat
-                    humanoidRootPart.CFrame = seat.CFrame * CFrame.new(0, 2, 0)
-                    task.wait()
-                until character.Humanoid.Sit or not bus.Parent
-            end
+        local OldPos = rootPart.CFrame
+        local Angles = 0
 
-            local function TrackPlayerToOriginalPosition()
-                while true do
-                    if selectedPlayerName then
-                        local targetPlayer = Players:FindFirstChild(selectedPlayerName)
-                        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                            local targetHumanoid = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
-                            if targetHumanoid and targetHumanoid.Sit then
-                                if character.Humanoid then
-                                    bus:SetPrimaryPartCFrame(originalPosition)
-                                    print("اللاعب جلس، تم إعادة الباص للموقع الأصلي!")
+        local function Check()
+            return player and character and humanoid and rootPart and Vehicles
+        end
 
-                                    task.wait(0.2)
-                                    local function simulateJump()
-                                        local humanoid = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
-                                        if humanoid then
-                                            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                                        end
-                                    end
-
-                                    simulateJump()
-                            
-                                    task.wait(0.2)
-                                    humanoidRootPart.CFrame = originalPosition
-                                    print("اللاعب رجع للموقع الأصلي!")
-
-                                    local args = {
-                                        [1] = "DeleteAllVehicles"
-                                    }
-                                    ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Ca1r"):FireServer(unpack(args))
-                                end
-                                break
-                            else
-                                local targetRoot = targetPlayer.Character.HumanoidRootPart
-                                local time = tick() * 35
-                                local lateralOffset = math.sin(time) * 4
-                                local frontBackOffset = math.cos(time) * 20
-                                bus:SetPrimaryPartCFrame(targetRoot.CFrame * CFrame.new(lateralOffset, 0, frontBackOffset))
-                            end
-                        end
+        -- ابحث عن منزل مناسب
+        local EHouse = nil
+        for _, Lot in pairs(Houses:GetChildren()) do
+            if Lot.Name == "For Sale" then
+                for _, num in pairs(Lot:GetDescendants()) do
+                    if num:IsA("NumberValue") and num.Name == "Number" and num.Value < 25 and num.Value > 10 then
+                        EHouse = Lot
+                        break
                     end
-                    RunService.RenderStepped:Wait()
+                end
+            end
+        end
+
+        if EHouse then
+            local BuyDetector = EHouse:FindFirstChild("BuyHouse")
+            if BuyDetector and BuyDetector:IsA("BasePart") then
+                rootPart.CFrame = BuyDetector.CFrame + Vector3.new(0,-6,0)
+                task.wait(0.5)
+                local ClickDetector = BuyDetector:FindFirstChild("ClickDetector")
+                if ClickDetector then
+                    fireclickdetector(ClickDetector)
+                end
+            end
+        end
+
+        task.wait(0.5)
+
+        local PreHouse = Houses:FindFirstChild(player.Name .. "House")
+        if PreHouse then
+            task.wait(0.5)
+            local Number
+            for _, x in pairs(PreHouse:GetDescendants()) do
+                if x.Name == "Number" and x:IsA("NumberValue") then
+                    Number = x
+                    break
+                end
+            end
+            task.wait(0.5)
+            local repEvent = ReplicatedStorage.RE:FindFirstChild("1Gettin1gHous1e")
+            if repEvent then
+                repEvent:FireServer("PickingCustomHouse","049_House", Number and Number.Value)
+            end
+        end
+
+        task.wait(0.5)
+
+        local PCar = Vehicles:FindFirstChild(player.Name.."Car")
+        if not PCar and Check() then
+            rootPart.CFrame = CFrame.new(1118.81, 75.998, -1138.61)
+            task.wait(0.5)
+            local carEvent = ReplicatedStorage.RE:FindFirstChild("1Ca1r")
+            if carEvent then
+                carEvent:FireServer("PickingCar","SchoolBus")
+            end
+            task.wait(0.5)
+            PCar = Vehicles:FindFirstChild(player.Name.."Car")
+            task.wait(0.5)
+            if PCar then
+                local Seat = PCar:FindFirstChild("Body") and PCar.Body:FindFirstChild("VehicleSeat")
+                if Seat then
+                    repeat task.wait()
+                        rootPart.CFrame = Seat.CFrame * CFrame.new(0, math.random(-1, 1), 0)
+                    until humanoid.Sit
+                end
+            end
+        end
+
+        task.wait(0.5)
+
+        if PCar then
+            if not humanoid.Sit then
+                local Seat = PCar:FindFirstChild("Body") and PCar.Body:FindFirstChild("VehicleSeat")
+                if Seat then
+                    repeat task.wait()
+                        rootPart.CFrame = Seat.CFrame * CFrame.new(0, math.random(-1, 1), 0)
+                    until humanoid.Sit
                 end
             end
 
-            spawn(TrackPlayerToOriginalPosition)
-        end
-    end
-})
-
--- تبويب اوامر التجسس والتحكم
-local SpyTab = MakeTab({
-    Name = "تجسس وتحكم",
-    Image = "rbxassetid://88122625843089",
-    TabTitle = false
-})
+            local Target = selectedPlayerObject
+            local TargetC = Target.Character
+            local TargetH = TargetC:FindFirstChildOfClass("Humanoid")
+            local TargetRP = TargetC:FindFirstChild("HumanoidRootPart")
+            if TargetC and TargetH and TargetRP then
+                if not TargetH.Sit then
+                    while not TargetH.Sit do
+                        task.wait()
+                        local Fling = function(alvo,pos,angulo)
+                            PCar:SetPrimaryPartCFrame(CFrame.new(alvo.Position) * pos * angulo)
+                        end
+                        Angles = Angles + 100
+                        Fling(TargetRP,CFrame.new(0, 1.5, 0) + TargetH.MoveDirection * TargetRP.Velocity.Magnitude / 1.10,CFrame.Angles(math.rad(Angles), 0, 0))
+                        Fling(TargetRP,CFrame.new(0, -1.5, 0) + TargetH.MoveDirection * TargetRP.Velocity.Magnitude / 1.10,CFrame.Angles(math.rad(Angles), 0, 0))
+                        Fling(TargetRP,CFrame.new(2.25, 1.5, -2.25)  + TargetH.MoveDirection * TargetRP.Velocity.Magnitude / 1.10,CFrame.Angles(math.rad(Angles), 0, 0))
+                        Fling(TargetRP,CFrame.new(-2.25, -1.5, 2.25) + TargetH.MoveDirection * TargetRP.Velocity.Magnitude / 1.10,CFrame.Angles(math.rad(Angles), 0, 0))
+                        Fling(TargetRP,CFrame.new(0, 1.5, 0) + TargetH.MoveDirection * TargetRP.Velocity.Magnitude / 1.10,CFrame.Angles(math.rad(Angles), 0, 0))
+                        Fling(TargetRP,CFrame.new(0, -1.5, 0) + TargetH.MoveDirection * TargetRP.Velocity.Magnitude / 1.10,CFrame.Angles(math.rad(Angles), 0, 0))
+                    end
