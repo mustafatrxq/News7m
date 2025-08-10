@@ -105,7 +105,6 @@ local TrollTab = MakeTab({
 local selectedPlayer = nil
 local originalPosition = nil
 
--- دالة تجيب أسماء اللاعبين عشان نحدث القائمة
 local function getPlayerNames()
     local names = {}
     for _, p in ipairs(Players:GetPlayers()) do
@@ -114,8 +113,7 @@ local function getPlayerNames()
     return names
 end
 
--- انشاء القائمة المنسدلة
-local dropdown = AddDropdown(TrollTab, {
+AddDropdown(TrollTab, {
     Name = "اختار الاعب",
     Default = "",
     Options = getPlayerNames(),
@@ -125,23 +123,21 @@ local dropdown = AddDropdown(TrollTab, {
     end    
 })
 
--- تحديث القائمة فعليًا
 AddButton(TrollTab, {
     Name = "تحديث القائمة",
     Callback = function()
-        local newNames = getPlayerNames()
-        dropdown.UpdateOptions(newNames)  -- تحديث خيارات الـ Dropdown
+        -- ممكن تضيف هنا تحديث القائمة بشكل ديناميكي حسب مكتبتك
         print("تم تحديث قائمة اللاعبين.")
     end    
 })
-
--- نو كليب مع اتصال مستمر يتم فصله عند الإيقاف
-local noclipConnection = nil
 
 AddToggle(TrollTab, {
     Name = "نو كليب",
     Default = false,
     Callback = function(value)
+        local noclipEnabled = value
+        local connection
+
         local function setCharacterCanCollide(character, canCollide)
             for _, part in ipairs(character:GetDescendants()) do
                 if part:IsA("BasePart") then
@@ -150,17 +146,16 @@ AddToggle(TrollTab, {
             end
         end
 
-        if value then
-            noclipConnection = RunService.Stepped:Connect(function()
+        if noclipEnabled then
+            connection = RunService.Stepped:Connect(function()
                 local character = LocalPlayer.Character
                 if character then
                     setCharacterCanCollide(character, false)
                 end
             end)
         else
-            if noclipConnection then
-                noclipConnection:Disconnect()
-                noclipConnection = nil
+            if connection then
+                connection:Disconnect()
             end
             local character = LocalPlayer.Character
             if character then
@@ -170,20 +165,10 @@ AddToggle(TrollTab, {
     end
 })
 
--- دالة تجلب الباص الحالي أو تحاول تشتريه
-local function GetBus()
-    local vehicles = Workspace:FindFirstChild("Vehicles")
-    if vehicles then
-        return vehicles:FindFirstChild(LocalPlayer.Name .. "Car")
-    end
-    return nil
-end
-
--- زر قتل اللاعب بالباص
 AddButton(TrollTab, {
     Name = "قتل اللاعب بالباص",
     Callback = function()
-        if not selectedPlayer or selectedPlayer == "" then
+        if not selectedPlayer then
             print("ما تختار لاعب!")
             return
         end
@@ -192,6 +177,14 @@ AddButton(TrollTab, {
         local character = player.Character or player.CharacterAdded:Wait()
         local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
         originalPosition = humanoidRootPart.CFrame
+
+        local function GetBus()
+            local vehicles = Workspace:FindFirstChild("Vehicles")
+            if vehicles then
+                return vehicles:FindFirstChild(player.Name.."Car")
+            end
+            return nil
+        end
 
         local bus = GetBus()
 
@@ -224,7 +217,7 @@ AddButton(TrollTab, {
                             local targetHumanoid = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
                             local targetRoot = targetPlayer.Character.HumanoidRootPart
                             if targetHumanoid and targetHumanoid.Sit then
-                                bus:SetPrimaryPartCFrame(CFrame.new(0, -5000, 0)) -- إخفاء الباص
+                                bus:SetPrimaryPartCFrame(CFrame.new(0, -5000, 0)) -- يوديه للvoid
                                 task.wait(0.2)
                                 humanoidRootPart.CFrame = originalPosition
                                 break
@@ -239,17 +232,14 @@ AddButton(TrollTab, {
                     RunService.RenderStepped:Wait()
                 end
             end)
-        else
-            print("ما حصلت باص.")
         end
     end
 })
 
--- زر سحب اللاعب بالباص
 AddButton(TrollTab, {
     Name = "سحب اللاعب بالباص",
     Callback = function()
-        if not selectedPlayer or selectedPlayer == "" then
+        if not selectedPlayer then
             print("ما تختار لاعب!")
             return
         end
@@ -258,6 +248,14 @@ AddButton(TrollTab, {
         local character = player.Character or player.CharacterAdded:Wait()
         local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
         originalPosition = humanoidRootPart.CFrame
+
+        local function GetBus()
+            local vehicles = Workspace:FindFirstChild("Vehicles")
+            if vehicles then
+                return vehicles:FindFirstChild(player.Name.."Car")
+            end
+            return nil
+        end
 
         local bus = GetBus()
 
@@ -294,6 +292,7 @@ AddButton(TrollTab, {
                                 task.wait(0.2)
                                 humanoidRootPart.CFrame = originalPosition
 
+                                -- حذف الباص
                                 local args = {
                                     [1] = "DeleteAllVehicles"
                                 }
@@ -311,13 +310,10 @@ AddButton(TrollTab, {
                     RunService.RenderStepped:Wait()
                 end
             end)
-        else
-            print("ما حصلت باص.")
         end
     end
 })
 
--- دالة تتبع اللاعب بالكاميرا
 local function spectatePlayer(enable)
     local player = LocalPlayer
     local camera = workspace.CurrentCamera
@@ -346,6 +342,7 @@ AddToggle(TrollTab, {
     end
 })
 
+local followHead = false
 local connection = nil
 
 local function floatAbovePlayerHead()
@@ -364,13 +361,10 @@ local function floatAbovePlayerHead()
                 humanoidRootPart.CFrame = targetHead.CFrame * CFrame.new(0, 3, 0)
 
                 connection = RunService.Heartbeat:Connect(function()
-                    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Head") then
+                    if followHead and targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Head") then
                         humanoidRootPart.CFrame = targetPlayer.Character.Head.CFrame * CFrame.new(0, 3, 0)
                     else
-                        if connection then
-                            connection:Disconnect()
-                            connection = nil
-                        end
+                        connection:Disconnect()
                     end
                 end)
             else
@@ -401,13 +395,13 @@ AddButton(TrollTab, {
             if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 local targetHumanoidRootPart = targetPlayer.Character.HumanoidRootPart
 
-                local originalPos = humanoidRootPart.CFrame
+                local originalPosition = humanoidRootPart.CFrame
 
                 humanoidRootPart.CFrame = targetHumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
 
-                task.wait(1.5)
+                wait(1.5)
 
-                humanoidRootPart.CFrame = originalPos
+                humanoidRootPart.CFrame = originalPosition
             else
                 print("اللاعب المختار غير موجود.")
             end
