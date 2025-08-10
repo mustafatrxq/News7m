@@ -273,8 +273,9 @@ AddDropdown(TrollTab, {
 AddButton(TrollTab, {
     Name = "تحديث القائمة",
     Callback = function()
-        -- ممكن تضيف هنا تحديث القائمة بشكل ديناميكي حسب مكتبتك
-        print("تم تحديث قائمة اللاعبين.")
+‎        -- تحديث قائمة اللاعبين في القائمة المنسدلة
+        local newNames = getPlayerNames()
+‎        -- منطق التحديث حسب مكتبتك
     end    
 })
 
@@ -283,6 +284,7 @@ AddToggle(TrollTab, {
     Default = false,
     Callback = function(value)
         local noclipEnabled = value
+        local runService = game:GetService("RunService")
         local connection
 
         local function setCharacterCanCollide(character, canCollide)
@@ -294,7 +296,7 @@ AddToggle(TrollTab, {
         end
 
         if noclipEnabled then
-            connection = RunService.Stepped:Connect(function()
+            connection = runService.Stepped:Connect(function()
                 local character = LocalPlayer.Character
                 if character then
                     setCharacterCanCollide(character, false)
@@ -311,6 +313,8 @@ AddToggle(TrollTab, {
         end
     end
 })
+
+‎-- كود قتل اللاعب بالباص
 
 AddButton(TrollTab, {
     Name = "قتل اللاعب بالباص",
@@ -383,6 +387,8 @@ AddButton(TrollTab, {
     end
 })
 
+‎-- كود السحب بالباص (مشابه)
+
 AddButton(TrollTab, {
     Name = "سحب اللاعب بالباص",
     Callback = function()
@@ -439,7 +445,7 @@ AddButton(TrollTab, {
                                 task.wait(0.2)
                                 humanoidRootPart.CFrame = originalPosition
 
-                                -- حذف الباص
+‎                                -- حذف الباص
                                 local args = {
                                     [1] = "DeleteAllVehicles"
                                 }
@@ -461,6 +467,11 @@ AddButton(TrollTab, {
     end
 })
 
+‎-- كود التتبع والكاميرا
+
+local followHead = false
+local connection = nil
+
 local function spectatePlayer(enable)
     local player = LocalPlayer
     local camera = workspace.CurrentCamera
@@ -480,17 +491,6 @@ local function spectatePlayer(enable)
         print("لم تختر لاعب.")
     end
 end
-
-AddToggle(TrollTab, {
-    Name = "شوف الاعب",
-    Default = false,
-    Callback = function(value)
-        spectatePlayer(value)
-    end
-})
-
-local followHead = false
-local connection = nil
 
 local function floatAbovePlayerHead()
     local player = LocalPlayer
@@ -522,6 +522,14 @@ local function floatAbovePlayerHead()
         end
     end
 end
+
+AddToggle(TrollTab, {
+    Name = "شوف الاعب",
+    Default = false,
+    Callback = function(value)
+        spectatePlayer(value)
+    end
+})
 
 AddButton(TrollTab, {
     Name = "اذهب الى الاعب",
