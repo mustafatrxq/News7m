@@ -90,12 +90,6 @@ AddButton(ScriptsTab, {
     end
 })
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
-local RunService = game:GetService("RunService")
-
 local TrollTab = MakeTab({
     Name = "التخريب",
     Image = "rbxassetid://88122625843089",
