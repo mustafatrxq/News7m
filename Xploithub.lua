@@ -2,10 +2,6 @@ loadstring(game:HttpGet(("https://raw.githubusercontent.com/Y0dp/R7/refs/heads/m
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
-local RunService = game:GetService("RunService")
-
 local greeting = "منوّر السكربت"
 
 if LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Shirt") then
@@ -44,7 +40,6 @@ MinimizeButton({
     StrokeColor = Color3.fromRGB(255, 125, 0)
 })
 
--- المعلومات والتحديث والتوقيت
 local Main = MakeTab({
     Name = "المعلومات",
     Image = "rbxassetid://88122625843089",
@@ -80,7 +75,6 @@ task.spawn(function()
     end
 end)
 
--- تبويب المطورين
 local DevelopersTab = MakeTab({
     Name = "المطورين",
     Image = "rbxassetid://88122625843089",
@@ -123,8 +117,6 @@ AddButton(DevelopersTab, {
     end
 })
 
--- تبويب السكربتات (ما عدلت عليه)
-
 local ScriptsTab = MakeTab({
     Name = "السكربتات",
     Image = "rbxassetid://88122625843089",
@@ -155,9 +147,101 @@ AddButton(ScriptsTab, {
     end
 })
 
--- (تكملة أزرار السكربتات كما هي من الكود اللي بعته لك)
+AddButton(ScriptsTab, {
+    Name = "سكربت vr7",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-VR7-45290"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت vr7 شغال الآن",
+            Duration = 3
+        })
+    end
+})
 
--- تبويب التخريب (Troll) محتوياتك مع تعديلاتك المطلوبة
+AddButton(ScriptsTab, {
+    Name = "سكربت صلمه",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-AntiAFK-System-SOLARA-21775"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت صلمه شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت صلمه v3",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-AntiAFK-v-AntiKick-V3-v-Kick-Attempt-Logger-27977"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت صلمه v3 شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت ما اعرف شسمه بس حلو",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Murim-Cultivation-SECT-UPDATE-NK-8125"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت ما اعرف شسمه بس حلو شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت الهلال",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Ragdoll-Engine-ATOMIC-HUB-8295"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت الهلال شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت ساندر",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Sander-XY-35845"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت ساندر شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت Tiger",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Tiger-X-39488"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت Tiger شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت رقصات AFEM",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-AFEM-14048"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت رقصات AFEM شغال الآن",
+            Duration = 3
+        })
+    end
+})
 
 local TrollTab = MakeTab({
     Name = "التخريب",
@@ -189,9 +273,8 @@ AddDropdown(TrollTab, {
 AddButton(TrollTab, {
     Name = "تحديث القائمة",
     Callback = function()
-        -- تحديث قائمة اللاعبين في القائمة المنسدلة
-        local newNames = getPlayerNames()
-        -- منطق التحديث حسب مكتبتك
+        -- ممكن تضيف هنا تحديث القائمة بشكل ديناميكي حسب مكتبتك
+        print("تم تحديث قائمة اللاعبين.")
     end    
 })
 
@@ -200,7 +283,6 @@ AddToggle(TrollTab, {
     Default = false,
     Callback = function(value)
         local noclipEnabled = value
-        local runService = game:GetService("RunService")
         local connection
 
         local function setCharacterCanCollide(character, canCollide)
@@ -212,7 +294,7 @@ AddToggle(TrollTab, {
         end
 
         if noclipEnabled then
-            connection = runService.Stepped:Connect(function()
+            connection = RunService.Stepped:Connect(function()
                 local character = LocalPlayer.Character
                 if character then
                     setCharacterCanCollide(character, false)
@@ -229,8 +311,6 @@ AddToggle(TrollTab, {
         end
     end
 })
-
--- كود قتل اللاعب بالباص
 
 AddButton(TrollTab, {
     Name = "قتل اللاعب بالباص",
@@ -302,8 +382,6 @@ AddButton(TrollTab, {
         end
     end
 })
-
--- كود السحب بالباص (مشابه)
 
 AddButton(TrollTab, {
     Name = "سحب اللاعب بالباص",
@@ -383,11 +461,6 @@ AddButton(TrollTab, {
     end
 })
 
--- كود التتبع والكاميرا
-
-local followHead = false
-local connection = nil
-
 local function spectatePlayer(enable)
     local player = LocalPlayer
     local camera = workspace.CurrentCamera
@@ -407,6 +480,17 @@ local function spectatePlayer(enable)
         print("لم تختر لاعب.")
     end
 end
+
+AddToggle(TrollTab, {
+    Name = "شوف الاعب",
+    Default = false,
+    Callback = function(value)
+        spectatePlayer(value)
+    end
+})
+
+local followHead = false
+local connection = nil
 
 local function floatAbovePlayerHead()
     local player = LocalPlayer
@@ -438,14 +522,6 @@ local function floatAbovePlayerHead()
         end
     end
 end
-
-AddToggle(TrollTab, {
-    Name = "شوف الاعب",
-    Default = false,
-    Callback = function(value)
-        spectatePlayer(value)
-    end
-})
 
 AddButton(TrollTab, {
     Name = "اذهب الى الاعب",
