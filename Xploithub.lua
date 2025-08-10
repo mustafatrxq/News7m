@@ -1,4 +1,164 @@
-StarterGui:SetCore("SendNotification", {
+loadstring(game:HttpGet(("https://raw.githubusercontent.com/Y0dp/R7/refs/heads/main/TT.Lua")))()
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+
+local greeting = "منوّر السكربت"
+
+if LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Shirt") then
+    local shirtId = LocalPlayer.Character:FindFirstChildOfClass("Shirt").ShirtTemplate
+    if shirtId and shirtId:lower():find("girl") then
+        greeting = "منوّرة السكربت"
+    end
+end
+
+MakeWindow({
+    Hub = {
+        Title = "Xploit  ساموراي  V0.1",
+        Animation = greeting
+    },
+    Key = {
+        KeySystem = false,
+        Title = "Key System",
+        Description = "",
+        KeyLink = "",
+        Keys = {"1234"},
+        Notifi = {
+            Notifications = true,
+            CorrectKey = "Running the Script...",
+            Incorrectkey = "The key is incorrect",
+            CopyKeyLink = "Copied to Clipboard"
+        }
+    }
+})
+
+MinimizeButton({
+    Image = "rbxassetid://88122625843089",
+    Size = {40, 40},
+    Color = Color3.fromRGB(255, 125, 0),
+    Corner = true,
+    Stroke = false,
+    StrokeColor = Color3.fromRGB(255, 125, 0)
+})
+
+-- تبويب المعلومات
+local Main = MakeTab({
+    Name = "المعلومات",
+    Image = "rbxassetid://88122625843089",
+    TabTitle = false
+})
+
+AddImageLabel(Main, {
+    Name = "قناة السكربت",
+    Image = "rbxassetid://88122625843089"
+})
+
+AddButton(Main, {
+    Name = "انضم",
+    Callback = function()
+        setclipboard('https://t.me/Prov_development')
+    end
+})
+
+local Label = AddTextLabel(Main,
+    "User: " .. LocalPlayer.Name .. "\n" ..
+    "Map: " .. game.PlaceId .. "\n" ..
+    "Time: " .. os.date("%H:%M:%S")
+)
+
+task.spawn(function()
+    while true do
+        task.wait(1)
+        Label.Update(
+            "User: " .. LocalPlayer.Name .. "\n" ..
+            "Map: " .. game.PlaceId .. "\n" ..
+            "Time: " .. os.date("%H:%M:%S")
+        )
+    end
+end)
+
+-- تبويب المطورين
+local DevelopersTab = MakeTab({
+    Name = "المطورين",
+    Image = "rbxassetid://88122625843089",
+    TabTitle = false
+})
+
+AddButton(DevelopersTab, {
+    Name = "يوزر تيك توك المطور ساموراي",
+    Callback = function()
+        setclipboard("@alsamorayt")
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم النسخ ✅",
+            Text = "نسخت يوزر تيك توك المطور ساموراي",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(DevelopersTab, {
+    Name = "يوزر تيك توك المطور عرك",
+    Callback = function()
+        setclipboard("@dmc_ark")
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم النسخ ✅",
+            Text = "نسخت يوزر تيك توك المطور عرك",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(DevelopersTab, {
+    Name = "يوزر تيليجرام المطور ساموراي",
+    Callback = function()
+        setclipboard("@D_hh_313")
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم النسخ ✅",
+            Text = "نسخت يوزر تيليجرام المطور ساموراي",
+            Duration = 3
+        })
+    end
+})
+
+-- تبويب السكربتات
+local ScriptsTab = MakeTab({
+    Name = "السكربتات",
+    Image = "rbxassetid://88122625843089",
+    TabTitle = false
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت Antikick - من تطويري",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ALSAMORAYT/N3na3/refs/heads/main/AntiKick.lua"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت Antikick شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت متنوع عربي جميل",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/xc-i7/-/refs/heads/main/C39TnCJn.txt"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت متنوع عربي جميل شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت vr7",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-VR7-45290"))()
+        game.StarterGui:SetCore("SendNotification", {
             Title = "تم التشغيل ✅",
             Text = "سكربت vr7 شغال الآن",
             Duration = 3
@@ -90,6 +250,8 @@ AddButton(ScriptsTab, {
     end
 })
 
+-- تبويب التخريب (Troll)
+
 local TrollTab = MakeTab({
     Name = "التخريب",
     Image = "rbxassetid://88122625843089",
@@ -120,9 +282,10 @@ AddDropdown(TrollTab, {
 AddButton(TrollTab, {
     Name = "تحديث القائمة",
     Callback = function()
-        -- تحديث قائمة اللاعبين في القائمة المنسدلة
+        -- لتحديث قائمة اللاعبين في القائمة المنسدلة
         local newNames = getPlayerNames()
-        -- منطق التحديث حسب مكتبتك
+        -- تحتاج حسب مكتبتك لتحديث Dropdown بالخيارات الجديدة
+        print("تم تحديث القائمة")
     end    
 })
 
@@ -161,8 +324,7 @@ AddToggle(TrollTab, {
     end
 })
 
--- كود قتل اللاعب بالباص
-
+-- زر قتل اللاعب بالباص
 AddButton(TrollTab, {
     Name = "قتل اللاعب بالباص",
     Callback = function()
@@ -234,8 +396,7 @@ AddButton(TrollTab, {
     end
 })
 
--- كود السحب بالباص (مشابه)
-
+-- زر سحب اللاعب بالباص
 AddButton(TrollTab, {
     Name = "سحب اللاعب بالباص",
     Callback = function()
@@ -314,11 +475,7 @@ AddButton(TrollTab, {
     end
 })
 
--- كود التتبع والكاميرا
-
-local followHead = false
-local connection = nil
-
+-- تابع مشاهدة اللاعب بالكاميرا
 local function spectatePlayer(enable)
     local player = LocalPlayer
     local camera = workspace.CurrentCamera
@@ -339,6 +496,10 @@ local function spectatePlayer(enable)
     end
 end
 
+-- تابع الطيران فوق رأس اللاعب
+local followHead = false
+local connection = nil
+
 local function floatAbovePlayerHead()
     local player = LocalPlayer
     local character = player.Character or player.CharacterAdded:Wait()
@@ -356,11 +517,11 @@ local function floatAbovePlayerHead()
 
                 connection = RunService.Heartbeat:Connect(function()
                     if followHead and targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Head") then
-                        humanoidRootPart.CFrame = targetPlayer.Character.Head.CFrame * CFrame.new(0, 3, 0)
-                    else
-                        connection:Disconnect()
-                    end
-                end)
+                        humanoidRootPart.CFrame = targetPlayer.Character.Head.CFrame * CFrame.new(0, 3, 0
+                                                else
+                            connection:Disconnect()
+                        end
+                    end)
             else
                 print("اللاعب غير موجود أو خارج اللعبة.")
             end
@@ -374,6 +535,7 @@ AddToggle(TrollTab, {
     Name = "شوف الاعب",
     Default = false,
     Callback = function(value)
+        followHead = value
         spectatePlayer(value)
     end
 })
