@@ -1,4 +1,157 @@
-StarterGui:SetCore("SendNotification", {
+loadstring(game:HttpGet(("https://raw.githubusercontent.com/Y0dp/R7/refs/heads/main/TT.Lua")))()
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local greeting = "منوّر السكربت"
+
+if LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Shirt") then
+    local shirtId = LocalPlayer.Character:FindFirstChildOfClass("Shirt").ShirtTemplate
+    if shirtId and shirtId:lower():find("girl") then
+        greeting = "منوّرة السكربت"
+    end
+end
+
+MakeWindow({
+    Hub = {
+        Title = "Xploit  ساموراي  V0.1",
+        Animation = greeting
+    },
+    Key = {
+        KeySystem = false,
+        Title = "Key System",
+        Description = "",
+        KeyLink = "",
+        Keys = {"1234"},
+        Notifi = {
+            Notifications = true,
+            CorrectKey = "Running the Script...",
+            Incorrectkey = "The key is incorrect",
+            CopyKeyLink = "Copied to Clipboard"
+        }
+    }
+})
+
+MinimizeButton({
+    Image = "rbxassetid://88122625843089",
+    Size = {40, 40},
+    Color = Color3.fromRGB(255, 125, 0),
+    Corner = true,
+    Stroke = false,
+    StrokeColor = Color3.fromRGB(255, 125, 0)
+})
+
+local Main = MakeTab({
+    Name = "المعلومات",
+    Image = "rbxassetid://88122625843089",
+    TabTitle = false
+})
+
+AddImageLabel(Main, {
+    Name = "قناة السكربت",
+    Image = "rbxassetid://88122625843089"
+})
+
+AddButton(Main, {
+    Name = "انضم",
+    Callback = function()
+        setclipboard('https://t.me/Prov_development')
+    end
+})
+
+local Label = AddTextLabel(Main,
+    "User: " .. LocalPlayer.Name .. "\n" ..
+    "Map: " .. game.PlaceId .. "\n" ..
+    "Time: " .. os.date("%H:%M:%S")
+)
+
+task.spawn(function()
+    while true do
+        task.wait(1)
+        Label.Update(
+            "User: " .. LocalPlayer.Name .. "\n" ..
+            "Map: " .. game.PlaceId .. "\n" ..
+            "Time: " .. os.date("%H:%M:%S")
+        )
+    end
+end)
+
+local DevelopersTab = MakeTab({
+    Name = "المطورين",
+    Image = "rbxassetid://88122625843089",
+    TabTitle = false
+})
+
+AddButton(DevelopersTab, {
+    Name = "يوزر تيك توك المطور ساموراي",
+    Callback = function()
+        setclipboard("@alsamorayt")
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم النسخ ✅",
+            Text = "نسخت يوزر تيك توك المطور ساموراي",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(DevelopersTab, {
+    Name = "يوزر تيك توك المطور عرك",
+    Callback = function()
+        setclipboard("@dmc_ark")
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم النسخ ✅",
+            Text = "نسخت يوزر تيك توك المطور عرك",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(DevelopersTab, {
+    Name = "يوزر تيليجرام المطور ساموراي",
+    Callback = function()
+        setclipboard("@D_hh_313")
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم النسخ ✅",
+            Text = "نسخت يوزر تيليجرام المطور ساموراي",
+            Duration = 3
+        })
+    end
+})
+
+local ScriptsTab = MakeTab({
+    Name = "السكربتات",
+    Image = "rbxassetid://88122625843089",
+    TabTitle = false
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت Antikick - من تطويري",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ALSAMORAYT/N3na3/refs/heads/main/AntiKick.lua"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت Antikick شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت متنوع عربي جميل",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/xc-i7/-/refs/heads/main/C39TnCJn.txt"))()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "تم التشغيل ✅",
+            Text = "سكربت متنوع عربي جميل شغال الآن",
+            Duration = 3
+        })
+    end
+})
+
+AddButton(ScriptsTab, {
+    Name = "سكربت vr7",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-VR7-45290"))()
+        game.StarterGui:SetCore("SendNotification", {
             Title = "تم التشغيل ✅",
             Text = "سكربت vr7 شغال الآن",
             Duration = 3
@@ -105,6 +258,7 @@ local TrollTab = MakeTab({
 local selectedPlayer = nil
 local originalPosition = nil
 
+-- دالة تجيب أسماء اللاعبين عشان نحدث القائمة
 local function getPlayerNames()
     local names = {}
     for _, p in ipairs(Players:GetPlayers()) do
@@ -113,7 +267,8 @@ local function getPlayerNames()
     return names
 end
 
-AddDropdown(TrollTab, {
+-- انشاء القائمة المنسدلة
+local dropdown = AddDropdown(TrollTab, {
     Name = "اختار الاعب",
     Default = "",
     Options = getPlayerNames(),
@@ -123,21 +278,23 @@ AddDropdown(TrollTab, {
     end    
 })
 
+-- تحديث القائمة فعليًا
 AddButton(TrollTab, {
     Name = "تحديث القائمة",
     Callback = function()
-        -- ممكن تضيف هنا تحديث القائمة بشكل ديناميكي حسب مكتبتك
+        local newNames = getPlayerNames()
+        dropdown.UpdateOptions(newNames)  -- تحديث خيارات الـ Dropdown
         print("تم تحديث قائمة اللاعبين.")
     end    
 })
+
+-- نو كليب مع اتصال مستمر يتم فصله عند الإيقاف
+local noclipConnection = nil
 
 AddToggle(TrollTab, {
     Name = "نو كليب",
     Default = false,
     Callback = function(value)
-        local noclipEnabled = value
-        local connection
-
         local function setCharacterCanCollide(character, canCollide)
             for _, part in ipairs(character:GetDescendants()) do
                 if part:IsA("BasePart") then
@@ -146,16 +303,17 @@ AddToggle(TrollTab, {
             end
         end
 
-        if noclipEnabled then
-            connection = RunService.Stepped:Connect(function()
+        if value then
+            noclipConnection = RunService.Stepped:Connect(function()
                 local character = LocalPlayer.Character
                 if character then
                     setCharacterCanCollide(character, false)
                 end
             end)
         else
-            if connection then
-                connection:Disconnect()
+            if noclipConnection then
+                noclipConnection:Disconnect()
+                noclipConnection = nil
             end
             local character = LocalPlayer.Character
             if character then
@@ -165,10 +323,20 @@ AddToggle(TrollTab, {
     end
 })
 
+-- دالة تجلب الباص الحالي أو تحاول تشتريه
+local function GetBus()
+    local vehicles = Workspace:FindFirstChild("Vehicles")
+    if vehicles then
+        return vehicles:FindFirstChild(LocalPlayer.Name .. "Car")
+    end
+    return nil
+end
+
+-- زر قتل اللاعب بالباص
 AddButton(TrollTab, {
     Name = "قتل اللاعب بالباص",
     Callback = function()
-        if not selectedPlayer then
+        if not selectedPlayer or selectedPlayer == "" then
             print("ما تختار لاعب!")
             return
         end
@@ -177,14 +345,6 @@ AddButton(TrollTab, {
         local character = player.Character or player.CharacterAdded:Wait()
         local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
         originalPosition = humanoidRootPart.CFrame
-
-        local function GetBus()
-            local vehicles = Workspace:FindFirstChild("Vehicles")
-            if vehicles then
-                return vehicles:FindFirstChild(player.Name.."Car")
-            end
-            return nil
-        end
 
         local bus = GetBus()
 
@@ -217,7 +377,7 @@ AddButton(TrollTab, {
                             local targetHumanoid = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
                             local targetRoot = targetPlayer.Character.HumanoidRootPart
                             if targetHumanoid and targetHumanoid.Sit then
-                                bus:SetPrimaryPartCFrame(CFrame.new(0, -5000, 0)) -- يوديه للvoid
+                                bus:SetPrimaryPartCFrame(CFrame.new(0, -5000, 0)) -- إخفاء الباص
                                 task.wait(0.2)
                                 humanoidRootPart.CFrame = originalPosition
                                 break
@@ -232,14 +392,17 @@ AddButton(TrollTab, {
                     RunService.RenderStepped:Wait()
                 end
             end)
+        else
+            print("ما حصلت باص.")
         end
     end
 })
 
+-- زر سحب اللاعب بالباص
 AddButton(TrollTab, {
     Name = "سحب اللاعب بالباص",
     Callback = function()
-        if not selectedPlayer then
+        if not selectedPlayer or selectedPlayer == "" then
             print("ما تختار لاعب!")
             return
         end
@@ -248,14 +411,6 @@ AddButton(TrollTab, {
         local character = player.Character or player.CharacterAdded:Wait()
         local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
         originalPosition = humanoidRootPart.CFrame
-
-        local function GetBus()
-            local vehicles = Workspace:FindFirstChild("Vehicles")
-            if vehicles then
-                return vehicles:FindFirstChild(player.Name.."Car")
-            end
-            return nil
-        end
 
         local bus = GetBus()
 
@@ -292,7 +447,6 @@ AddButton(TrollTab, {
                                 task.wait(0.2)
                                 humanoidRootPart.CFrame = originalPosition
 
-                                -- حذف الباص
                                 local args = {
                                     [1] = "DeleteAllVehicles"
                                 }
@@ -310,10 +464,13 @@ AddButton(TrollTab, {
                     RunService.RenderStepped:Wait()
                 end
             end)
+        else
+            print("ما حصلت باص.")
         end
     end
 })
 
+-- دالة تتبع اللاعب بالكاميرا
 local function spectatePlayer(enable)
     local player = LocalPlayer
     local camera = workspace.CurrentCamera
@@ -342,7 +499,6 @@ AddToggle(TrollTab, {
     end
 })
 
-local followHead = false
 local connection = nil
 
 local function floatAbovePlayerHead()
@@ -361,10 +517,13 @@ local function floatAbovePlayerHead()
                 humanoidRootPart.CFrame = targetHead.CFrame * CFrame.new(0, 3, 0)
 
                 connection = RunService.Heartbeat:Connect(function()
-                    if followHead and targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Head") then
+                    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Head") then
                         humanoidRootPart.CFrame = targetPlayer.Character.Head.CFrame * CFrame.new(0, 3, 0)
                     else
-                        connection:Disconnect()
+                        if connection then
+                            connection:Disconnect()
+                            connection = nil
+                        end
                     end
                 end)
             else
@@ -395,13 +554,13 @@ AddButton(TrollTab, {
             if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 local targetHumanoidRootPart = targetPlayer.Character.HumanoidRootPart
 
-                local originalPosition = humanoidRootPart.CFrame
+                local originalPos = humanoidRootPart.CFrame
 
                 humanoidRootPart.CFrame = targetHumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
 
-                wait(1.5)
+                task.wait(1.5)
 
-                humanoidRootPart.CFrame = originalPosition
+                humanoidRootPart.CFrame = originalPos
             else
                 print("اللاعب المختار غير موجود.")
             end
