@@ -14,25 +14,26 @@ Window:AddMinimizeButton({
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
 -- تبويب المعلومات
-local Main = Window:MakeTab({
+local MainTab = Window:MakeTab({
     Name = "المعلومات",
     Icon = "rbxassetid://88122625843089",
-    TabTitle = false
+    PremiumOnly = false
 })
 
-Main:AddImageLabel({
+MainTab:AddImageLabel({
     Name = "قناة السكربت",
-    Image = "rbxassetid://88122625843089"
+    Image = "rbxassetid://88122625843089",
+    Size = UDim2.new(0, 150, 0, 75)
 })
 
-Main:AddButton({
+MainTab:AddButton({
     Name = "انضم",
     Callback = function()
         setclipboard('https://t.me/Prov_development')
     end
 })
 
-local Label = Main:AddLabel(
+local InfoLabel = MainTab:AddLabel(
     "User: " .. LocalPlayer.Name .. "\n" ..
     "Map: " .. game.PlaceId .. "\n" ..
     "Time: " .. os.date("%H:%M:%S")
@@ -41,7 +42,7 @@ local Label = Main:AddLabel(
 task.spawn(function()
     while true do
         task.wait(1)
-        Label.Update(
+        InfoLabel.Update(
             "User: " .. LocalPlayer.Name .. "\n" ..
             "Map: " .. game.PlaceId .. "\n" ..
             "Time: " .. os.date("%H:%M:%S")
@@ -50,13 +51,13 @@ task.spawn(function()
 end)
 
 -- تبويب المطورين
-local DevelopersTab = Window:MakeTab({
+local DevTab = Window:MakeTab({
     Name = "المطورين",
     Icon = "rbxassetid://88122625843089",
-    TabTitle = false
+    PremiumOnly = false
 })
 
-DevelopersTab:AddButton({
+DevTab:AddButton({
     Name = "يوزر تيك توك المطور ساموراي",
     Callback = function()
         setclipboard("@alsamorayt")
@@ -68,7 +69,7 @@ DevelopersTab:AddButton({
     end
 })
 
-DevelopersTab:AddButton({
+DevTab:AddButton({
     Name = "يوزر تيك توك المطور عرك",
     Callback = function()
         setclipboard("@dmc_ark")
@@ -80,7 +81,7 @@ DevelopersTab:AddButton({
     end
 })
 
-DevelopersTab:AddButton({
+DevTab:AddButton({
     Name = "يوزر تيليجرام المطور ساموراي",
     Callback = function()
         setclipboard("@D_hh_313")
@@ -96,125 +97,32 @@ DevelopersTab:AddButton({
 local ScriptsTab = Window:MakeTab({
     Name = "السكربتات",
     Icon = "rbxassetid://88122625843089",
-    TabTitle = false
+    PremiumOnly = false
 })
 
-ScriptsTab:AddButton({
-    Name = "سكربت Antikick - من تطويري",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/ALSAMORAYT/N3na3/refs/heads/main/AntiKick.lua"))()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم التشغيل ✅",
-            Text = "سكربت Antikick شغال الآن",
-            Duration = 3
-        })
-    end
-})
+local scripts = {
+    {Name = "سكربت Antikick - من تطويري", URL = "https://raw.githubusercontent.com/ALSAMORAYT/N3na3/refs/heads/main/AntiKick.lua"},
+    {Name = "سكربت متنوع عربي جميل", URL = "https://raw.githubusercontent.com/xc-i7/-/refs/heads/main/C39TnCJn.txt"},
+    {Name = "سكربت vr7", URL = "https://rawscripts.net/raw/Universal-Script-VR7-45290"},
+    {Name = "سكربت صلمه", URL = "https://rawscripts.net/raw/Universal-Script-AntiAFK-System-SOLARA-21775"},
+    {Name = "سكربت صلمه v3", URL = "https://rawscripts.net/raw/Universal-Script-AntiAFK-v-AntiKick-V3-v-Kick-Attempt-Logger-27977"},
+    {Name = "سكربت ما اعرف شسمه بس حلو", URL = "https://rawscripts.net/raw/Murim-Cultivation-SECT-UPDATE-NK-8125"},
+    {Name = "سكربت الهلال", URL = "https://rawscripts.net/raw/Ragdoll-Engine-ATOMIC-HUB-8295"},
+    {Name = "سكربت ساندر", URL = "https://rawscripts.net/raw/Brookhaven-RP-Sander-XY-35845"},
+    {Name = "سكربت Tiger", URL = "https://rawscripts.net/raw/Brookhaven-RP-Tiger-X-39488"},
+    {Name = "سكربت رقصات AFEM", URL = "https://rawscripts.net/raw/Universal-Script-AFEM-14048"},
+}
 
-ScriptsTab:AddButton({
-    Name = "سكربت متنوع عربي جميل",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/xc-i7/-/refs/heads/main/C39TnCJn.txt"))()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم التشغيل ✅",
-            Text = "سكربت متنوع عربي جميل شغال الآن",
-            Duration = 3
-        })
-    end
-})
-
-ScriptsTab:AddButton({
-    Name = "سكربت vr7",
-    Callback = function()
-        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-VR7-45290"))()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم التشغيل ✅",
-            Text = "سكربت vr7 شغال الآن",
-            Duration = 3
-        })
-    end
-})
-
-ScriptsTab:AddButton({
-    Name = "سكربت صلمه",
-    Callback = function()
-        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-AntiAFK-System-SOLARA-21775"))()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم التشغيل ✅",
-            Text = "سكربت صلمه شغال الآن",
-            Duration = 3
-        })
-    end
-})
-
-ScriptsTab:AddButton({
-    Name = "سكربت صلمه v3",
-    Callback = function()
-        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-AntiAFK-v-AntiKick-V3-v-Kick-Attempt-Logger-27977"))()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم التشغيل ✅",
-            Text = "سكربت صلمه v3 شغال الآن",
-            Duration = 3
-        })
-    end
-})
-
-ScriptsTab:AddButton({
-    Name = "سكربت ما اعرف شسمه بس حلو",
-    Callback = function()
-        loadstring(game:HttpGet("https://rawscripts.net/raw/Murim-Cultivation-SECT-UPDATE-NK-8125"))()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم التشغيل ✅",
-            Text = "سكربت ما اعرف شسمه بس حلو شغال الآن",
-            Duration = 3
-        })
-    end
-})
-
-ScriptsTab:AddButton({
-    Name = "سكربت الهلال",
-    Callback = function()
-        loadstring(game:HttpGet("https://rawscripts.net/raw/Ragdoll-Engine-ATOMIC-HUB-8295"))()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم التشغيل ✅",
-            Text = "سكربت الهلال شغال الآن",
-            Duration = 3
-        })
-    end
-})
-
-ScriptsTab:AddButton({
-    Name = "سكربت ساندر",
-    Callback = function()
-        loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Sander-XY-35845"))()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم التشغيل ✅",
-            Text = "سكربت ساندر شغال الآن",
-            Duration = 3
-        })
-    end
-})
-
-ScriptsTab:AddButton({
-    Name = "سكربت Tiger",
-    Callback = function()
-        loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Tiger-X-39488"))()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم التشغيل ✅",
-            Text = "سكربت Tiger شغال الآن",
-            Duration = 3
-        })
-    end
-})
-
-ScriptsTab:AddButton({
-    Name = "سكربت رقصات AFEM",
-    Callback = function()
-        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-AFEM-14048"))()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "تم التشغيل ✅",
-            Text = "سكربت رقصات AFEM شغال الآن",
-            Duration = 3
-        })
-    end
-})
+for _, script in pairs(scripts) do
+    ScriptsTab:AddButton({
+        Name = script.Name,
+        Callback = function()
+            loadstring(game:HttpGet(script.URL))()
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "تم التشغيل ✅",
+                Text = script.Name .. " شغال الآن",
+                Duration = 3
+            })
+        end
+    })
+end
