@@ -1,4 +1,5 @@
 local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao143/Library-ui/refs/heads/main/Redzhubui"))()
+
 redzlib:SetTheme("Dark")
 
 -- دوال تلاشي لفتح وغلق النافذة بشكل سلس
