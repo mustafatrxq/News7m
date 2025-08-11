@@ -1,44 +1,23 @@
-loadstring(game:HttpGet(("https://raw.githubusercontent.com/Y0dp/R7/refs/heads/main/TT.Lua")))()
+-- مكتبة واجهة المستخدم
+local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao143/Library-ui/refs/heads/main/Redzhubui"))()
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local greeting = "منوّر السكربت"
-
-if LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Shirt") then
-    local shirtId = LocalPlayer.Character:FindFirstChildOfClass("Shirt").ShirtTemplate
-    if shirtId and shirtId:lower():find("girl") then
-        greeting = "منوّرة السكربت"
-    end
-end
-
-MakeWindow({
-    Hub = {
-        Title = "Xploit  ساموراي  V0.1",
-        Animation = greeting
-    },
-    Key = {
-        KeySystem = false,
-        Title = "Key System",
-        Description = "",
-        KeyLink = "",
-        Keys = {"1234"},
-        Notifi = {
-            Notifications = true,
-            CorrectKey = "Running the Script...",
-            Incorrectkey = "The key is incorrect",
-            CopyKeyLink = "Copied to Clipboard"
-        }
-    }
+-- إنشاء نافذة
+local Window = redzlib:MakeWindow({
+    Title = "𝘹𝘱𝘭𝘰𝘪𝘵 𝘩𝘶𝘣 ‖ 𝘣𝘳𝘰𝘰𝘬𝘩𝘢𝘷𝘦𝘯 || 𝘷0.1",
+    SubTitle = "صنع بواسطة: ساموراي × عركـ",
+    SaveFolder = "XploitHub_Config"
 })
 
-MinimizeButton({
-    Image = "rbxassetid://88122625843089",
-    Size = {40, 40},
-    Color = Color3.fromRGB(255, 125, 0),
-    Corner = true,
-    Stroke = false,
-    StrokeColor = Color3.fromRGB(255, 125, 0)
+-- زر التصغير مع صورة جديدة
+Window:AddMinimizeButton({
+    Button = { Image = "rbxassetid://88122625843089", BackgroundTransparency = 0 },
+    Corner = { CornerRadius = UDim.new(35, 1) },
 })
+
+-- اختيار الثيم
+redzlib:SetTheme("Dark") -- Dark
+-- redzlib:SetTheme("Darker") -- Darker
+-- redzlib:SetTheme("Purple") -- Purple
 
 local Main = MakeTab({
     Name = "المعلومات",
@@ -151,7 +130,7 @@ AddButton(ScriptsTab, {
     Name = "سكربت vr7",
     Callback = function()
         loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-VR7-45290"))()
-        game. StarterGui:SetCore("SendNotification", {
+        game.StarterGui:SetCore("SendNotification", {
             Title = "تم التشغيل ✅",
             Text = "سكربت vr7 شغال الآن",
             Duration = 3
