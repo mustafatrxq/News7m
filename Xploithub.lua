@@ -7,27 +7,27 @@ local Window = redzlib:MakeWindow({
 })
 
 local Tab1 = Window:MakeTab({
-  Name = "التبويب 1",
+  Name = "Tab 1",
   Icon = "rbxassetid://88122625843089",
   PremiumOnly = false
 })
 
 local Tab2 = Window:MakeTab({
-  Name = "التبويب 2",
+  Name = "Tab 2",
   Icon = "rbxassetid://88122625843089",
   PremiumOnly = false
 })
 
 Tab1:AddButton({
-  Name = "زر 1",
+  Name = "Button 1",
   Callback = function()
-    print("تم الضغط على زر 1")
+    print("Button 1 pressed")
   end
 })
 
 Tab2:AddButton({
-  Name = "زر 2",
+  Name = "Button 2",
   Callback = function()
-    print("تم الضغط على زر 2")
+    print("Button 2 pressed")
   end
 })
