@@ -23,7 +23,6 @@ Window.Draggable = true
 Window.ClipsDescendants = true
 Window.Name = "MainWindow"
 
--- حواف مدورة وإطار
 local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 18)
 UICorner.Parent = Window
@@ -66,7 +65,7 @@ SubTitleLabel.TextSize = 16
 SubTitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 SubTitleLabel.Parent = TitleBar
 
--- زر التصغير وزر النسخ داخل TitleBar تحت العنوان
+-- أزرار تحت العنوان داخل TitleBar
 local ButtonsFrame = Instance.new("Frame")
 ButtonsFrame.Size = UDim2.new(0, 220, 0, 50)
 ButtonsFrame.Position = UDim2.new(1, -230, 0, 5)
@@ -76,7 +75,7 @@ ButtonsFrame.Parent = TitleBar
 local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Size = UDim2.new(0, 80, 0, 40)
 MinimizeBtn.Position = UDim2.new(0, 0, 0, 5)
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(55, 110, 180)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(45, 125, 170)
 MinimizeBtn.AutoButtonColor = false
 MinimizeBtn.Text = "تصغير"
 MinimizeBtn.TextColor3 = Color3.fromRGB(240, 240, 240)
@@ -91,7 +90,7 @@ MinimizeUICorner.Parent = MinimizeBtn
 local CopyButton = Instance.new("TextButton")
 CopyButton.Size = UDim2.new(0, 120, 0, 40)
 CopyButton.Position = UDim2.new(0, 100, 0, 5)
-CopyButton.BackgroundColor3 = Color3.fromRGB(55, 110, 180)
+CopyButton.BackgroundColor3 = Color3.fromRGB(45, 125, 170)
 CopyButton.AutoButtonColor = false
 CopyButton.Text = "يوزر ساموراي"
 CopyButton.TextColor3 = Color3.fromRGB(240, 240, 240)
@@ -103,19 +102,18 @@ local CopyBtnUICorner = Instance.new("UICorner")
 CopyBtnUICorner.CornerRadius = UDim.new(0, 12)
 CopyBtnUICorner.Parent = CopyButton
 
--- تأثيرات ألوان للأزرار
 local function setupButtonColors(btn)
     btn.MouseEnter:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(75, 140, 210)
+        btn.BackgroundColor3 = Color3.fromRGB(70, 155, 210)
     end)
     btn.MouseLeave:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(55, 110, 180)
+        btn.BackgroundColor3 = Color3.fromRGB(45, 125, 170)
     end)
     btn.MouseButton1Down:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(35, 90, 150)
+        btn.BackgroundColor3 = Color3.fromRGB(30, 95, 140)
     end)
     btn.MouseButton1Up:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(75, 140, 210)
+        btn.BackgroundColor3 = Color3.fromRGB(70, 155, 210)
     end)
 end
 
@@ -131,53 +129,49 @@ CopyButton.MouseButton1Click:Connect(function()
     })
 end)
 
--- محتوى النافذة مع إطار (حاجز) واضح من كل الجهات
+-- المحتوى مع إطار (حاجز) واضح من كل الجهات
 local ContentFrame = Instance.new("Frame")
-ContentFrame.Size = UDim2.new(1, -40, 1, -120)
-ContentFrame.Position = UDim2.new(0, 20, 0, 80)
+ContentFrame.Size = UDim2.new(1, -40, 1, -140)
+ContentFrame.Position = UDim2.new(0, 20, 0, 100)
 ContentFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 ContentFrame.BorderSizePixel = 3
-ContentFrame.BorderColor3 = Color3.fromRGB(70, 130, 180)
+ContentFrame.BorderColor3 = Color3.fromRGB(60, 160, 210)
 ContentFrame.Parent = Window
 
 local ContentUICorner = Instance.new("UICorner")
-ContentUICorner.CornerRadius = UDim.new(0, 16)
+ContentUICorner.CornerRadius = UDim.new(0, 18)
 ContentUICorner.Parent = ContentFrame
 
--- تبويبات (Tab container)
+-- التبويبات داخل النافذة ونزولها تحت شريط العنوان وحاجز المحتوى
 local TabContainer = Instance.new("Frame")
-TabContainer.Size = UDim2.new(1, 0, 0, 40)
-TabContainer.Position = UDim2.new(0, 0, 0, 40)
+TabContainer.Size = UDim2.new(1, -40, 0, 50)
+TabContainer.Position = UDim2.new(0, 20, 0, 50)
 TabContainer.BackgroundTransparency = 1
 TabContainer.Parent = Window
 
+local TabBorder = Instance.new("Frame")
+TabBorder.Size = UDim2.new(1, 0, 0, 3)
+TabBorder.Position = UDim2.new(0, 0, 1, 0)
+TabBorder.BackgroundColor3 = Color3.fromRGB(60, 160, 210)
+TabBorder.BorderSizePixel = 0
+TabBorder.Parent = TabContainer
+
 local ExperimentTabBtn = Instance.new("TextButton")
-ExperimentTabBtn.Size = UDim2.new(0, 110, 1, 0)
-ExperimentTabBtn.Position = UDim2.new(0, 20, 0, 0)
-ExperimentTabBtn.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
+ExperimentTabBtn.Size = UDim2.new(0, 130, 1, 0)
+ExperimentTabBtn.Position = UDim2.new(0, 10, 0, 0)
+ExperimentTabBtn.BackgroundColor3 = Color3.fromRGB(45, 125, 170)
 ExperimentTabBtn.AutoButtonColor = false
 ExperimentTabBtn.Text = "تجربة"
-ExperimentTabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ExperimentTabBtn.TextColor3 = Color3.fromRGB(240, 240, 240)
 ExperimentTabBtn.Font = Enum.Font.GothamBold
-ExperimentTabBtn.TextSize = 18
+ExperimentTabBtn.TextSize = 20
 ExperimentTabBtn.Parent = TabContainer
 
 local ExperimentBtnUICorner = Instance.new("UICorner")
-ExperimentBtnUICorner.CornerRadius = UDim.new(0, 8)
+ExperimentBtnUICorner.CornerRadius = UDim.new(0, 14)
 ExperimentBtnUICorner.Parent = ExperimentTabBtn
 
-ExperimentTabBtn.MouseEnter:Connect(function()
-    ExperimentTabBtn.BackgroundColor3 = Color3.fromRGB(100, 160, 210)
-end)
-ExperimentTabBtn.MouseLeave:Connect(function()
-    ExperimentTabBtn.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
-end)
-ExperimentTabBtn.MouseButton1Down:Connect(function()
-    ExperimentTabBtn.BackgroundColor3 = Color3.fromRGB(50, 110, 160)
-end)
-ExperimentTabBtn.MouseButton1Up:Connect(function()
-    ExperimentTabBtn.BackgroundColor3 = Color3.fromRGB(100, 160, 210)
-end)
+setupButtonColors(ExperimentTabBtn)
 
 -- محتوى تبويب تجربة
 local ExperimentTabContent = Instance.new("Frame")
@@ -188,28 +182,35 @@ ExperimentTabContent.Parent = ContentFrame
 
 local ExperimentImage = Instance.new("ImageLabel")
 ExperimentImage.Size = UDim2.new(0, 260, 0, 260)
-ExperimentImage.Position = UDim2.new(0.5, -130, 0, 15)
+ExperimentImage.Position = UDim2.new(0.5, -130, 0, 20)
 ExperimentImage.BackgroundTransparency = 1
 ExperimentImage.Image = "rbxassetid://107399679611214"
 ExperimentImage.Parent = ExperimentTabContent
 
--- زر الغلق (زر الصورة) يبقى ظاهر دائم على يمين الشاشة منفصل عن النافذة
+-- زر الغلق (زر الصورة) على جنب يمين النافذة، وسط عمودي
 local ToggleBtn = Instance.new("ImageButton")
 ToggleBtn.Size = UDim2.new(0, 40, 0, 40)
-ToggleBtn.Position = UDim2.new(0.5, 375 + 20, 0.3, -260)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-ToggleBtn.BackgroundTransparency = 0
+ToggleBtn.Position = UDim2.new(0.5, 375 + 10, 0.3, -260 + 240) -- جنب النافذة منتصف الارتفاع
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
 ToggleBtn.Image = "rbxassetid://107399679611214"
 ToggleBtn.ScaleType = Enum.ScaleType.Fit
-ToggleBtn.ZIndex = 10
+ToggleBtn.AutoButtonColor = false
 ToggleBtn.Parent = ScreenGui
 
-ToggleBtn.MouseEnter:Connect(function()
-    ToggleBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-end)
-ToggleBtn.MouseLeave:Connect(function()
-    ToggleBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-end)
+local ToggleUICorner = Instance.new("UICorner")
+ToggleUICorner.CornerRadius = UDim.new(0, 10)
+ToggleUICorner.Parent = ToggleBtn
+
+local function updateToggleHover(state)
+    if state then
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+    else
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+    end
+end
+
+ToggleBtn.MouseEnter:Connect(function() updateToggleHover(true) end)
+ToggleBtn.MouseLeave:Connect(function() updateToggleHover(false) end)
 
 ToggleBtn.MouseButton1Click:Connect(function()
     if isOpen then
