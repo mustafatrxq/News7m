@@ -151,7 +151,7 @@ AddButton(ScriptsTab, {
     Name = "سكربت vr7",
     Callback = function()
         loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-VR7-45290"))()
-        game.StarterGui:SetCore("SendNotification", {
+        game. StarterGui:SetCore("SendNotification", {
             Title = "تم التشغيل ✅",
             Text = "سكربت vr7 شغال الآن",
             Duration = 3
