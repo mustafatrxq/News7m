@@ -3,16 +3,15 @@ local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao1
 local Window = redzlib:MakeWindow({
     Title = "Xploit Hub ‖ Brookhaven || V0.1",
     SubTitle = "ساموراي - عركـ",
-    SaveFolder = "Xploithub.lua"
+    SaveFolder = "Xploithub"  -- لاحظت آخر مرة وضعت .lua هنا، حذفتها عشان تكون مجلد وليس ملف
 })
 
 redzlib:SetTheme("Dark")
 
-local Tab1 = Window:MakeTab({"Main Tab", "rbxassetid://107399679611214"})
+local Tab1 = Window:MakeTab({"Main Tab", ""}) -- خلت الصورة فاضية مؤقتًا
 
-Tab1:AddParagraph({
-    "حقوق",
-    "تم التطوير بواسطة المطور ساموراي - المطور عركـ"
-})
+Tab1:AddParagraph({"حقوق", "تم التطوير بواسطة المطور ساموراي - المطور عركـ"})
 
 Window:SelectTab(Tab1)
+
+print("واجهة redzlib تم تحميلها بنجاح")
