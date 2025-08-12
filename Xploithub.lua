@@ -248,7 +248,11 @@ local LocalPlayer = Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RemoteEvent = ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Ca1r")
 
-local Main = MakeTab({ Name = "التخريب" })
+local Main = MakeTab({
+    Name = "ترول",
+    Image = "rbxassetid://87060218582359",
+    TabTitle = false
+})
 
 -- دالة لجلب أسماء اللاعبين الآخرين
 local function GetOtherPlayerNames()
