@@ -1,30 +1,5 @@
 loadstring(game:HttpGet(("https://raw.githubusercontent.com/Y0dp/SCN/refs/heads/main/TT")))()
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
-local function getGender()
-    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if humanoid and humanoid.GetAppliedDescription then
-        local success, desc = pcall(function()
-            return humanoid:GetAppliedDescription()
-        end)
-        if success and desc then
-            local bp = desc.BodyProportionScale or 0.5
-            local bt = desc.BodyTypeScale or 0.5
-            local avg = (bp + bt) / 2
-            if avg <= 0.5 then
-                return "female"
-            end
-        end
-    end
-    return "male"
-end
-
-local gender = getGender()
-local greeting = (gender == "female") and "منوره السكربت" or "منور السكربت"
-
 MakeWindow({
   Hub = {
     Title = "Xploit Hub ‖ Brookhaven || V0.1",
