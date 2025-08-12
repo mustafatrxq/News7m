@@ -1,7 +1,7 @@
 local splib = loadstring(game:HttpGet("https://raw.githubusercontent.com/as6cd0/SP_Hub/refs/heads/main/splibv2"))()
 
 local Window = splib:MakeWindow({
-    Name = "Xploit Hub ‖ Brookhaven || V0.1",
+    Name = "ساموراي - عركـ",
     HidePremium = false,
     SaveConfig = true,
     Setting = true,
@@ -27,7 +27,7 @@ MainTab:AddButton({
 })
 
 -- تبويب المطورين
-local DevelopersTab = Window:MakeTab("المطورين", "rbxassetid://107399679611214")
+local DevelopersTab = Window:MakeTab("المطورين", "rbxassetid://88122625843089")
 
 DevelopersTab:AddButton({
     Name = "يوزر تيك توك المطور ساموراي",
