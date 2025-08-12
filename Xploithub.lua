@@ -29,6 +29,50 @@ MinimizeButton({
   StrokeColor = Color3.fromRGB(255, 125, 0)
 })
 
+-- تبويب معلومات السكربت
+local ScriptInfoTab = MakeTab({
+  Name = "معلومات السكربت",
+  Image = "rbxassetid://107399679611214",
+  TabTitle = false
+})
+
+AddImageLabel(ScriptInfoTab, {
+  Name = "قناة السكربت",
+  Image = "rbxassetid://107399679611214"
+})
+
+AddButton(ScriptInfoTab, {
+  Name = "انضم",
+  Callback = function()
+    setclipboard('https://t.me/Prov_development')
+    game.StarterGui:SetCore("SendNotification", {
+      Title = "تم النسخ ✅",
+      Text = "تم نسخ رابط القناة بنجاح!",
+      Duration = 3
+    })
+  end
+})
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local Label = AddTextLabel(ScriptInfoTab,
+  "User: " .. LocalPlayer.Name .. "\n" ..
+  "Map: " .. game.PlaceId .. "\n" ..
+  "Time: " .. os.date("%H:%M:%S")
+)
+
+task.spawn(function()
+  while true do
+    task.wait(1)
+    Label.Update(
+      "User: " .. LocalPlayer.Name .. "\n" ..
+      "Map: " .. game.PlaceId .. "\n" ..
+      "Time: " .. os.date("%H:%M:%S")
+    )
+  end
+end)
+
 -- تبويب المطورين
 local DevelopersTab = MakeTab({
     Name = "المطورين",
@@ -75,7 +119,7 @@ AddButton(DevelopersTab, {
 -- تبويب السكربتات
 local ScriptsTab = MakeTab({
     Name = "السكربتات",
-    Image = "rbxassetid://118017437324495",  -- صورة التبويب محدثة
+    Image = "rbxassetid://118017437324495",
     TabTitle = false
 })
 
@@ -198,47 +242,3 @@ AddButton(ScriptsTab, {
         })
     end
 })
-
--- معلومات المستخدم
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
-local MainTab = MakeTab({
-  Name = "المطور",
-  Image = "rbxassetid://107399679611214",
-  TabTitle = false
-})
-
-local Image = AddImageLabel(MainTab, {
-  Name = "قناة السكربت",
-  Image = "rbxassetid://107399679611214"
-})
-
-AddButton(MainTab, {
-  Name = "انضم",
-  Callback = function()
-    setclipboard('https://t.me/Prov_development')
-    game.StarterGui:SetCore("SendNotification", {
-      Title = "تم النسخ ✅",
-      Text = "تم نسخ رابط القناة بنجاح!",
-      Duration = 3
-    })
-  end
-})
-
-local Label = AddTextLabel(MainTab,
-  "User: " .. LocalPlayer.Name .. "\n" ..
-  "Map: " .. game.PlaceId .. "\n" ..
-  "Time: " .. os.date("%H:%M:%S")
-)
-
-task.spawn(function()
-  while true do
-    task.wait(1)
-    Label.Update(
-      "User: " .. LocalPlayer.Name .. "\n" ..
-      "Map: " .. game.PlaceId .. "\n" ..
-      "Time: " .. os.date("%H:%M:%S")
-    )
-  end
-end)
