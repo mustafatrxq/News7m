@@ -1,35 +1,9 @@
 loadstring(game:HttpGet(("https://raw.githubusercontent.com/Y0dp/SCN/refs/heads/main/TT")))()
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
-local function getGender()
-    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if humanoid and humanoid.GetAppliedDescription then
-        local success, desc = pcall(function()
-            return humanoid:GetAppliedDescription()
-        end)
-        if success and desc then
-            local bp = desc.BodyProportionScale or 0.5
-            local bt = desc.BodyTypeScale or 0.5
-            local avg = (bp + bt) / 2
-            if avg <= 0.5 then
-                return "female"
-            end
-        end
-    end
-    return "male"
-end
-
-local gender = getGender()
-local greeting = (gender == "female") and "منوره السكربت" or "منور السكربت"
-
 MakeWindow({
   Hub = {
     Title = "Xploit Hub ‖ Brookhaven || V0.1",
-    SubTitle = "ساموراي - عركـ",
-    Animation = greeting
+    Animation = "يتم التحميل عزيزي المستخدم...."
   },
   Key = {
     KeySystem = false,
@@ -40,7 +14,7 @@ MakeWindow({
     Notifi = {
       Notifications = true,
       CorrectKey = "Running the Script...",
-      Incorrectkey = "The key is incorrect",
+      IncorrectKey = "The key is incorrect",
       CopyKeyLink = "Copied to Clipboard"
     }
   }
@@ -54,44 +28,6 @@ MinimizeButton({
   Stroke = false,
   StrokeColor = Color3.fromRGB(255, 125, 0)
 })
-
--- التبويب الرئيسي "المطور"
-local Main = MakeTab({
-    Name = "المطور",
-    Image = "rbxassetid://107399679611214",
-    TabTitle = false
-})
-
-AddImageLabel(Main, {
-  Name = "قناة السكربت",
-  Image = "rbxassetid://107399679611214"
-})
-
-AddButton(Main, {
-  Name = "انضم",
-  Callback = function()
-    setclipboard('https://t.me/Prov_development')
-  end
-})
-
-local Label = AddTextLabel(Main,
- "User: " .. LocalPlayer.Name .. "\n" ..
- "Map: " .. game.PlaceId .. "\n" ..
- "Time: " .. os.date("%H:%M:%S") .. "\n" ..
- greeting
-)
-
-task.spawn(function()
- while true do
-  task.wait(1)
-  Label.Update(
-   "User: " .. LocalPlayer.Name .. "\n" ..
-   "Map: " .. game.PlaceId .. "\n" ..
-   "Time: " .. os.date("%H:%M:%S") .. "\n" ..
-   ((getGender() == "female") and "منوره السكربت" or "منور السكربت")
-  )
- end
-end)
 
 -- تبويب المطورين
 local DevelopersTab = MakeTab({
@@ -139,7 +75,7 @@ AddButton(DevelopersTab, {
 -- تبويب السكربتات
 local ScriptsTab = MakeTab({
     Name = "السكربتات",
-    Image = "rbxassetid://118017437324495", -- صورة تبويب السكربتات الجديدة
+    Image = "rbxassetid://118017437324495",  -- صورة التبويب محدثة
     TabTitle = false
 })
 
@@ -262,3 +198,47 @@ AddButton(ScriptsTab, {
         })
     end
 })
+
+-- معلومات المستخدم
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local MainTab = MakeTab({
+  Name = "المطور",
+  Image = "rbxassetid://107399679611214",
+  TabTitle = false
+})
+
+local Image = AddImageLabel(MainTab, {
+  Name = "قناة السكربت",
+  Image = "rbxassetid://107399679611214"
+})
+
+AddButton(MainTab, {
+  Name = "انضم",
+  Callback = function()
+    setclipboard('https://t.me/Prov_development')
+    game.StarterGui:SetCore("SendNotification", {
+      Title = "تم النسخ ✅",
+      Text = "تم نسخ رابط القناة بنجاح!",
+      Duration = 3
+    })
+  end
+})
+
+local Label = AddTextLabel(MainTab,
+  "User: " .. LocalPlayer.Name .. "\n" ..
+  "Map: " .. game.PlaceId .. "\n" ..
+  "Time: " .. os.date("%H:%M:%S")
+)
+
+task.spawn(function()
+  while true do
+    task.wait(1)
+    Label.Update(
+      "User: " .. LocalPlayer.Name .. "\n" ..
+      "Map: " .. game.PlaceId .. "\n" ..
+      "Time: " .. os.date("%H:%M:%S")
+    )
+  end
+end)
