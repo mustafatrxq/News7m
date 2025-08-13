@@ -689,9 +689,8 @@ local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
-local RemoteEvent = ReplicatedStorage:WaitForChild("RE") -- عدل إذا مختلف
+local RemoteEvent = ReplicatedStorage:WaitForChild("RE") -- تأكد من اسم الريموت إيفنت عندك
 
--- دالة لجلب أسماء اللاعبين بدون اللاعب المحلي
 local function GetOtherPlayerNames()
     local names = {}
     for _, player in ipairs(Players:GetPlayers()) do
@@ -704,7 +703,6 @@ end
 
 local selectedPlayerName = nil
 
--- Dropdown لاختيار اللاعب
 local playerDropdown = AddDropdown(Main, {
     Name = "اختر لاعب",
     Options = GetOtherPlayerNames(),
@@ -730,7 +728,7 @@ end
 Players.PlayerAdded:Connect(UpdatePlayerDropdown)
 Players.PlayerRemoving:Connect(UpdatePlayerDropdown)
 
--- زر أخذ الكنبة فقط (بدون قتل أو سحب)
+-- زر أخذ الكنبة فقط (تبقى معاك ولا تروح)
 AddButton(Main, {
     Name = "أخذ الكنبة",
     Callback = function()
@@ -744,7 +742,7 @@ AddButton(Main, {
     end
 })
 
--- زر سحب اللاعب بالباص (دون الكنبة)
+-- زر سحب اللاعب بالباص (يرسل أمر اسبون تلقائي للباص ويركب)
 AddButton(Main, {
     Name = "سحب اللاعب بالباص",
     Callback = function()
@@ -761,58 +759,60 @@ AddButton(Main, {
         local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
         local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
-        local originalPos = humanoidRootPart.Position
-
-        -- الذهاب إلى موقع الباص (مثال)
-        humanoidRootPart.CFrame = CFrame.new(1082.86, 76.00, -1125.20)
-        wait(0.3)
-
+        -- ارسال امر اسبون الباص تلقائي بدون ما تروح لمكان معين
         RemoteEvent:FireServer("PickingCar", "SchoolBus")
-        wait(3.5)
+        wait(4) -- ننتظر شوي حتى يجي الباص
 
-        local function sitInBus()
-            local vehicleName = LocalPlayer.Name .. "Car"
-            local vehicle = workspace.Vehicles:FindFirstChild(vehicleName)
-            if not vehicle then return false end
-            local vehicleSeat = vehicle.Body and vehicle.Body:FindFirstChild("VehicleSeat")
-            if not vehicleSeat then return false end
-            humanoidRootPart.Anchored = false
-            humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0, 0.3, 0)
-            wait(0.15)
-            return true
+        -- الجلوس في الباص
+        local vehicleName = LocalPlayer.Name .. "Car"
+        local vehicle = workspace.Vehicles:FindFirstChild(vehicleName)
+        if not vehicle then
+            warn("لم يتم استدعاء الباص")
+            return
         end
-
-        if not sitInBus() then
-            warn("فشل الجلوس في الباص")
+        local vehicleSeat = vehicle.Body and vehicle.Body:FindFirstChild("VehicleSeat")
+        if not vehicleSeat then
+            warn("لم يتم العثور على مقعد الباص")
             return
         end
 
-        local targetHRP = targetPlayer.Character.HumanoidRootPart
-        local vehicleName = LocalPlayer.Name .. "Car"
-        local vehicle = workspace.Vehicles:FindFirstChild(vehicleName)
+        humanoidRootPart.Anchored = false
+        humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0, 0.3, 0)
+        wait(0.15)
 
-        if vehicle then
-            local crazyStart = tick()
-            while tick() - crazyStart < 2.5 do
-                local offset = Vector3.new(
-                    math.random(-25, 12),
-                    math.random(-13, 10),
-                    math.random(-10, 18)
-                )
-                vehicle:SetPrimaryPartCFrame(CFrame.new(targetHRP.Position + Vector3.new(0, -2, 0) + offset))
-                wait(0.04)
-            end
-            vehicle:SetPrimaryPartCFrame(CFrame.new(originalPos))
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.Sit = true
         end
 
+        wait(0.5)
+
+        local targetHRP = targetPlayer.Character.HumanoidRootPart
+
+        local crazyStart = tick()
+        while tick() - crazyStart < 2.5 do
+            local offset = Vector3.new(
+                math.random(-25, 12),
+                math.random(-13, 10),
+                math.random(-10, 18)
+            )
+            vehicle:SetPrimaryPartCFrame(CFrame.new(targetHRP.Position + Vector3.new(0, -2, 0) + offset))
+            wait(0.04)
+        end
+
+        -- ارجاع الباص لمكانه الأصلي
+        vehicle:SetPrimaryPartCFrame(CFrame.new(humanoidRootPart.Position))
         wait(0.3)
-        humanoidRootPart.CFrame = CFrame.new(originalPos)
+
         humanoidRootPart.Anchored = false
+        humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+        wait(0.3)
+
         print("تم سحب اللاعب بالباص")
     end
 })
 
--- زر قتل اللاعب بالكنبة (ينقل اللاعب تحت الماب)
+-- زر قتل اللاعب بالكنبة مع فلنج قصير (ينقل اللاعب تحت الماب ثم يرجع)
 AddButton(Main, {
     Name = "قتل اللاعب بالكنبة",
     Callback = function()
@@ -828,11 +828,12 @@ AddButton(Main, {
 
         local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
         local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
 
         local originalPos = humanoidRootPart.Position
         local originalAnchored = humanoidRootPart.Anchored
 
-        -- أخذ الكنبة أولاً
+        -- أخذ الكنبة بدون حذفها (ما تروح)
         local toolInvoke = ReplicatedStorage.RE:FindFirstChild("1Too1l")
         if toolInvoke then
             toolInvoke:InvokeServer("PickingTools", "Couch")
@@ -844,23 +845,49 @@ AddButton(Main, {
         wait(0.5)
 
         local targetHRP = targetPlayer.Character.HumanoidRootPart
+
+        -- تحريك شخصية السكربت فوق اللاعب
         humanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(0, 3, 0)
-        wait(0.5)
+        wait(0.3)
+
+        -- فلنج قصير نحو اللاعب
+        local thrust = Instance.new("BodyThrust")
+        thrust.Name = "FlingForce"
+        thrust.Force = Vector3.new(99999, 99999, 99999)
+        thrust.Parent = humanoidRootPart
+
+        local flingDuration = 1.2
+        local flingStart = tick()
+        local connection
+        connection = RunService.Heartbeat:Connect(function()
+            if tick() - flingStart > flingDuration then
+                connection:Disconnect()
+                thrust:Destroy()
+                return
+            end
+            thrust.Location = targetHRP.Position
+            humanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(0, 3, 0)
+        end)
+
+        wait(flingDuration + 0.1)
 
         -- نقل اللاعب تحت الماب وقتله
-        local underMapPos = Vector3.new(0, -500, 0)
-        targetHRP.CFrame = CFrame.new(underMapPos)
+        local deathPos = Vector3.new(0, -500, 0)
+        targetHRP.CFrame = CFrame.new(deathPos)
 
         wait(1)
 
         humanoidRootPart.CFrame = CFrame.new(originalPos)
         humanoidRootPart.Anchored = originalAnchored
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+        end
 
-        print("تم قتل اللاعب بالكنبة")
+        print("تم قتل اللاعب بالكنبة مع فلنج قصير")
     end
 })
 
--- زر فلنج اللاعب (يلتصق ويدور ثم ينقله تحت الماب)
+-- زر فلنج اللاعب يدور ويلتصق ثم ينقل اللاعب تحت الماب ويقتله
 AddButton(Main, {
     Name = "فلنج اللاعب",
     Callback = function()
@@ -877,6 +904,7 @@ AddButton(Main, {
 
         local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
         local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
 
         -- إزالة أي فلنج قديم
         local oldForce = humanoidRootPart:FindFirstChild("FlingForce")
@@ -905,15 +933,10 @@ AddButton(Main, {
             thrust.Location = targetHRP.Position
         end)
 
+        -- بعد 4 ثواني ننهي الفلنج وننقل اللاعب تحت الماب
         delay(4, function()
             connection:Disconnect()
             thrust:Destroy()
-
-            local humanoid = character:FindFirstChild("Humanoid")
-            if not humanoid then return end
-
-            local originalPos = humanoidRootPart.Position
-            local originalAnchored = humanoidRootPart.Anchored
 
             local deathPos = Vector3.new(0, -500, 0)
             targetHRP.CFrame = CFrame.new(deathPos)
@@ -921,11 +944,16 @@ AddButton(Main, {
 
             wait(1)
 
-            humanoidRootPart.CFrame = CFrame.new(originalPos)
-            humanoidRootPart.Anchored = originalAnchored
-            humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+            humanoidRootPart.CFrame = CFrame.new(character.HumanoidRootPart.Position)
+            humanoidRootPart.Anchored = false
+            if humanoid then
+                humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+            end
 
             print("تم فلنج اللاعب وقتله تحت الماب")
         end)
     end
 })
+
+-- شغل تحديث القائمة أول مرة
+UpdatePlayerDropdown()
