@@ -684,47 +684,129 @@ AddButton(Main, {
 -- قسم الفلنجات (Dragging) --
 ----------------------------
 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- دالة جلب أسماء اللاعبين بدون اللاعب نفسه
+local function GetOtherPlayerNames()
+    local names = {}
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            table.insert(names, player.Name)
+        end
+    end
+    return names
+end
+
+-- إشعار تحديث القائمة (تقدر تغيرها لو تحب إشعار أوسع)
+local function ShowListUpdatedNotification()
+    print("✅ تم تحديث قائمة الفلنجات (السحب) تلقائيًا")
+end
+
+-- =========== قسم الفلنجات (السحب) ===========
+
 AddSection(Main, {"الفلنجات"})
 
-local selectedDragTarget = killTargets[1]
-local dragDropdown = AddDropdown(Main, {
-    Name = "اختر لاعب للسحب",
-    Options = killTargets,
-    Default = killTargets[1] or "",
+local flingAndKillTargets = GetOtherPlayerNames()
+local selectedFlingTarget = flingAndKillTargets[1]
+
+local flingTargetDropdown = AddDropdown(Main, {
+    Name = "اختر لاعب للسحب والقتل",
+    Options = flingAndKillTargets,
+    Default = flingAndKillTargets[1] or "",
     Callback = function(value)
-        selectedDragTarget = value
+        selectedFlingTarget = value
     end
 })
 
-local function UpdateDragDropdown()
+local function UpdateFlingTargetDropdown()
     local newOptions = GetOtherPlayerNames()
-    if dragDropdown.UpdateOptions then
-        dragDropdown:UpdateOptions(newOptions)
-    else
-        -- لو ما في UpdateOptions، لازم تعيد إنشاء القائمة
+    if flingTargetDropdown.UpdateOptions then
+        flingTargetDropdown:UpdateOptions(newOptions)
     end
-
     if #newOptions > 0 then
-        selectedDragTarget = newOptions[1]
+        selectedFlingTarget = newOptions[1]
     else
-        selectedDragTarget = nil
+        selectedFlingTarget = nil
     end
-
     ShowListUpdatedNotification()
 end
 
-Players.PlayerAdded:Connect(UpdateDragDropdown)
-Players.PlayerRemoving:Connect(UpdateDragDropdown)
+Players.PlayerAdded:Connect(UpdateFlingTargetDropdown)
+Players.PlayerRemoving:Connect(UpdateFlingTargetDropdown)
+
+-- =========== أزرار الفلنج والقتل ===========
+
+AddButton(Main, {
+    Name = "الاعب Fling",
+    Callback = function()
+        if not selectedFlingTarget then
+            warn("اختر لاعبًا أولاً من قائمة الفلنجات")
+            return
+        end
+
+        local targetPlayer = Players:FindFirstChild(selectedFlingTarget)
+        if not (targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")) then
+            warn("اللاعب غير موجود أو لم يُحمّل")
+            return
+        end
+
+        local runService = game:GetService('RunService')
+        local player = LocalPlayer
+
+        local Thrust = Instance.new('BodyThrust', player.Character.HumanoidRootPart)
+        Thrust.Force = Vector3.new(999, 999, 999)
+        Thrust.Name = "FlingForce"
+
+        repeat
+            player.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+            Thrust.Location = targetPlayer.Character.HumanoidRootPart.Position
+            runService.Heartbeat:Wait()
+        until not targetPlayer.Character:FindFirstChild("Head")
+    end
+})
+
+AddButton(Main, {
+    Name = "اقتل اللاعب",
+    Callback = function()
+        if not selectedFlingTarget then
+            warn("اختر لاعبًا أولاً من قائمة الفلنجات")
+            return
+        end
+
+        local targetPlayer = Players:FindFirstChild(selectedFlingTarget)
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Humanoid") then
+            targetPlayer.Character.Humanoid.Health = 0
+        else
+            warn("اللاعب غير موجود أو الشخصية غير جاهزة")
+        end
+    end
+})
+
+local section = AddSection(Main, {"قبل القتل أخذ كنبة"})
+
+AddButton(Main, {
+    Name = "كنبة",
+    Callback = function()
+        local args = {
+            [1] = "PickingTools",
+            [2] = "Couch"
+        }
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
+    end
+})
+
+-- =========== زر السحب بالباص مرتبط بنفس قائمة الفلنجات ===========
 
 AddButton(Main, {
     Name = "سحب بالباص",
     Callback = function()
-        if not selectedDragTarget then
-            warn("اختر لاعبًا أولًا")
+        if not selectedFlingTarget then
+            warn("اختر لاعبًا أولاً من قائمة الفلنجات")
             return
         end
 
-        local targetPlayer = Players:FindFirstChild(selectedDragTarget)
+        local targetPlayer = Players:FindFirstChild(selectedFlingTarget)
         if not (targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")) then
             warn("اللاعب غير موجود أو لم يُحمّل")
             return
@@ -744,7 +826,13 @@ AddButton(Main, {
             [1] = "PickingCar",
             [2] = "SchoolBus"
         }
-        RemoteEvent:FireServer(unpack(spawnArgs))
+        local RemoteEvent = game:GetService("ReplicatedStorage").RE:FindFirstChild("1Ca1r")
+        if RemoteEvent then
+            RemoteEvent:FireServer(unpack(spawnArgs))
+        else
+            warn("لم يتم إيجاد RemoteEvent 1Ca1r")
+            return
+        end
         wait(3.5)
 
         local function sitInBus()
@@ -763,7 +851,7 @@ AddButton(Main, {
 
             humanoid.Sit = true
             firetouchinterest(humanoidRootPart, vehicleSeat, 0)
-                        firetouchinterest(humanoidRootPart, vehicleSeat, 1)
+            firetouchinterest(humanoidRootPart, vehicleSeat, 1)
             wait(0.3)
 
             if humanoid.SeatPart ~= vehicleSeat then
@@ -777,7 +865,7 @@ AddButton(Main, {
 
         if not sitInBus() then return end
 
-        local targetPosition = Players:FindFirstChild(selectedDragTarget).Character.HumanoidRootPart.Position
+        local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
         local vehicleName = LocalPlayer.Name .. "Car"
         local vehicle = workspace.Vehicles:FindFirstChild(vehicleName)
 
@@ -806,7 +894,9 @@ AddButton(Main, {
         local deleteArgs = {
             [1] = "DeleteAllVehicles"
         }
-        RemoteEvent:FireServer(unpack(deleteArgs))
+        if RemoteEvent then
+            RemoteEvent:FireServer(unpack(deleteArgs))
+        end
 
         wait(0.2)
         humanoidRootPart.CFrame = CFrame.new(originalPosition)
@@ -815,6 +905,5 @@ AddButton(Main, {
     end
 })
 
--- تشغيل أول تحديث للقوائم عند بداية السكربت
-UpdateKillDropdowns()
-UpdateDragDropdown()
+-- تحديث القائمة أول مرة
+UpdateFlingTargetDropdown()
