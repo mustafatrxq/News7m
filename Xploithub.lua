@@ -685,9 +685,15 @@ AddButton(Main, {
 ----------------------------
 
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
--- دالة جلب أسماء اللاعبين بدون اللاعب نفسه
+local RemoteEvent = ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Ca1r") -- حدثك
+
+local Main = MakeTab({ Name = "التخريب" })
+
+-- وظيفة لجلب أسماء اللاعبين غير نفسك
 local function GetOtherPlayerNames()
     local names = {}
     for _, player in ipairs(Players:GetPlayers()) do
@@ -698,93 +704,237 @@ local function GetOtherPlayerNames()
     return names
 end
 
--- إشعار تحديث القائمة (تقدر تغيرها لو تحب إشعار أوسع)
-local function ShowListUpdatedNotification()
-    print("✅ تم تحديث قائمة الفلنجات (السحب) تلقائيًا")
-end
-
--- =========== قسم الفلنجات (السحب) ===========
-
+-- إضافة قسم فلنجات
 AddSection(Main, {"الفلنجات"})
 
-local flingAndKillTargets = GetOtherPlayerNames()
-local selectedFlingTarget = flingAndKillTargets[1]
+local playerNames = GetOtherPlayerNames()
+local selectedPlayerName = playerNames[1] or nil
 
-local flingTargetDropdown = AddDropdown(Main, {
-    Name = "اختر لاعب للسحب والقتل",
-    Options = flingAndKillTargets,
-    Default = flingAndKillTargets[1] or "",
+local playerDropdown = AddDropdown(Main, {
+    Name = "اختر لاعب",
+    Options = playerNames,
+    Default = playerNames[1] or "",
     Callback = function(value)
-        selectedFlingTarget = value
+        selectedPlayerName = value
     end
 })
 
-local function UpdateFlingTargetDropdown()
+local function UpdatePlayerDropdown()
     local newOptions = GetOtherPlayerNames()
-    if flingTargetDropdown.UpdateOptions then
-        flingTargetDropdown:UpdateOptions(newOptions)
+    if playerDropdown.UpdateOptions then
+        playerDropdown:UpdateOptions(newOptions)
     end
     if #newOptions > 0 then
-        selectedFlingTarget = newOptions[1]
+        selectedPlayerName = newOptions[1]
     else
-        selectedFlingTarget = nil
+        selectedPlayerName = nil
     end
-    ShowListUpdatedNotification()
+    print("✅ تم تحديث قائمة اللاعبين تلقائيًا")
 end
 
-Players.PlayerAdded:Connect(UpdateFlingTargetDropdown)
-Players.PlayerRemoving:Connect(UpdateFlingTargetDropdown)
+Players.PlayerAdded:Connect(UpdatePlayerDropdown)
+Players.PlayerRemoving:Connect(UpdatePlayerDropdown)
 
--- =========== أزرار الفلنج والقتل ===========
-
+-- زر قتل اللاعب
 AddButton(Main, {
-    Name = "الاعب Fling",
+    Name = "قتل اللاعب",
     Callback = function()
-        if not selectedFlingTarget then
-            warn("اختر لاعبًا أولاً من قائمة الفلنجات")
+        if not selectedPlayerName then
+            warn("اختر لاعبًا أولاً")
             return
         end
 
-        local targetPlayer = Players:FindFirstChild(selectedFlingTarget)
+        local targetPlayer = Players:FindFirstChild(selectedPlayerName)
         if not (targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")) then
-            warn("اللاعب غير موجود أو لم يُحمّل")
-            return
-        end
-
-        local runService = game:GetService('RunService')
-        local player = LocalPlayer
-
-        local Thrust = Instance.new('BodyThrust', player.Character.HumanoidRootPart)
-        Thrust.Force = Vector3.new(999, 999, 999)
-        Thrust.Name = "FlingForce"
-
-        repeat
-            player.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
-            Thrust.Location = targetPlayer.Character.HumanoidRootPart.Position
-            runService.Heartbeat:Wait()
-        until not targetPlayer.Character:FindFirstChild("Head")
-    end
-})
-
-AddButton(Main, {
-    Name = "اقتل اللاعب",
-    Callback = function()
-        if not selectedFlingTarget then
-            warn("اختر لاعبًا أولاً من قائمة الفلنجات")
-            return
-        end
-
-        local targetPlayer = Players:FindFirstChild(selectedFlingTarget)
-        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Humanoid") then
-            targetPlayer.Character.Humanoid.Health = 0
-        else
             warn("اللاعب غير موجود أو الشخصية غير جاهزة")
+            return
         end
+
+        local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local humanoid = character:WaitForChild("Humanoid")
+        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+        local originalPos = humanoidRootPart.Position
+        local originalAnchored = humanoidRootPart.Anchored
+
+        humanoidRootPart.CFrame = CFrame.new(634.18, -4.00, 1839.65)
+        wait(0.5)
+
+        RemoteEvent:FireServer("PickingBoat", "MilitaryBoatFree")
+        wait(1.5)
+
+        local vehicle = workspace.Vehicles:FindFirstChild(LocalPlayer.Name .. "Car")
+        if not vehicle then warn("لم يتم إنشاء المركبة") return end
+
+        local vehicleSeat = vehicle.Body and vehicle.Body:FindFirstChild("VehicleSeat")
+        if not vehicleSeat then warn("لم يتم العثور على مقعد المركبة") return end
+
+        humanoidRootPart.Anchored = false
+        humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+        wait(0.2)
+
+        humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0, 0.5, 0)
+        wait(0.2)
+
+        humanoid.Sit = true
+        firetouchinterest(humanoidRootPart, vehicleSeat, 0)
+        firetouchinterest(humanoidRootPart, vehicleSeat, 1)
+        wait(0.5)
+
+        if humanoid.SeatPart ~= vehicleSeat then
+            humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0, 0.5, 0)
+            humanoid.Sit = true
+            wait(0.5)
+        end
+
+        local targetPos = targetPlayer.Character.HumanoidRootPart.Position
+        local startTime = tick()
+        while tick() - startTime < 2 do
+            local offset = Vector3.new(math.random(-25,12), math.random(-13,10), math.random(-10,18))
+            vehicle:SetPrimaryPartCFrame(CFrame.new(targetPos + Vector3.new(0,-2,0) + offset))
+            wait(0.05)
+        end
+
+        local deathPos = Vector3.new(-86, -224.27, 34.57)
+        vehicle:SetPrimaryPartCFrame(CFrame.new(deathPos))
+        humanoidRootPart.CFrame = CFrame.new(deathPos + Vector3.new(0,5,0))
+        wait(1)
+
+        humanoidRootPart.Anchored = false
+        humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+
+        vehicle:Destroy()
+
+        wait(0.5)
+        humanoidRootPart.CFrame = CFrame.new(originalPos)
+        humanoidRootPart.Anchored = originalAnchored
+        humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+
+        RemoteEvent:FireServer("PickingBoat", "MilitaryBoatFree")
+        wait(0.5)
+        RemoteEvent:FireServer("DeleteAllVehicles")
     end
 })
 
-local section = AddSection(Main, {"قبل القتل أخذ كنبة"})
+-- زر فلنج اللاعب
+AddButton(Main, {
+    Name = "فلنج اللاعب",
+    Callback = function()
+        if not selectedPlayerName then
+            warn("اختر لاعبًا أولاً")
+            return
+        end
 
+        local targetPlayer = Players:FindFirstChild(selectedPlayerName)
+        local character = LocalPlayer.Character
+        if not character then
+            warn("شخصيتك غير موجودة")
+            return
+        end
+
+        if not (targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")) then
+            warn("اللاعب غير موجود أو الشخصية غير جاهزة")
+            return
+        end
+
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        if not hrp then
+            warn("لا يوجد HumanoidRootPart في شخصيتك")
+            return
+        end
+
+        local oldForce = hrp:FindFirstChild("FlingForce")
+        if oldForce then oldForce:Destroy() end
+
+        local thrust = Instance.new("BodyThrust")
+        thrust.Name = "FlingForce"
+        thrust.Force = Vector3.new(999999, 999999, 999999)
+        thrust.Parent = hrp
+
+        local targetHRP = targetPlayer.Character.HumanoidRootPart
+
+        local connection
+        connection = RunService.Heartbeat:Connect(function()
+            if not (targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")) then
+                connection:Disconnect()
+                thrust:Destroy()
+                return
+            end
+            hrp.CFrame = targetHRP.CFrame * CFrame.new(3,0,0)
+            thrust.Location = targetHRP.Position
+        end)
+
+        delay(3, function()
+            connection:Disconnect()
+            thrust:Destroy()
+
+            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local humanoid = character:WaitForChild("Humanoid")
+            local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+            local originalPos = humanoidRootPart.Position
+            local originalAnchored = humanoidRootPart.Anchored
+
+            humanoidRootPart.CFrame = CFrame.new(634.18, -4.00, 1839.65)
+            wait(0.5)
+
+            RemoteEvent:FireServer("PickingBoat", "MilitaryBoatFree")
+            wait(1.5)
+
+            local vehicle = workspace.Vehicles:FindFirstChild(LocalPlayer.Name .. "Car")
+            if not vehicle then
+                warn("لم يتم إنشاء المركبة")
+                return
+            end
+
+            local vehicleSeat = vehicle.Body and vehicle.Body:FindFirstChild("VehicleSeat")
+            if not vehicleSeat then
+                warn("لم يتم العثور على مقعد المركبة")
+                return
+            end
+
+            humanoidRootPart.Anchored = false
+            humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+            wait(0.2)
+
+            humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0, 0.5, 0)
+            wait(0.2)
+
+            humanoid.Sit = true
+            firetouchinterest(humanoidRootPart, vehicleSeat, 0)
+            firetouchinterest(humanoidRootPart, vehicleSeat, 1)
+            wait(0.5)
+
+            if humanoid.SeatPart ~= vehicleSeat then
+                humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0, 0.5, 0)
+                humanoid.Sit = true
+                wait(0.5)
+            end
+
+            local deathPos = Vector3.new(-86, -224.27, 34.57)
+            vehicle:SetPrimaryPartCFrame(CFrame.new(deathPos))
+            humanoidRootPart.CFrame = CFrame.new(deathPos + Vector3.new(0,5,0))
+            wait(1)
+
+            humanoidRootPart.Anchored = false
+            humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+
+            vehicle:Destroy()
+
+            wait(0.5)
+            humanoidRootPart.CFrame = CFrame.new(originalPos)
+            humanoidRootPart.Anchored = originalAnchored
+            humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+
+            RemoteEvent:FireServer("PickingBoat", "MilitaryBoatFree")
+            wait(0.5)
+            RemoteEvent:FireServer("DeleteAllVehicles")
+        end)
+    end
+})
+
+-- زر كنبة (كما هو عندك)
+AddSection(Main, {"قبل القتل أخذ كنبة"})
 AddButton(Main, {
     Name = "كنبة",
     Callback = function()
@@ -792,23 +942,22 @@ AddButton(Main, {
             [1] = "PickingTools",
             [2] = "Couch"
         }
-        game:GetService("ReplicatedStorage").RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
+        ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
     end
 })
 
--- =========== زر السحب بالباص مرتبط بنفس قائمة الفلنجات ===========
-
+-- زر سحب بالباص (كود السحب كامل)
 AddButton(Main, {
     Name = "سحب بالباص",
     Callback = function()
-        if not selectedFlingTarget then
-            warn("اختر لاعبًا أولاً من قائمة الفلنجات")
+        if not selectedPlayerName then
+            warn("اختر لاعبًا أولاً")
             return
         end
 
-        local targetPlayer = Players:FindFirstChild(selectedFlingTarget)
+        local targetPlayer = Players:FindFirstChild(selectedPlayerName)
         if not (targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")) then
-            warn("اللاعب غير موجود أو لم يُحمّل")
+            warn("اللاعب غير موجود أو الشخصية غير جاهزة")
             return
         end
 
@@ -826,13 +975,7 @@ AddButton(Main, {
             [1] = "PickingCar",
             [2] = "SchoolBus"
         }
-        local RemoteEvent = game:GetService("ReplicatedStorage").RE:FindFirstChild("1Ca1r")
-        if RemoteEvent then
-            RemoteEvent:FireServer(unpack(spawnArgs))
-        else
-            warn("لم يتم إيجاد RemoteEvent 1Ca1r")
-            return
-        end
+        RemoteEvent:FireServer(unpack(spawnArgs))
         wait(3.5)
 
         local function sitInBus()
@@ -894,9 +1037,7 @@ AddButton(Main, {
         local deleteArgs = {
             [1] = "DeleteAllVehicles"
         }
-        if RemoteEvent then
-            RemoteEvent:FireServer(unpack(deleteArgs))
-        end
+        RemoteEvent:FireServer(unpack(deleteArgs))
 
         wait(0.2)
         humanoidRootPart.CFrame = CFrame.new(originalPosition)
@@ -905,5 +1046,5 @@ AddButton(Main, {
     end
 })
 
--- تحديث القائمة أول مرة
-UpdateFlingTargetDropdown()
+-- بداية تحديث قائمة اللاعبين
+UpdatePlayerDropdown()
