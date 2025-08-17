@@ -1005,13 +1005,17 @@ local Workspace = game:GetService("Workspace")
 local Camera = Workspace.CurrentCamera
 local backpack = LocalPlayer:WaitForChild("Backpack")
 
--- متغير نخزن بيه اللاعب المختار
+-- اللاعب المختار من القائمة
 local SelectedPlayer = nil
-local PlayerDropdown = nil -- نخزن القائمة حتى نحدثها
+local PlayerDropdown = nil -- نخزن القائمة لتحديثها
 
 -- دالة الفلنق
 local function FlingBall(target)
-    if not target then return end
+    if not target then 
+        warn("⚠️ ماكو لاعب محدد للفلنق!")
+        return 
+    end
+
     local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
     local humanoid = character:WaitForChild("Humanoid")
     local ServerBalls = Workspace.WorkspaceCom:WaitForChild("001_SoccerBalls")
@@ -1036,45 +1040,43 @@ local function FlingBall(target)
     Ball.Massless = true
     Ball.CustomPhysicalProperties = PhysicalProperties.new(0.0001, 0, 0)
 
-    if target ~= LocalPlayer then
-        local tchar = target.Character
-        if tchar and tchar:FindFirstChild("HumanoidRootPart") and tchar:FindFirstChild("Humanoid") then
-            local troot = tchar.HumanoidRootPart
-            local thum = tchar.Humanoid
+    local tchar = target.Character
+    if tchar and tchar:FindFirstChild("HumanoidRootPart") and tchar:FindFirstChild("Humanoid") then
+        local troot = tchar.HumanoidRootPart
+        local thum = tchar.Humanoid
 
-            if Ball:FindFirstChildWhichIsA("BodyVelocity") then
-                Ball:FindFirstChildWhichIsA("BodyVelocity"):Destroy()
-            end
+        if Ball:FindFirstChildWhichIsA("BodyVelocity") then
+            Ball:FindFirstChildWhichIsA("BodyVelocity"):Destroy()
+        end
 
-            local bv = Instance.new("BodyVelocity")
-            bv.Name = "FlingPower"
-            bv.Velocity = Vector3.new(9e8, 9e8, 9e8)
-            bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-            bv.P = 9e900
-            bv.Parent = Ball
+        local bv = Instance.new("BodyVelocity")
+        bv.Name = "FlingPower"
+        bv.Velocity = Vector3.new(9e8, 9e8, 9e8)
+        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bv.P = 9e900
+        bv.Parent = Ball
 
-            Camera.CameraSubject = thum
+        Camera.CameraSubject = thum
 
-            repeat
-                if troot.Velocity.Magnitude > 0 then
-                    Ball.CFrame = CFrame.new(troot.Position + (troot.Velocity / 1.5))
-                    Ball.Orientation += Vector3.new(45, 60, 30)
-                else
-                    for _, v in ipairs(tchar:GetChildren()) do
-                        if v:IsA("BasePart") and v.CanCollide and not v.Anchored then
-                            Ball.CFrame = v.CFrame
-                            task.wait(1 / 6000)
-                        end
+        repeat
+            if troot.Velocity.Magnitude > 0 then
+                Ball.CFrame = CFrame.new(troot.Position + (troot.Velocity / 1.5))
+                Ball.Orientation += Vector3.new(45, 60, 30)
+            else
+                for _, v in ipairs(tchar:GetChildren()) do
+                    if v:IsA("BasePart") and v.CanCollide and not v.Anchored then
+                        Ball.CFrame = v.CFrame
+                        task.wait(1 / 6000)
                     end
                 end
-                task.wait(1 / 6000)
-            until troot.Velocity.Magnitude > 1000 or thum.Health <= 0 or not tchar:IsDescendantOf(Workspace)
-            Camera.CameraSubject = humanoid
-        end
+            end
+            task.wait(1 / 6000)
+        until troot.Velocity.Magnitude > 1000 or thum.Health <= 0 or not tchar:IsDescendantOf(Workspace)
+        Camera.CameraSubject = humanoid
     end
 end
 
--- فنكشن تحدث القائمة
+-- فنكشن لتحديث القائمة تلقائياً
 local function UpdateDropdown()
     local names = {}
     for _, plr in ipairs(Players:GetPlayers()) do
@@ -1094,21 +1096,21 @@ PlayerDropdown = AddDropdown(Main, {
     end
 })
 
--- تحديث أولي
+-- تحديث أولي للقائمة
 UpdateDropdown()
 
--- تحديث عند دخول/خروج لاعبين
+-- تحديث تلقائي عند دخول أو خروج لاعب
 Players.PlayerAdded:Connect(UpdateDropdown)
 Players.PlayerRemoving:Connect(UpdateDropdown)
 
--- زر فلنق كرة
+-- زر داخل نفس القائمة (أسفلها) للفلنق
 AddButton(Main, {
     Name = "فلنق كرة",
     Callback = function()
         if SelectedPlayer then
             FlingBall(SelectedPlayer)
         else
-            warn("⚠️ لازم تختار لاعب أولاً من القائمة قبل ما تستخدم الفلنق")
+            warn("⚠️ لازم تختار لاعب أولاً من القائمة قبل الفلنق")
         end
     end
 })
