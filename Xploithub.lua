@@ -998,119 +998,111 @@ AddButton(Main, {
 -- تهيئة القائمة عند بداية السكربت
 UpdateDragDropdown()
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
-local Camera = Workspace.CurrentCamera
-local backpack = LocalPlayer:WaitForChild("Backpack")
+AddButton(Main, {
+    Name = "فلنق كره",
+    Callback = function()
+        local Players = game:GetService("Players")
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local Workspace = game:GetService("Workspace")
+        local UserInputService = game:GetService("UserInputService")
+        local Camera = Workspace.CurrentCamera
+        local LocalPlayer = Players.LocalPlayer
 
--- اللاعب المختار من القائمة
-local SelectedPlayer = nil
-local PlayerDropdown = nil -- نخزن القائمة لتحديثها
+        local TOOL_NAME = "Click Fling Ball"
+        local toolEquipped = false
 
--- دالة الفلنق
-local function FlingBall(target)
-    if not target then 
-        warn("⚠️ ماكو لاعب محدد للفلنق!")
-        return 
-    end
+        local backpack = LocalPlayer:WaitForChild("Backpack")
+        if not backpack:FindFirstChild(TOOL_NAME) then
+            local tool = Instance.new("Tool")
+            tool.Name = TOOL_NAME
+            tool.RequiresHandle = false
+            tool.CanBeDropped = false
 
-    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    local humanoid = character:WaitForChild("Humanoid")
-    local ServerBalls = Workspace.WorkspaceCom:WaitForChild("001_SoccerBalls")
+            tool.Equipped:Connect(function()
+                toolEquipped = true
+            end)
+            tool.Unequipped:Connect(function()
+                toolEquipped = false
+            end)
 
-    local function GetBall()
-        if not backpack:FindFirstChild("SoccerBall") and not character:FindFirstChild("SoccerBall") then
-            ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "SoccerBall")
-        end
-        repeat task.wait() until backpack:FindFirstChild("SoccerBall") or character:FindFirstChild("SoccerBall")
-
-        local tool = backpack:FindFirstChild("SoccerBall")
-        if tool then
-            tool.Parent = character
+            tool.Parent = backpack
         end
 
-        repeat task.wait() until ServerBalls:FindFirstChild("Soccer" .. LocalPlayer.Name)
-        return ServerBalls:FindFirstChild("Soccer" .. LocalPlayer.Name)
-    end
+        local function FlingBall(target)
+            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local humanoid = character:WaitForChild("Humanoid")
+            local hrp = character:WaitForChild("HumanoidRootPart")
+            local ServerBalls = Workspace.WorkspaceCom:WaitForChild("001_SoccerBalls")
 
-    local Ball = ServerBalls:FindFirstChild("Soccer" .. LocalPlayer.Name) or GetBall()
-    Ball.CanCollide = false
-    Ball.Massless = true
-    Ball.CustomPhysicalProperties = PhysicalProperties.new(0.0001, 0, 0)
+            local function GetBall()
+                if not backpack:FindFirstChild("SoccerBall") and not character:FindFirstChild("SoccerBall") then
+                    ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "SoccerBall")
+                end
+                repeat task.wait() until backpack:FindFirstChild("SoccerBall") or character:FindFirstChild("SoccerBall")
 
-    local tchar = target.Character
-    if tchar and tchar:FindFirstChild("HumanoidRootPart") and tchar:FindFirstChild("Humanoid") then
-        local troot = tchar.HumanoidRootPart
-        local thum = tchar.Humanoid
+                local tool = backpack:FindFirstChild("SoccerBall")
+                if tool then
+                    tool.Parent = character
+                end
 
-        if Ball:FindFirstChildWhichIsA("BodyVelocity") then
-            Ball:FindFirstChildWhichIsA("BodyVelocity"):Destroy()
-        end
+                repeat task.wait() until ServerBalls:FindFirstChild("Soccer" .. LocalPlayer.Name)
+                return ServerBalls:FindFirstChild("Soccer" .. LocalPlayer.Name)
+            end
 
-        local bv = Instance.new("BodyVelocity")
-        bv.Name = "FlingPower"
-        bv.Velocity = Vector3.new(9e8, 9e8, 9e8)
-        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bv.P = 9e900
-        bv.Parent = Ball
+            local Ball = ServerBalls:FindFirstChild("Soccer" .. LocalPlayer.Name) or GetBall()
+            Ball.CanCollide = false
+            Ball.Massless = true
+            Ball.CustomPhysicalProperties = PhysicalProperties.new(0.0001, 0, 0)
 
-        Camera.CameraSubject = thum
+            if target ~= LocalPlayer then
+                local tchar = target.Character
+                if tchar and tchar:FindFirstChild("HumanoidRootPart") and tchar:FindFirstChild("Humanoid") then
+                    local troot = tchar.HumanoidRootPart
+                    local thum = tchar.Humanoid
 
-        repeat
-            if troot.Velocity.Magnitude > 0 then
-                Ball.CFrame = CFrame.new(troot.Position + (troot.Velocity / 1.5))
-                Ball.Orientation += Vector3.new(45, 60, 30)
-            else
-                for _, v in ipairs(tchar:GetChildren()) do
-                    if v:IsA("BasePart") and v.CanCollide and not v.Anchored then
-                        Ball.CFrame = v.CFrame
-                        task.wait(1 / 6000)
+                    if Ball:FindFirstChildWhichIsA("BodyVelocity") then
+                        Ball:FindFirstChildWhichIsA("BodyVelocity"):Destroy()
                     end
+
+                    local bv = Instance.new("BodyVelocity")
+                    bv.Name = "FlingPower"
+                    bv.Velocity = Vector3.new(9e8, 9e8, 9e8)
+                    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                    bv.P = 9e900
+                    bv.Parent = Ball
+
+                    Camera.CameraSubject = thum
+
+                    repeat
+                        if troot.Velocity.Magnitude > 0 then
+                            Ball.CFrame = CFrame.new(troot.Position + (troot.Velocity / 1.5))
+                            Ball.Orientation += Vector3.new(45, 60, 30)
+                        else
+                            for _, v in ipairs(tchar:GetChildren()) do
+                                if v:IsA("BasePart") and v.CanCollide and not v.Anchored then
+                                    Ball.CFrame = v.CFrame
+                                    task.wait(1 / 6000)
+                                end
+                            end
+                        end
+                        task.wait(1 / 6000)
+                    until troot.Velocity.Magnitude > 1000 or thum.Health <= 0 or not tchar:IsDescendantOf(Workspace)Camera.CameraSubject = humanoid
                 end
             end
-            task.wait(1 / 6000)
-        until troot.Velocity.Magnitude > 1000 or thum.Health <= 0 or not tchar:IsDescendantOf(Workspace)
-        Camera.CameraSubject = humanoid
-    end
-end
-
--- فنكشن لتحديث القائمة تلقائياً
-local function UpdateDropdown()
-    local names = {}
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer then
-            table.insert(names, plr.Name)
         end
-    end
-    PlayerDropdown:Refresh(names)
-end
 
--- إنشاء القائمة
-PlayerDropdown = AddDropdown(Main, {
-    Name = "اختيار لاعب للفلنق",
-    Options = {},
-    Callback = function(value)
-        SelectedPlayer = Players:FindFirstChild(value)
-    end
-})
-
--- تحديث أولي للقائمة
-UpdateDropdown()
-
--- تحديث تلقائي عند دخول أو خروج لاعب
-Players.PlayerAdded:Connect(UpdateDropdown)
-Players.PlayerRemoving:Connect(UpdateDropdown)
-
--- زر داخل نفس القائمة (أسفلها) للفلنق
-AddButton(Main, {
-    Name = "فلنق كرة",
-    Callback = function()
-        if SelectedPlayer then
-            FlingBall(SelectedPlayer)
-        else
-            warn("⚠️ لازم تختار لاعب أولاً من القائمة قبل الفلنق")
-        end
+        UserInputService.TouchTap:Connect(function(touches, processed)
+            if not toolEquipped or processed then return end
+            local pos = touches[1]
+            local ray = Camera:ScreenPointToRay(pos.X, pos.Y)
+            local hit = Workspace:Raycast(ray.Origin, ray.Direction * 1000)
+            if hit and hit.Instance then
+                local model = hit.Instance:FindFirstAncestorOfClass("Model")
+                local player = Players:GetPlayerFromCharacter(model)
+                if player and player ~= LocalPlayer then
+                    FlingBall(player)
+                end
+            end
+        end)
     end
 })
