@@ -997,3 +997,80 @@ AddButton(Main, {
 
 -- تهيئة القائمة عند بداية السكربت
 UpdateDragDropdown()
+
+-- دالة الفلنق
+local function FlingBall(target)
+    if not target then return end
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    local ServerBalls = Workspace.WorkspaceCom:WaitForChild("001_SoccerBalls")
+
+    local function GetBall()
+        if not backpack:FindFirstChild("SoccerBall") and not character:FindFirstChild("SoccerBall") then
+            ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "SoccerBall")
+        end
+        repeat task.wait() until backpack:FindFirstChild("SoccerBall") or character:FindFirstChild("SoccerBall")
+
+        local tool = backpack:FindFirstChild("SoccerBall")
+        if tool then
+            tool.Parent = character
+        end
+
+        repeat task.wait() until ServerBalls:FindFirstChild("Soccer" .. LocalPlayer.Name)
+        return ServerBalls:FindFirstChild("Soccer" .. LocalPlayer.Name)
+    end
+
+    local Ball = ServerBalls:FindFirstChild("Soccer" .. LocalPlayer.Name) or GetBall()
+    Ball.CanCollide = false
+    Ball.Massless = true
+    Ball.CustomPhysicalProperties = PhysicalProperties.new(0.0001, 0, 0)
+
+    if target ~= LocalPlayer then
+        local tchar = target.Character
+        if tchar and tchar:FindFirstChild("HumanoidRootPart") and tchar:FindFirstChild("Humanoid") then
+            local troot = tchar.HumanoidRootPart
+            local thum = tchar.Humanoid
+
+            if Ball:FindFirstChildWhichIsA("BodyVelocity") then
+                Ball:FindFirstChildWhichIsA("BodyVelocity"):Destroy()
+            end
+
+            local bv = Instance.new("BodyVelocity")
+            bv.Name = "FlingPower"
+            bv.Velocity = Vector3.new(9e8, 9e8, 9e8)
+            bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            bv.P = 9e900
+            bv.Parent = Ball
+
+            Camera.CameraSubject = thum
+
+            repeat
+                if troot.Velocity.Magnitude > 0 then
+                    Ball.CFrame = CFrame.new(troot.Position + (troot.Velocity / 1.5))
+                    Ball.Orientation += Vector3.new(45, 60, 30)
+                else
+                    for _, v in ipairs(tchar:GetChildren()) do
+                        if v:IsA("BasePart") and v.CanCollide and not v.Anchored then
+                            Ball.CFrame = v.CFrame
+                            task.wait(1 / 6000)
+                        end
+                    end
+                end
+                task.wait(1 / 6000)
+            until troot.Velocity.Magnitude > 1000 or thum.Health <= 0 or not tchar:IsDescendantOf(Workspace)
+            Camera.CameraSubject = humanoid
+        end
+    end
+end
+
+-- زر فلنق كرة تحت القائمة
+AddButton(Main, {
+    Name = "فلنق كرة",
+    Callback = function()
+        if SelectedPlayer then
+            FlingBall(SelectedPlayer)
+        else
+            warn("اختار لاعب من القائمة أولاً")
+        end
+    end
+})
