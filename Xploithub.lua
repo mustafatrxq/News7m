@@ -998,6 +998,17 @@ AddButton(Main, {
 -- تهيئة القائمة عند بداية السكربت
 UpdateDragDropdown()
 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local Camera = Workspace.CurrentCamera
+local backpack = LocalPlayer:WaitForChild("Backpack")
+
+-- متغير نخزن بيه اللاعب المختار
+local SelectedPlayer = nil
+local PlayerDropdown = nil -- نخزن القائمة حتى نحدثها
+
 -- دالة الفلنق
 local function FlingBall(target)
     if not target then return end
@@ -1063,14 +1074,41 @@ local function FlingBall(target)
     end
 end
 
--- زر فلنق كرة تحت القائمة
+-- فنكشن تحدث القائمة
+local function UpdateDropdown()
+    local names = {}
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer then
+            table.insert(names, plr.Name)
+        end
+    end
+    PlayerDropdown:Refresh(names)
+end
+
+-- إنشاء القائمة
+PlayerDropdown = AddDropdown(Main, {
+    Name = "اختيار لاعب للفلنق",
+    Options = {},
+    Callback = function(value)
+        SelectedPlayer = Players:FindFirstChild(value)
+    end
+})
+
+-- تحديث أولي
+UpdateDropdown()
+
+-- تحديث عند دخول/خروج لاعبين
+Players.PlayerAdded:Connect(UpdateDropdown)
+Players.PlayerRemoving:Connect(UpdateDropdown)
+
+-- زر فلنق كرة
 AddButton(Main, {
     Name = "فلنق كرة",
     Callback = function()
         if SelectedPlayer then
             FlingBall(SelectedPlayer)
         else
-            warn("اختار لاعب من القائمة أولاً")
+            warn("⚠️ لازم تختار لاعب أولاً من القائمة قبل ما تستخدم الفلنق")
         end
     end
 })
