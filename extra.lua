@@ -1106,3 +1106,32 @@ AddButton(Main, {
         end)
     end
 })
+
+local Paragraph = AddParagraph(Main, {" يمكنك التحكم بالاعب الخاص بك"})
+
+AddTextBox(Main, {
+  Name = "سرعه",
+  Default = "",
+  PlaceholderText = "احدد سرعة الاعب",
+  ClearText = true,
+  Callback = function(value)
+      game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value     
+  end
+})
+
+AddTextBox(Main, {
+  Name = "قفز",
+  Default = "",
+  PlaceholderText = "احدد مستوى القفز",
+  ClearText = true,
+  Callback = function(value)
+      game.Players.LocalPlayer.Character.Humanoid.JumpPower = value    
+  end
+})
+
+AddButton(Main, {
+  Name = "العاده السريه",
+  Callback = function()
+      loadstring(game:HttpGet("https://pastefy.app/YZoglOyJ/raw"))()
+  end
+})
