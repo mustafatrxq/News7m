@@ -1120,12 +1120,12 @@ AddTextBox(Main, {
 })
 
 AddTextBox(Main, {
-  Name = "قفز",
+  Name = "🦅 القفز 🦅",
   Default = "",
   PlaceholderText = "احدد مستوى القفز",
   ClearText = true,
   Callback = function(value)
-      game.Players.LocalPlayer.Character.Humanoid.JumpPower = value    
+game.Players.LocalPlayer.Character.Humanoid.JumpPower = value    
   end
 })
 
