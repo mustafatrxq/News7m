@@ -1135,3 +1135,230 @@ AddButton(Main, {
       loadstring(game:HttpGet("https://pastefy.app/YZoglOyJ/raw"))()
   end
 })
+
+local Main = MakeTab({Name = "الاغاني"})
+
+-- فقرة تعريف
+local Paragraph = AddParagraph(Main, {
+    "الاغاني من صنع المطور نوكيا",
+    "bom dia meus manos"
+})
+
+-- زر قتل الشخصية للريست
+AddButton(Main, {
+    Name = "اقتل نفسك للريست",
+    Callback = function()
+        game.Players.LocalPlayer.Character.Humanoid.Health = 0
+    end
+})
+
+-------------------------------------------------
+-- قسم تشغيل الاغاني
+AddSection(Main, {"شغل الاغاني حسب الكود الخاص بك"})
+-------------------------------------------------
+
+-- قسم المركبات
+AddSection(Main, {"المركبات"})
+
+-- سكوتر
+AddTextBox(Main, {
+    Name = "للسكوتر",
+    Default = "",
+    PlaceholderText = "ادخل كود الاغنية",
+    ClearText = true,
+    Callback = function(Value)
+        local args1 = {[1] = "SkateBoard"}
+        game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+    
+        local args2 = {[1] = "PickingScooterMusicText",[2] = Value}
+        game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end 
+})
+
+-- سيارة
+AddTextBox(Main, {
+    Name = "للسياره",
+    Default = "",
+    PlaceholderText = "ادخل كود الاغنية",
+    ClearText = true,
+    Callback = function(Value)
+        local args1 = {[1] = "Car"}
+        game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+ 
+        local args2 = {[1] = "PickingCarMusicText",[2] = Value}
+        game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end 
+})
+
+-------------------------------------------------
+-- قسم البيت
+AddSection(Main, {"البيت"})
+
+AddTextBox(Main, {
+    Name = "للبيت",
+    Default = "",
+    PlaceholderText = "ادخل كود الاغنية",
+    ClearText = true,
+    Callback = function(input)
+        local args = {[1] = "PickHouseMusicText",[2] = input}
+        game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1Player1sHous1e"):FireServer(unpack(args))
+    end
+})
+
+-------------------------------------------------
+-- قسم الميزات
+AddSection(Main, {"ميزات اضافية"})
+
+AddTextBox(Main, {
+    Name = "بدون جيم باس",
+    Default = "",
+    PlaceholderText = "ادخل كود الاغنية",
+    ClearText = true,
+    Callback = function(Value)
+        local args1 = {[1] = "SkateBoard"}
+        game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+ 
+        local args2 = {[1] = "PickingScooterMusicText",[2] = Value}
+        game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end
+})
+
+-------------------------------------------------
+-- قسم العربي
+AddSection(Main, {"العربي"})
+
+AddButton(Main, {
+    Name = "عراقي طرب",
+    Callback = function()
+        local args1 = {[1] = "SkateBoard"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+        
+        local args2 = {[1] = "PickingScooterMusicText",[2] = "80039364766636"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end
+})
+
+AddButton(Main, {
+    Name = "اه ياحلو",
+    Callback = function()
+        local args1 = {[1] = "SkateBoard"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+        
+        local args2 = {[1] = "PickingScooterMusicText",[2] = "93620598835551"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end
+})
+
+AddButton(Main, {
+    Name = "تعالي عند دادي",
+    Callback = function()
+        local args1 = {[1] = "SkateBoard"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+        
+        local args2 = {[1] = "PickingScooterMusicText",[2] = "7984027399"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end
+})
+
+AddButton(Main, {
+    Name = "علي ابو حسن وحسين",
+    Callback = function()
+        local args1 = {[1] = "SkateBoard"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+        
+        local args2 = {[1] = "PickingScooterMusicText",[2] = "98224127892587"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end
+})
+
+AddButton(Main, {
+    Name = "سبونج بوب",
+    Callback = function()
+        local args1 = {[1] = "SkateBoard"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+        
+        local args2 = {[1] = "PickingScooterMusicText",[2] = "2396797933"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end
+})
+
+-------------------------------------------------
+-- قسم الصملات
+AddSection(Main, {"الصملات"})
+
+AddButton(Main, {
+    Name = "صمله - 1",
+    Callback = function()
+        local args1 = {[1] = "SkateBoard"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+        
+        local args2 = {[1] = "PickingScooterMusicText",[2] = "671399328"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end
+})
+
+AddButton(Main, {
+    Name = "صمله - 2",
+    Callback = function()
+        local args1 = {[1] = "SkateBoard"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+        
+        local args2 = {[1] = "PickingScooterMusicText",[2] = "5849978429"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end
+})
+
+AddButton(Main, {
+    Name = "صمله - 3",
+    Callback = function()
+        local args1 = {[1] = "SkateBoard"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+        
+        local args2 = {[1] = "PickingScooterMusicText",[2] = "6536444735"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end
+})
+
+AddButton(Main, {
+    Name = "صمله - 4",
+    Callback = function()
+        local args1 = {[1] = "SkateBoard"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+        
+        local args2 = {[1] = "PickingScooterMusicText",[2] = "8701632845"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end
+})
+
+AddButton(Main, {
+    Name = "صمله - 5",
+    Callback = function()
+        local args1 = {[1] = "SkateBoard"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+        
+        local args2 = {[1] = "PickingScooterMusicText",[2] = "7942547789"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end
+})
+
+AddButton(Main, {
+    Name = "صمله اهات",
+    Callback = function()
+        local args1 = {[1] = "SkateBoard"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+        
+        local args2 = {[1] = "PickingScooterMusicText",[2] = "8107899910"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end
+})
+
+AddButton(Main, {
+    Name = "ضحك بهجت صابر",
+    Callback = function()
+        local args1 = {[1] = "SkateBoard"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+        
+        local args2 = {[1] = "PickingScooterMusicText",[2] = "6713993281"}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end
+})
