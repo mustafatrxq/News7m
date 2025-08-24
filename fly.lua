@@ -2,7 +2,7 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
---// Player & HRP
+--// Player
 local player = Players.LocalPlayer
 local hrp = player.Character:WaitForChild("HumanoidRootPart")
 
@@ -32,16 +32,15 @@ button.MouseButton1Click:Connect(function()
     button.BackgroundColor3 = effectEnabled and Color3.fromRGB(0,200,0) or Color3.fromRGB(200,0,0)
 end)
 
---// جمع الأشياء المهمة من الماب
+--// جمع الأشياء المطلوبة فقط
 for _, obj in pairs(workspace:GetDescendants()) do
     if obj:IsA("Part") or obj:IsA("MeshPart") then
-        if string.find(string.lower(obj.Name),"door") 
-        or string.find(string.lower(obj.Name),"window") 
-        or string.find(string.lower(obj.Name),"car") 
-        or string.find(string.lower(obj.Name),"seat")
-        or string.find(string.lower(obj.Name),"wheel")
-        or string.find(string.lower(obj.Name),"table")
-        or string.find(string.lower(obj.Name),"chair") then
+        local nameLower = string.lower(obj.Name)
+        if string.find(nameLower,"door") 
+        or string.find(nameLower,"window") 
+        or string.find(nameLower,"car") 
+        or string.find(nameLower,"seat")
+        or string.find(nameLower,"wheel") then
             table.insert(objectsToFollow,obj)
             table.insert(originalCFrames,obj.CFrame)
         end
@@ -71,7 +70,7 @@ RunService.Heartbeat:Connect(function(dt)
         if obj and obj.Parent then
             if effectEnabled then
                 local angle = (i / #objectsToFollow) * math.pi * 2 + spinAngle
-                local heightOffset = math.sin(spinAngle*3 + i) * 3
+                local heightOffset = math.sin(spinAngle*3 + i) * 2
                 local targetPos = center + Vector3.new(math.cos(angle)*radius, heightOffset, math.sin(angle)*radius)
                 obj.CFrame = CFrame.new(targetPos) * CFrame.Angles(0,spinAngle*10,0)
             else
