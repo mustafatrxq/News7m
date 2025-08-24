@@ -10,7 +10,7 @@ local hrp = player.Character:WaitForChild("HumanoidRootPart")
 --// Variables
 local effectEnabled = false
 local objectsToFollow = {}
-local spawnOffset = Vector3.new(0,0,0) -- ملتصق مباشرة بجسمك
+local spawnOffset = Vector3.new(0,0,0) -- ملتصق تمامًا بجسمك
 
 --// GUI
 local screenGui = Instance.new("ScreenGui", player.PlayerGui)
@@ -36,7 +36,7 @@ for _, obj in pairs(workspace:GetDescendants()) do
     if obj:IsA("Part") or obj:IsA("MeshPart") then
         local nameLower = string.lower(obj.Name)
         local size = obj.Size
-        -- فلتر دقيق: أبواب صغيرة حقيقية (عرض < 3، ارتفاع < 7، عمق < 1)
+        -- فلتر دقيق: أبواب صغيرة حقيقية فقط (عرض < 3، ارتفاع < 7، عمق < 1)
         if string.find(nameLower,"door") and size.X < 3 and size.Y < 7 and size.Z < 1 then
             local hasBell = false
             for _, child in pairs(obj:GetChildren()) do
@@ -62,10 +62,10 @@ RunService.Heartbeat:Connect(function(dt)
     for i, obj in ipairs(objectsToFollow) do
         if obj and obj.Parent then
             if effectEnabled then
-                -- كل باب ملتصق بك مباشرة ويعمل سبين داخلي
+                -- كل باب ملتصق تمامًا بجسمك، سبين داخلي فقط
                 obj.CFrame = CFrame.new(center) * CFrame.Angles(0, dt*5, 0)
             else
-                -- عند الإطفاء → نختفي بعيدًا
+                -- عند الإطفاء → تختفي بعيدًا
                 obj.CFrame = obj.CFrame + Vector3.new(0,1000,0)
             end
         end
