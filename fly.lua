@@ -12,7 +12,6 @@ local radius = 8
 local spinSpeed = 20
 local effectEnabled = false
 local objectsToFollow = {}
-local originalCFrames = {}
 
 --// GUI
 local screenGui = Instance.new("ScreenGui", player.PlayerGui)
@@ -32,7 +31,7 @@ button.MouseButton1Click:Connect(function()
     button.BackgroundColor3 = effectEnabled and Color3.fromRGB(0,200,0) or Color3.fromRGB(200,0,0)
 end)
 
---// جمع الأشياء المطلوبة فقط
+--// جمع الأشياء المطلوبة فقط (أبواب، نوافذ، سيارات)
 for _, obj in pairs(workspace:GetDescendants()) do
     if obj:IsA("Part") or obj:IsA("MeshPart") then
         local nameLower = string.lower(obj.Name)
@@ -42,7 +41,6 @@ for _, obj in pairs(workspace:GetDescendants()) do
         or string.find(nameLower,"seat")
         or string.find(nameLower,"wheel") then
             table.insert(objectsToFollow,obj)
-            table.insert(originalCFrames,obj.CFrame)
         end
     end
 end
@@ -64,18 +62,14 @@ RunService.Heartbeat:Connect(function(dt)
     if not hrp then return end
     local center = hrp.Position
     lightPart.Position = center
-    spinAngle = spinAngle + dt * spinSpeed
-
-    for i, obj in ipairs(objectsToFollow) do
-        if obj and obj.Parent then
-            if effectEnabled then
+    if effectEnabled then
+        spinAngle = spinAngle + dt * spinSpeed
+        for i, obj in ipairs(objectsToFollow) do
+            if obj and obj.Parent then
                 local angle = (i / #objectsToFollow) * math.pi * 2 + spinAngle
                 local heightOffset = math.sin(spinAngle*3 + i) * 2
                 local targetPos = center + Vector3.new(math.cos(angle)*radius, heightOffset, math.sin(angle)*radius)
                 obj.CFrame = CFrame.new(targetPos) * CFrame.Angles(0,spinAngle*10,0)
-            else
-                local original = originalCFrames[i]
-                obj.CFrame = obj.CFrame:Lerp(original, 0.1)
             end
         end
     end
