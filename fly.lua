@@ -8,10 +8,11 @@ local hrp = player.Character:WaitForChild("HumanoidRootPart")
 
 --// Spin variables
 local spinAngle = 0
-local radius = 8
+local radius = 6
 local spinSpeed = 20
 local effectEnabled = false
 local objectsToFollow = {}
+local originalCFrames = {}
 
 --// GUI
 local screenGui = Instance.new("ScreenGui", player.PlayerGui)
@@ -29,47 +30,47 @@ button.MouseButton1Click:Connect(function()
     effectEnabled = not effectEnabled
     button.Text = effectEnabled and "إطفاء الثقب" or "تشغيل الثقب"
     button.BackgroundColor3 = effectEnabled and Color3.fromRGB(0,200,0) or Color3.fromRGB(200,0,0)
+    
+    -- عند التشغيل مرة ثانية، نعيد تسجيل المواقع الأصلية لكل الأشياء
+    if effectEnabled then
+        originalCFrames = {}
+        for i, obj in ipairs(objectsToFollow) do
+            if obj and obj.Parent then
+                table.insert(originalCFrames,obj.CFrame)
+            end
+        end
+    end
 end)
 
---// جمع الأشياء المطلوبة فقط (أبواب، نوافذ، سيارات)
+--// جمع الأشياء المطلوبة فقط (أبواب صغيرة + مكاتب + سيارات)
 for _, obj in pairs(workspace:GetDescendants()) do
     if obj:IsA("Part") or obj:IsA("MeshPart") then
         local nameLower = string.lower(obj.Name)
-        if string.find(nameLower,"door") 
-        or string.find(nameLower,"window") 
-        or string.find(nameLower,"car") 
-        or string.find(nameLower,"seat")
-        or string.find(nameLower,"wheel") then
+        if (string.find(nameLower,"door") and not string.find(nameLower,"big") and not string.find(nameLower,"main"))
+        or string.find(nameLower,"car") then
             table.insert(objectsToFollow,obj)
         end
     end
 end
 
---// Central light effect
-local lightPart = Instance.new("Part")
-lightPart.Anchored = true
-lightPart.CanCollide = false
-lightPart.Transparency = 1
-lightPart.Size = Vector3.new(1,1,1)
-lightPart.Parent = workspace
-local pointLight = Instance.new("PointLight",lightPart)
-pointLight.Color = Color3.fromRGB(255,50,50)
-pointLight.Brightness = 8
-pointLight.Range = 25
-
 --// Update loop
 RunService.Heartbeat:Connect(function(dt)
     if not hrp then return end
     local center = hrp.Position
-    lightPart.Position = center
-    if effectEnabled then
-        spinAngle = spinAngle + dt * spinSpeed
-        for i, obj in ipairs(objectsToFollow) do
-            if obj and obj.Parent then
+    spinAngle = spinAngle + dt * spinSpeed
+
+    for i, obj in ipairs(objectsToFollow) do
+        if obj and obj.Parent then
+            if effectEnabled then
                 local angle = (i / #objectsToFollow) * math.pi * 2 + spinAngle
                 local heightOffset = math.sin(spinAngle*3 + i) * 2
                 local targetPos = center + Vector3.new(math.cos(angle)*radius, heightOffset, math.sin(angle)*radius)
                 obj.CFrame = CFrame.new(targetPos) * CFrame.Angles(0,spinAngle*10,0)
+            else
+                -- يرجع للمكان الطبيعي الأصلي قبل التشغيل
+                if originalCFrames[i] then
+                    obj.CFrame = obj.CFrame:Lerp(originalCFrames[i],0.1)
+                end
             end
         end
     end
