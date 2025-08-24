@@ -1,89 +1,88 @@
---// Services
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local Debris = game:GetService("Debris")
+-- إعداد اللاعب والشخصية
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+local humanoid = character:WaitForChild("Humanoid")
 
---// Player
-local player = Players.LocalPlayer
-local hrp = player.Character:WaitForChild("HumanoidRootPart")
+-- إعداد GUI
+local gui = Instance.new("ScreenGui", player.PlayerGui)
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0,150,0,50)
+toggleBtn.Position = UDim2.new(0.5,-75,0.9,0)
+toggleBtn.Text = "تشغيل الأبواب"
+toggleBtn.BackgroundColor3 = Color3.fromRGB(255,0,0)
+toggleBtn.Font = Enum.Font.SourceSansBold
+toggleBtn.TextScaled = true
+toggleBtn.TextColor3 = Color3.new(1,1,1)
 
---// Variables
-local effectEnabled = false
-local objectsToFollow = {}
-local spawnOffset = Vector3.new(0,0,0) -- ملتصق تمامًا بجسمك
+-- متغير التحكم
+local doorsActive = false
+local doors = {}
+local pushForce = 50
+local slowed = false
 
---// GUI
-local screenGui = Instance.new("ScreenGui", player.PlayerGui)
-screenGui.ResetOnSpawn = false
-local button = Instance.new("TextButton", screenGui)
-button.Size = UDim2.new(0,200,0,50)
-button.Position = UDim2.new(0.4,0,0.85,0)
-button.Text = "تشغيل الثقب"
-button.BackgroundColor3 = Color3.fromRGB(200,0,0)
-button.TextColor3 = Color3.new(1,1,1)
-button.Font = Enum.Font.SourceSansBold
-button.TextSize = 20
+-- إنشاء أبواب ملتصقة بالجسم
+for i = 1, 5 do
+    local door = Instance.new("Part")
+    door.Size = Vector3.new(2,4,0.5)
+    door.Anchored = false
+    door.CanCollide = true
+    door.Position = root.Position + Vector3.new(i*3,0,0)
+    door.Parent = workspace
 
-button.MouseButton1Click:Connect(function()
-    effectEnabled = not effectEnabled
-    button.Text = effectEnabled and "إطفاء الثقب" or "تشغيل الثقب"
-    button.BackgroundColor3 = effectEnabled and Color3.fromRGB(0,200,0) or Color3.fromRGB(200,0,0)
-end)
+    local weld = Instance.new("WeldConstraint")
+    weld.Part0 = root
+    weld.Part1 = door
+    weld.Parent = door
 
---// جمع الأبواب الحقيقية الصغيرة فقط
-objectsToFollow = {}
-for _, obj in pairs(workspace:GetDescendants()) do
-    if obj:IsA("Part") or obj:IsA("MeshPart") then
-        local nameLower = string.lower(obj.Name)
-        local size = obj.Size
-        -- فلتر دقيق: أبواب صغيرة حقيقية فقط (عرض < 3، ارتفاع < 7، عمق < 1)
-        if string.find(nameLower,"door") and size.X < 3 and size.Y < 7 and size.Z < 1 then
-            local hasBell = false
-            for _, child in pairs(obj:GetChildren()) do
-                if string.find(string.lower(child.Name),"bell") then
-                    hasBell = true
-                    break
-                end
-            end
-            if not hasBell then
-                table.insert(objectsToFollow,obj)
-                obj.CanCollide = false
-                obj.Anchored = true
+    table.insert(doors, door)
+end
+
+-- دالة دفع اللاعبين القريبين
+local function pushNearbyPlayers()
+    for _, p in pairs(game.Players:GetPlayers()) do
+        if p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local targetRoot = p.Character.HumanoidRootPart
+            local distance = (targetRoot.Position - root.Position).Magnitude
+            if distance <= 10 then
+                local force = Instance.new("BodyVelocity")
+                force.Velocity = Vector3.new(0,pushForce,0)
+                force.MaxForce = Vector3.new(0,1e5,0)
+                force.P = 1e5
+                force.Parent = targetRoot
+                game:GetService("Debris"):AddItem(force,0.5)
             end
         end
     end
 end
 
---// Update loop
-RunService.Heartbeat:Connect(function(dt)
-    if not hrp then return end
-    local center = hrp.Position + spawnOffset
-
-    for i, obj in ipairs(objectsToFollow) do
-        if obj and obj.Parent then
-            if effectEnabled then
-                -- كل باب ملتصق تمامًا بجسمك، سبين داخلي فقط
-                obj.CFrame = CFrame.new(center) * CFrame.Angles(0, dt*5, 0)
-            else
-                -- عند الإطفاء → تختفي بعيدًا
-                obj.CFrame = obj.CFrame + Vector3.new(0,1000,0)
-            end
-        end
+-- تحديث الحركة عند تفعيل الأبواب
+local function updateMovement()
+    if doorsActive and not slowed then
+        humanoid.WalkSpeed = 8 -- تقليل السرعة
+        slowed = true
+    elseif not doorsActive and slowed then
+        humanoid.WalkSpeed = 16 -- استعادة السرعة
+        slowed = false
     end
+end
 
-    -- رفع اللاعبين الآخرين
-    if effectEnabled then
-        for _, plr in pairs(Players:GetPlayers()) do
-            if plr ~= player and plr.Character then
-                local hrp2 = plr.Character:FindFirstChild("HumanoidRootPart")
-                if hrp2 and (hrp2.Position - center).Magnitude < 10 then
-                    local bv = Instance.new("BodyVelocity")
-                    bv.Velocity = Vector3.new(0,100,0)
-                    bv.MaxForce = Vector3.new(1e5,1e5,1e5)
-                    bv.Parent = hrp2
-                    Debris:AddItem(bv, 0.2)
-                end
-            end
-        end
+-- زر التشغيل/الإيقاف
+toggleBtn.MouseButton1Click:Connect(function()
+    doorsActive = not doorsActive
+    if doorsActive then
+        toggleBtn.Text = "إيقاف الأبواب"
+        toggleBtn.BackgroundColor3 = Color3.fromRGB(0,255,0)
+    else
+        toggleBtn.Text = "تشغيل الأبواب"
+        toggleBtn.BackgroundColor3 = Color3.fromRGB(255,0,0)
+    end
+    updateMovement()
+end)
+
+-- حلقة مستمرة لتطبيق الدفع إذا كانت الأبواب مفعلة
+game:GetService("RunService").RenderStepped:Connect(function()
+    if doorsActive then
+        pushNearbyPlayers()
     end
 end)
