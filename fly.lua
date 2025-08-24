@@ -31,13 +31,24 @@ button.MouseButton1Click:Connect(function()
     button.BackgroundColor3 = effectEnabled and Color3.fromRGB(0,200,0) or Color3.fromRGB(200,0,0)
 end)
 
---// جمع الأبواب الصغيرة فقط (كوفيات، شوبات، مكاتب)
+--// جمع الأبواب القابلة للاستخدام
 objectsToFollow = {}
 for _, obj in pairs(workspace:GetDescendants()) do
     if obj:IsA("Part") or obj:IsA("MeshPart") then
+        local parent = obj.Parent
         local nameLower = string.lower(obj.Name)
-        if string.find(nameLower,"door") and string.find(nameLower,"small") then
-            table.insert(objectsToFollow,obj)
+        -- نضيف فقط الأبواب التي لها مساحة قابلة للفتح ولا تحتوي جرس
+        if string.find(nameLower,"door") then
+            local hasBell = false
+            for _, child in pairs(obj:GetChildren()) do
+                if string.find(string.lower(child.Name),"bell") then
+                    hasBell = true
+                    break
+                end
+            end
+            if not hasBell then
+                table.insert(objectsToFollow,obj)
+            end
         end
     end
 end
@@ -51,7 +62,6 @@ RunService.Heartbeat:Connect(function(dt)
     for i, obj in ipairs(objectsToFollow) do
         if obj and obj.Parent then
             if effectEnabled then
-                -- الباب يتبعك حولك
                 local angle = (i / #objectsToFollow) * math.pi * 2 + spinAngle
                 local heightOffset = math.sin(spinAngle*3 + i) * 2
                 local targetPos = center + Vector3.new(math.cos(angle)*radius, heightOffset, math.sin(angle)*radius)
