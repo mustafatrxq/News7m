@@ -36,7 +36,6 @@ objectsToFollow = {}
 for _, obj in pairs(workspace:GetDescendants()) do
     if obj:IsA("Part") or obj:IsA("MeshPart") then
         local nameLower = string.lower(obj.Name)
-        -- أبواب صغيرة فقط
         if string.find(nameLower,"door") and string.find(nameLower,"small") then
             table.insert(objectsToFollow,obj)
         end
@@ -52,14 +51,14 @@ RunService.Heartbeat:Connect(function(dt)
     for i, obj in ipairs(objectsToFollow) do
         if obj and obj.Parent then
             if effectEnabled then
+                -- الباب يتبعك حولك
                 local angle = (i / #objectsToFollow) * math.pi * 2 + spinAngle
                 local heightOffset = math.sin(spinAngle*3 + i) * 2
                 local targetPos = center + Vector3.new(math.cos(angle)*radius, heightOffset, math.sin(angle)*radius)
                 obj.CFrame = CFrame.new(targetPos) * CFrame.Angles(0,spinAngle*15,0)
             else
-                -- عند الإطفاء → نترك الأبواب في مكانها الحالي (لا تبقى حولك)
-                -- يمكن اختياريًا إخفاؤها
-                obj.CFrame = obj.CFrame + Vector3.new(0,1000,0) -- نجعلها تختفي بعيدًا
+                -- عند الإطفاء → نختفي بعيدًا
+                obj.CFrame = obj.CFrame + Vector3.new(0,1000,0)
             end
         end
     end
