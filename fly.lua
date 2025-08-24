@@ -10,7 +10,7 @@ local hrp = player.Character:WaitForChild("HumanoidRootPart")
 --// Variables
 local effectEnabled = false
 local objectsToFollow = {}
-local spawnOffset = Vector3.new(0,2,0) -- مكان الأبواب داخل السكن
+local spawnOffset = Vector3.new(0,0,0) -- ملتصق مباشرة بجسمك
 
 --// GUI
 local screenGui = Instance.new("ScreenGui", player.PlayerGui)
@@ -30,13 +30,14 @@ button.MouseButton1Click:Connect(function()
     button.BackgroundColor3 = effectEnabled and Color3.fromRGB(0,200,0) or Color3.fromRGB(200,0,0)
 end)
 
---// جمع الأبواب الصغيرة حسب الحجم
+--// جمع الأبواب الحقيقية الصغيرة فقط
 objectsToFollow = {}
 for _, obj in pairs(workspace:GetDescendants()) do
     if obj:IsA("Part") or obj:IsA("MeshPart") then
         local nameLower = string.lower(obj.Name)
         local size = obj.Size
-        if string.find(nameLower,"door") and size.X < 4 and size.Y < 7 then
+        -- فلتر دقيق: أبواب صغيرة حقيقية (عرض < 3، ارتفاع < 7، عمق < 1)
+        if string.find(nameLower,"door") and size.X < 3 and size.Y < 7 and size.Z < 1 then
             local hasBell = false
             for _, child in pairs(obj:GetChildren()) do
                 if string.find(string.lower(child.Name),"bell") then
@@ -61,23 +62,23 @@ RunService.Heartbeat:Connect(function(dt)
     for i, obj in ipairs(objectsToFollow) do
         if obj and obj.Parent then
             if effectEnabled then
-                -- كل باب يلتصق بجسمك
-                local offset = Vector3.new((i-1)*2,0,0)
-                obj.CFrame = CFrame.new(center + offset) * CFrame.Angles(0, dt*3, 0) -- سبين داخلي فقط
+                -- كل باب ملتصق بك مباشرة ويعمل سبين داخلي
+                obj.CFrame = CFrame.new(center) * CFrame.Angles(0, dt*5, 0)
             else
+                -- عند الإطفاء → نختفي بعيدًا
                 obj.CFrame = obj.CFrame + Vector3.new(0,1000,0)
             end
         end
     end
 
-    -- تأثير طيران على اللاعبين الآخرين
+    -- رفع اللاعبين الآخرين
     if effectEnabled then
         for _, plr in pairs(Players:GetPlayers()) do
             if plr ~= player and plr.Character then
                 local hrp2 = plr.Character:FindFirstChild("HumanoidRootPart")
                 if hrp2 and (hrp2.Position - center).Magnitude < 10 then
                     local bv = Instance.new("BodyVelocity")
-                    bv.Velocity = Vector3.new(0,100,0) -- يرفع اللاعبين للأعلى
+                    bv.Velocity = Vector3.new(0,100,0)
                     bv.MaxForce = Vector3.new(1e5,1e5,1e5)
                     bv.Parent = hrp2
                     Debris:AddItem(bv, 0.2)
