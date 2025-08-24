@@ -1,49 +1,48 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- اللاعب الذي سيكون مركز الثقب
-local mainPlayer = Players.LocalPlayer -- يمكن تغييره حسب احتياجك
+-- اللاعب الأساسي
+local mainPlayer = Players.LocalPlayer
 local hrp = mainPlayer.Character:WaitForChild("HumanoidRootPart")
 
--- جمع الأجزاء وحفظ مواقعها الأصلية
+-- تخزين الأبواب
 local objectsToFollow = {}
 for _, obj in pairs(workspace:GetDescendants()) do
-    if obj:IsA("Part") and obj.Name == "Door" and not obj:IsDescendantOf(workspace.MyHouse) then
+    if obj:IsA("Part") and obj.Name == "Door" then
         table.insert(objectsToFollow, {obj=obj, originalPos=obj.Position})
     end
 end
 
+-- متغيرات الحركة
 local spinAngle = 0
 local radius = 10
 local heightAmplitude = 3
-local effectEnabled = false -- يتحكم بتشغيل/إيقاف التأثير
+local effectEnabled = false
 
--- إضافة إضاءة مركزية حول اللاعب
-local lightPart = Instance.new("Part")
-lightPart.Anchored = true
-lightPart.CanCollide = false
-lightPart.Transparency = 1
-lightPart.Size = Vector3.new(1,1,1)
-lightPart.Parent = workspace
+-- عمل واجهة
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local Button = Instance.new("TextButton", ScreenGui)
+Button.Size = UDim2.new(0,150,0,50)
+Button.Position = UDim2.new(0.5,-75,0,100)
+Button.Text = "تشغيل الثقب الأسود"
+Button.BackgroundColor3 = Color3.fromRGB(200,0,0)
+Button.TextColor3 = Color3.new(1,1,1)
+Button.Font = Enum.Font.SourceSansBold
+Button.TextSize = 20
+Button.Visible = true
 
-local pointLight = Instance.new("PointLight")
-pointLight.Color = Color3.fromRGB(255,50,50)
-pointLight.Brightness = 5
-pointLight.Range = 20
-pointLight.Parent = lightPart
-
--- RemoteEvent للتحكم بالزر
-local toggleEvent = Instance.new("RemoteEvent")
-toggleEvent.Name = "ToggleBlackHole"
-toggleEvent.Parent = ReplicatedStorage
-
-toggleEvent.OnServerEvent:Connect(function(player)
-    if player == mainPlayer then
-        effectEnabled = not effectEnabled
+Button.MouseButton1Click:Connect(function()
+    effectEnabled = not effectEnabled
+    if effectEnabled then
+        Button.Text = "إيقاف الثقب الأسود"
+        Button.BackgroundColor3 = Color3.fromRGB(0,200,0)
+    else
+        Button.Text = "تشغيل الثقب الأسود"
+        Button.BackgroundColor3 = Color3.fromRGB(200,0,0)
     end
 end)
 
+-- التحديث
 RunService.Heartbeat:Connect(function(deltaTime)
     if not hrp then return end
     local center = hrp.Position
@@ -55,15 +54,15 @@ RunService.Heartbeat:Connect(function(deltaTime)
             local angle = (i / #objectsToFollow) * math.pi * 2 + spinAngle
             local heightOffset = math.sin(spinAngle * 2 + i) * heightAmplitude
             local targetPos = center + Vector3.new(math.cos(angle) * radius, heightOffset, math.sin(angle) * radius)
-            obj.Position = obj.Position:Lerp(targetPos, 0.1)
+            obj.Position = obj.Position:Lerp(targetPos, 0.2)
             obj.Rotation = Vector3.new(0, spinAngle*50, 0)
         else
-            obj.Position = obj.Position:Lerp(data.originalPos, 0.1)
+            obj.Position = obj.Position:Lerp(data.originalPos, 0.2)
             obj.Rotation = Vector3.new(0,0,0)
         end
     end
 
-    -- تأثير على اللاعبين الآخرين
+    -- إذا قربت من لاعب ثاني يطير
     if effectEnabled then
         for _, plr in pairs(Players:GetPlayers()) do
             if plr ~= mainPlayer and plr.Character then
@@ -78,7 +77,4 @@ RunService.Heartbeat:Connect(function(deltaTime)
             end
         end
     end
-
-    -- تحديث موقع الإضاءة
-    lightPart.Position = center
 end)
