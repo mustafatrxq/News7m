@@ -1,17 +1,16 @@
 --// Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local Debris = game:GetService("Debris")
 
 --// Player
 local player = Players.LocalPlayer
 local hrp = player.Character:WaitForChild("HumanoidRootPart")
 
---// Spin variables
-local spinAngle = 0
-local radius = 6
-local spinSpeed = 30
+--// Variables
 local effectEnabled = false
 local objectsToFollow = {}
+local spawnOffset = Vector3.new(0,2,0) -- مكان الأبواب داخل السكن
 
 --// GUI
 local screenGui = Instance.new("ScreenGui", player.PlayerGui)
@@ -31,14 +30,13 @@ button.MouseButton1Click:Connect(function()
     button.BackgroundColor3 = effectEnabled and Color3.fromRGB(0,200,0) or Color3.fromRGB(200,0,0)
 end)
 
---// جمع الأبواب القابلة للاستخدام
+--// جمع الأبواب الصغيرة حسب الحجم
 objectsToFollow = {}
 for _, obj in pairs(workspace:GetDescendants()) do
     if obj:IsA("Part") or obj:IsA("MeshPart") then
-        local parent = obj.Parent
         local nameLower = string.lower(obj.Name)
-        -- نضيف فقط الأبواب التي لها مساحة قابلة للفتح ولا تحتوي جرس
-        if string.find(nameLower,"door") then
+        local size = obj.Size
+        if string.find(nameLower,"door") and size.X < 4 and size.Y < 7 then
             local hasBell = false
             for _, child in pairs(obj:GetChildren()) do
                 if string.find(string.lower(child.Name),"bell") then
@@ -48,6 +46,8 @@ for _, obj in pairs(workspace:GetDescendants()) do
             end
             if not hasBell then
                 table.insert(objectsToFollow,obj)
+                obj.CanCollide = false
+                obj.Anchored = true
             end
         end
     end
@@ -56,19 +56,32 @@ end
 --// Update loop
 RunService.Heartbeat:Connect(function(dt)
     if not hrp then return end
-    local center = hrp.Position
-    spinAngle = spinAngle + dt * spinSpeed
+    local center = hrp.Position + spawnOffset
 
     for i, obj in ipairs(objectsToFollow) do
         if obj and obj.Parent then
             if effectEnabled then
-                local angle = (i / #objectsToFollow) * math.pi * 2 + spinAngle
-                local heightOffset = math.sin(spinAngle*3 + i) * 2
-                local targetPos = center + Vector3.new(math.cos(angle)*radius, heightOffset, math.sin(angle)*radius)
-                obj.CFrame = CFrame.new(targetPos) * CFrame.Angles(0,spinAngle*15,0)
+                -- كل باب يلتصق بجسمك
+                local offset = Vector3.new((i-1)*2,0,0)
+                obj.CFrame = CFrame.new(center + offset) * CFrame.Angles(0, dt*3, 0) -- سبين داخلي فقط
             else
-                -- عند الإطفاء → نختفي بعيدًا
                 obj.CFrame = obj.CFrame + Vector3.new(0,1000,0)
+            end
+        end
+    end
+
+    -- تأثير طيران على اللاعبين الآخرين
+    if effectEnabled then
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= player and plr.Character then
+                local hrp2 = plr.Character:FindFirstChild("HumanoidRootPart")
+                if hrp2 and (hrp2.Position - center).Magnitude < 10 then
+                    local bv = Instance.new("BodyVelocity")
+                    bv.Velocity = Vector3.new(0,100,0) -- يرفع اللاعبين للأعلى
+                    bv.MaxForce = Vector3.new(1e5,1e5,1e5)
+                    bv.Parent = hrp2
+                    Debris:AddItem(bv, 0.2)
+                end
             end
         end
     end
