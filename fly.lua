@@ -1,86 +1,84 @@
--- سكربت الفضاء (ساموراي)
-
 local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
-local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local hrp = character:WaitForChild("HumanoidRootPart")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local originalCFrame = hrp.CFrame
-local inSpace = false
+-- اللاعب الذي سيكون مركز الثقب
+local mainPlayer = Players.LocalPlayer -- يمكن تغييره حسب احتياجك
+local hrp = mainPlayer.Character:WaitForChild("HumanoidRootPart")
 
-local function teleportToSpace()
-    hrp.CFrame = CFrame.new(0, 10000, 0)
-    wait(0.1)
-    hrp.Anchored = true
-    inSpace = true
+-- جمع الأجزاء وحفظ مواقعها الأصلية
+local objectsToFollow = {}
+for _, obj in pairs(workspace:GetDescendants()) do
+    if obj:IsA("Part") and obj.Name == "Door" and not obj:IsDescendantOf(workspace.MyHouse) then
+        table.insert(objectsToFollow, {obj=obj, originalPos=obj.Position})
+    end
 end
 
-local function returnToOriginalPosition()
-    hrp.Anchored = false
-    hrp.CFrame = originalCFrame
-    inSpace = false
-end
+local spinAngle = 0
+local radius = 10
+local heightAmplitude = 3
+local effectEnabled = false -- يتحكم بتشغيل/إيقاف التأثير
 
-local function killNearbyEntities()
-    local radius = 30
-    -- أولاً نتعامل مع اللاعبين
-    for _, otherPlayer in pairs(Players:GetPlayers()) do
-        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local otherHrp = otherPlayer.Character.HumanoidRootPart
-            local dist = (otherHrp.Position - hrp.Position).Magnitude
-            if dist <= radius then
-                local humanoid = otherPlayer.Character:FindFirstChildOfClass("Humanoid")
-                if humanoid and humanoid.Health > 0 then
-                    humanoid.Health = 0
+-- إضافة إضاءة مركزية حول اللاعب
+local lightPart = Instance.new("Part")
+lightPart.Anchored = true
+lightPart.CanCollide = false
+lightPart.Transparency = 1
+lightPart.Size = Vector3.new(1,1,1)
+lightPart.Parent = workspace
+
+local pointLight = Instance.new("PointLight")
+pointLight.Color = Color3.fromRGB(255,50,50)
+pointLight.Brightness = 5
+pointLight.Range = 20
+pointLight.Parent = lightPart
+
+-- RemoteEvent للتحكم بالزر
+local toggleEvent = Instance.new("RemoteEvent")
+toggleEvent.Name = "ToggleBlackHole"
+toggleEvent.Parent = ReplicatedStorage
+
+toggleEvent.OnServerEvent:Connect(function(player)
+    if player == mainPlayer then
+        effectEnabled = not effectEnabled
+    end
+end)
+
+RunService.Heartbeat:Connect(function(deltaTime)
+    if not hrp then return end
+    local center = hrp.Position
+    spinAngle = spinAngle + deltaTime * math.pi/2
+
+    for i, data in ipairs(objectsToFollow) do
+        local obj = data.obj
+        if effectEnabled then
+            local angle = (i / #objectsToFollow) * math.pi * 2 + spinAngle
+            local heightOffset = math.sin(spinAngle * 2 + i) * heightAmplitude
+            local targetPos = center + Vector3.new(math.cos(angle) * radius, heightOffset, math.sin(angle) * radius)
+            obj.Position = obj.Position:Lerp(targetPos, 0.1)
+            obj.Rotation = Vector3.new(0, spinAngle*50, 0)
+        else
+            obj.Position = obj.Position:Lerp(data.originalPos, 0.1)
+            obj.Rotation = Vector3.new(0,0,0)
+        end
+    end
+
+    -- تأثير على اللاعبين الآخرين
+    if effectEnabled then
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= mainPlayer and plr.Character then
+                local hrp2 = plr.Character:FindFirstChild("HumanoidRootPart")
+                if hrp2 and (hrp2.Position - center).Magnitude < 10 then
+                    local bv = Instance.new("BodyVelocity")
+                    bv.Velocity = (hrp2.Position - center).Unit * 150
+                    bv.MaxForce = Vector3.new(1e5,1e5,1e5)
+                    bv.Parent = hrp2
+                    game:GetService("Debris"):AddItem(bv, 0.2)
                 end
             end
         end
     end
-    -- ثانياً نتعامل مع كل الموديلات والأدوات في Workspace
-    for _, obj in pairs(Workspace:GetChildren()) do
-        if obj:IsA("Model") and obj ~= character then
-            -- نبحث إذا فيه BasePart قريب
-            local primaryPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-            if primaryPart then
-                local dist = (primaryPart.Position - hrp.Position).Magnitude
-                if dist <= radius then
-                    -- نحذف الموديل كله
-                    obj:Destroy()
-                end
-            end
-        elseif obj:IsA("BasePart") and obj.Parent ~= character then
-            local dist = (obj.Position - hrp.Position).Magnitude
-            if dist <= radius then
-                obj:Destroy()
-            end
-        end
-    end
-end
 
--- إنشاء واجهة زر
-local playerGui = player:WaitForChild("PlayerGui")
-local screenGui = Instance.new("ScreenGui", playerGui)
-local button = Instance.new("TextButton", screenGui)
-button.Size = UDim2.new(0, 200, 0, 50)
-button.Position = UDim2.new(0, 10, 0, 10)
-button.BackgroundColor3 = Color3.fromRGB(0,0,0)
-button.TextColor3 = Color3.fromRGB(255,255,255)
-button.TextScaled = true
-button.Text = "إلى الفضاء"
-
-button.MouseButton1Click:Connect(function()
-    if not inSpace then
-        teleportToSpace()
-        button.Text = "العودة"
-        spawn(function()
-            while inSpace do
-                killNearbyEntities()
-                wait(0.5)
-            end
-        end)
-    else
-        returnToOriginalPosition()
-        button.Text = "إلى الفضاء"
-    end
+    -- تحديث موقع الإضاءة
+    lightPart.Position = center
 end)
