@@ -44,7 +44,7 @@ AddImageLabel(ScriptInfoTab, {
 AddButton(ScriptInfoTab, {
   Name = "انضم",
   Callback = function()
-    setclipboard('https://t.me/Prov_development')
+    setclipboard('https://t.me/hack_itzme')
     game.StarterGui:SetCore("SendNotification", {
       Title = "تم النسخ ✅",
       Text = "تم نسخ رابط القناة بنجاح!",
@@ -1120,7 +1120,7 @@ AddTextBox(Main, {
 })
 
 AddTextBox(Main, {
-  Name = "🦅 القفز 🦅",
+  Name = "القفز",
   Default = "",
   PlaceholderText = "احدد مستوى القفز",
   ClearText = true,
@@ -1144,6 +1144,8 @@ local Paragraph = AddParagraph(Main, {
     "bom dia meus manos"
 })
 
+AddSection(Main, {"ملاحظه:غير مسؤول عن ذنوبكم"})
+
 -- زر قتل الشخصية للريست
 AddButton(Main, {
     Name = "اقتل نفسك للريست",
@@ -1156,10 +1158,6 @@ AddButton(Main, {
 -- قسم تشغيل الاغاني
 AddSection(Main, {"شغل الاغاني حسب الكود الخاص بك"})
 -------------------------------------------------
-
--- قسم المركبات
-AddSection(Main, {"المركبات"})
-
 -- سكوتر
 AddTextBox(Main, {
     Name = "للسكوتر",
@@ -1189,10 +1187,6 @@ AddTextBox(Main, {
         game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
     end 
 })
-
--------------------------------------------------
--- قسم البيت
-AddSection(Main, {"البيت"})
 
 AddTextBox(Main, {
     Name = "للبيت",
@@ -1382,7 +1376,7 @@ AddButton(Main, {
 })
 
 AddButton(Main, {
-  Name = "قران / 1",
+  Name = "قران - 1",
   Callback = function()
      local args = {
         [1] = "SkateBoard"
@@ -1398,7 +1392,7 @@ AddButton(Main, {
 })
 
 AddButton(Main, {
-  Name = "قران / 2",
+  Name = "قران - 2",
   Callback = function()
      local args = {
         [1] = "SkateBoard"
@@ -1414,7 +1408,7 @@ AddButton(Main, {
 })
 
 AddButton(Main, {
-  Name = "قران / 3",
+  Name = "قران - 3",
   Callback = function()
      local args = {
         [1] = "SkateBoard"
@@ -1430,7 +1424,7 @@ AddButton(Main, {
 })
 
 AddButton(Main, {
-  Name = "قران / 4",
+  Name = "قران - 4",
   Callback = function()
      local args = {
         [1] = "SkateBoard"
@@ -1446,7 +1440,7 @@ AddButton(Main, {
 })
 
 AddButton(Main, {
-  Name = "قران / 5",
+  Name = "قران - 5",
   Callback = function()
      local args = {
         [1] = "SkateBoard"
@@ -1462,7 +1456,7 @@ AddButton(Main, {
 })
 
 AddButton(Main, {
-  Name = "قران / 6",
+  Name = "قران - 6",
   Callback = function()
      local args = {
         [1] = "SkateBoard"
