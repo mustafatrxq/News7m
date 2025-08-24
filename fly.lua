@@ -1,10 +1,9 @@
--- إعداد اللاعب والشخصية
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local root = character:WaitForChild("HumanoidRootPart")
 local humanoid = character:WaitForChild("Humanoid")
 
--- إعداد GUI
+-- واجهة بسيطة
 local gui = Instance.new("ScreenGui", player.PlayerGui)
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0,150,0,50)
@@ -15,30 +14,28 @@ toggleBtn.Font = Enum.Font.SourceSansBold
 toggleBtn.TextScaled = true
 toggleBtn.TextColor3 = Color3.new(1,1,1)
 
--- متغير التحكم
 local doorsActive = false
 local doors = {}
 local pushForce = 50
 local slowed = false
 
--- إنشاء أبواب ملتصقة بالجسم
-for i = 1, 5 do
-    local door = Instance.new("Part")
-    door.Size = Vector3.new(2,4,0.5)
-    door.Anchored = false
-    door.CanCollide = true
-    door.Position = root.Position + Vector3.new(i*3,0,0)
-    door.Parent = workspace
+-- جلب أبواب السيرفر الحقيقية
+local serverDoors = workspace:WaitForChild("Doors"):GetChildren() -- عدّل الاسم حسب السيرفر
+
+for i, door in ipairs(serverDoors) do
+    local clone = door:Clone()
+    clone.Parent = workspace
+    clone.Anchored = false
 
     local weld = Instance.new("WeldConstraint")
     weld.Part0 = root
-    weld.Part1 = door
-    weld.Parent = door
+    weld.Part1 = clone
+    weld.Parent = clone
 
-    table.insert(doors, door)
+    table.insert(doors, clone)
 end
 
--- دالة دفع اللاعبين القريبين
+-- دفع اللاعبين القريبين
 local function pushNearbyPlayers()
     for _, p in pairs(game.Players:GetPlayers()) do
         if p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
@@ -80,9 +77,15 @@ toggleBtn.MouseButton1Click:Connect(function()
     updateMovement()
 end)
 
--- حلقة مستمرة لتطبيق الدفع إذا كانت الأبواب مفعلة
+-- حلقة مستمرة لتطبيق الدفع وضمان اللصق
 game:GetService("RunService").RenderStepped:Connect(function()
     if doorsActive then
         pushNearbyPlayers()
+        -- إعادة التأكد من اللصق دائماً
+        for _, door in ipairs(doors) do
+            if door and door.Parent then
+                door.CFrame = root.CFrame * CFrame.new((door.Position - root.Position))
+            end
+        end
     end
 end)
