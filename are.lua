@@ -1,92 +1,71 @@
--- Lag Toggle Script كامل
--- ضع هذا Script داخل ServerScriptService
+-- are.lua
+-- سكربت واجهة مع زر تشغيل/إيقاف اللاگ
 
-local Players = game:GetService("Players")
+-- حماية بسيطة
+if game.CoreGui:FindFirstChild("LagUi") then
+    game.CoreGui.LagUi:Destroy()
+end
 
--- إعدادات Lag
-local lagTime = 2      -- وقت الاختفاء/التثبيت بالثواني
-local delayTime = 5    -- الوقت بين كل Lag
-local isLagging = false -- الوضع الافتراضي مغلق
+-- عمل واجهة
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+ScreenGui.Name = "LagUi"
 
--- دالة لتطبيق Lag على لاعب واحد
-local function applyLag(player)
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local char = player.Character
-        local originalCFrame = char.HumanoidRootPart.CFrame
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 200, 0, 120)
+Frame.Position = UDim2.new(0.5, -100, 0.5, -60)
+Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Frame.Active = true
+Frame.Draggable = true
 
-        -- الاختفاء مؤقت
-        for _, part in pairs(char:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.Transparency = 1
-                part.CanCollide = false
+local UICorner = Instance.new("UICorner", Frame)
+UICorner.CornerRadius = UDim.new(0, 12)
+
+local Title = Instance.new("TextLabel", Frame)
+Title.Text = "🚨 Lag Control"
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextScaled = true
+
+local Button = Instance.new("TextButton", Frame)
+Button.Size = UDim2.new(1, -20, 0, 40)
+Button.Position = UDim2.new(0, 10, 0, 50)
+Button.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+Button.Text = "تشغيل اللاگ"
+Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Button.TextScaled = true
+
+local UICorner2 = Instance.new("UICorner", Button)
+UICorner2.CornerRadius = UDim.new(0, 8)
+
+-- حالة اللاگ
+local LagEnabled = false
+local Loop = nil
+
+-- زر التشغيل/الإيقاف
+Button.MouseButton1Click:Connect(function()
+    LagEnabled = not LagEnabled
+    if LagEnabled then
+        Button.Text = "إيقاف اللاگ"
+        Button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+
+        -- تفعيل اللاگ
+        Loop = game:GetService("RunService").Heartbeat:Connect(function()
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    player.Character:TranslateBy(Vector3.new(0, math.random(-1,1), 0))
+                end
             end
-        end
+        end)
 
-        -- إيقاف الحركة
-        local humanoid = char:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            humanoid.WalkSpeed = 0
-            humanoid.JumpPower = 0
-        end
+    else
+        Button.Text = "تشغيل اللاگ"
+        Button.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 
-        wait(lagTime)
-
-        -- إعادة كل شيء
-        for _, part in pairs(char:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.Transparency = 0
-                part.CanCollide = true
-            end
+        -- إيقاف اللاگ
+        if Loop then
+            Loop:Disconnect()
+            Loop = nil
         end
-        if humanoid then
-            humanoid.WalkSpeed = 16
-            humanoid.JumpPower = 50
-        end
-
-        char.HumanoidRootPart.CFrame = originalCFrame
     end
-end
-
--- دالة لتطبيق Lag دوري على كل اللاعبين
-local function lagLoop()
-    while isLagging do
-        for _, player in pairs(Players:GetPlayers()) do
-            spawn(function()
-                applyLag(player)
-            end)
-        end
-        wait(delayTime)
-    end
-end
-
--- GUI لتشغيل وإيقاف Lag
-local function createGUI(adminPlayer)
-    local ScreenGui = Instance.new("ScreenGui", adminPlayer:WaitForChild("PlayerGui"))
-    local Frame = Instance.new("Frame", ScreenGui)
-    Frame.Size = UDim2.new(0, 200, 0, 60)
-    Frame.Position = UDim2.new(0, 50, 0, 50)
-    Frame.BackgroundColor3 = Color3.fromRGB(40,40,40)
-
-    local Button = Instance.new("TextButton", Frame)
-    Button.Size = UDim2.new(1,0,1,0)
-    Button.Text = "تشغيل Lag"
-    Button.Font = Enum.Font.GothamBold
-    Button.TextSize = 18
-    Button.TextColor3 = Color3.fromRGB(255,255,255)
-
-    Button.MouseButton1Click:Connect(function()
-        isLagging = not isLagging
-        if isLagging then
-            Button.Text = "إيقاف Lag"
-            spawn(lagLoop)
-        else
-            Button.Text = "تشغيل Lag"
-        end
-    end)
-end
-
--- إضافة GUI لأي لاعب يدخل (يفترض أن هو المسؤول)
-Players.PlayerAdded:Connect(function(player)
-    -- لو تريد تفعيله فقط لمشرف، ضع شرط هنا
-    createGUI(player)
 end)
