@@ -1604,7 +1604,6 @@ local Main = MakeTab({Name = "الأسماء"})
 -- الاسم
 -- =====================
 AddSection(Main, {"الاسم"})
-
 AddTextBox(Main, {
     Name = "الاسم",
     Default = "",
@@ -1625,46 +1624,10 @@ AddToggle(Main, {
     end    
 })
 
--- قائمة ألوان الاسم
-local nameColors = {
-    Color3.fromRGB(255, 0, 0),    -- أحمر
-    Color3.fromRGB(255, 255, 0),  -- أصفر
-    Color3.fromRGB(0, 0, 255),    -- أزرق
-    Color3.fromRGB(255, 165, 0),  -- برتقالي
-    Color3.fromRGB(128, 0, 128),  -- بنفسجي
-    Color3.fromRGB(135, 206, 235) -- سماوي
-}
-
--- Thread تلوين الاسم
-spawn(function()
-    local currentColor = nameColors[1]
-    local index = 1
-    local speed = 0.05
-    local function smoothGradientStep(currentColor, colorList, step, index)
-        local nextIndex = index % #colorList + 1
-        local targetColor = colorList[nextIndex]
-        local newColor = currentColor:lerp(targetColor, step)
-        if (newColor - targetColor).magnitude < 0.01 then
-            index = nextIndex
-        end
-        return newColor, index
-    end
-
-    while true do
-        if isNameActive then
-            currentColor, index = smoothGradientStep(currentColor, nameColors, 0.02, index)
-            local args = {[1] = "PickingRPNameColor", [2] = currentColor}
-            game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer(unpack(args))
-        end
-        wait(speed)
-    end
-end)
-
 -- =====================
 -- البايو
 -- =====================
 AddSection(Main, {"البايو"})
-
 AddTextBox(Main, {
     Name = "البايو",
     Default = "",
@@ -1685,36 +1648,65 @@ AddToggle(Main, {
     end    
 })
 
--- قائمة ألوان البايو (نفس الألوان ولكن مستقلة)
-local bioColors = {
-    Color3.fromRGB(255, 0, 0),    -- أحمر
-    Color3.fromRGB(255, 255, 0),  -- أصفر
-    Color3.fromRGB(0, 0, 255),    -- أزرق
-    Color3.fromRGB(255, 165, 0),  -- برتقالي
-    Color3.fromRGB(128, 0, 128),  -- بنفسجي
-    Color3.fromRGB(135, 206, 235) -- سماوي
+-- =====================
+-- قائمة الألوان
+-- =====================
+local vibrantColors = {
+    Color3.fromRGB(255, 0, 0),   -- أحمر
+    Color3.fromRGB(0, 255, 0),   -- أخضر
+    Color3.fromRGB(0, 0, 255),   -- أزرق
+    Color3.fromRGB(255, 255, 0), -- أصفر
+    Color3.fromRGB(255, 0, 255), -- فوشيا
+    Color3.fromRGB(0, 255, 255), -- سماوي
+    Color3.fromRGB(255, 165, 0), -- برتقالي
+    Color3.fromRGB(128, 0, 128), -- بنفسجي
+    Color3.fromRGB(255, 20, 147) -- وردي صادم
 }
 
--- Thread تلوين البايو
-spawn(function()
-    local currentColor = bioColors[1]
-    local index = 1
-    local speed = 0.05
-    local function smoothGradientStep(currentColor, colorList, step, index)
-        local nextIndex = index % #colorList + 1
-        local targetColor = colorList[nextIndex]
-        local newColor = currentColor:lerp(targetColor, step)
-        if (newColor - targetColor).magnitude < 0.01 then
-            index = nextIndex
-        end
-        return newColor, index
-    end
+-- =====================
+-- دالة التدرج التدريجي للون
+-- =====================
+local function transitionColor(currentColor, targetColor, step)
+    return currentColor:lerp(targetColor, step)
+end
 
+-- =====================
+-- Thread تلوين الاسم
+-- =====================
+spawn(function()
+    local currentColor = vibrantColors[math.random(#vibrantColors)]
+    local targetColor = vibrantColors[math.random(#vibrantColors)]
+    local step = 0.02
+    local speed = 0.05
+    while true do
+        if isNameActive then
+            currentColor = transitionColor(currentColor, targetColor, step)
+            local args = {[1] = "PickingRPNameColor", [2] = currentColor}
+            game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer(unpack(args))
+            if (currentColor - targetColor).magnitude < 0.01 then
+                targetColor = vibrantColors[math.random(#vibrantColors)]
+            end
+        end
+        wait(speed)
+    end
+end)
+
+-- =====================
+-- Thread تلوين البايو
+-- =====================
+spawn(function()
+    local currentColor = vibrantColors[math.random(#vibrantColors)]
+    local targetColor = vibrantColors[math.random(#vibrantColors)]
+    local step = 0.02
+    local speed = 0.05
     while true do
         if isBioActive then
-            currentColor, index = smoothGradientStep(currentColor, bioColors, 0.02, index)
+            currentColor = transitionColor(currentColor, targetColor, step)
             local args = {[1] = "PickingRPBioColor", [2] = currentColor}
             game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer(unpack(args))
+            if (currentColor - targetColor).magnitude < 0.01 then
+                targetColor = vibrantColors[math.random(#vibrantColors)]
+            end
         end
         wait(speed)
     end
