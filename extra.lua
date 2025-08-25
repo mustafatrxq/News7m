@@ -1604,7 +1604,7 @@ local Main = MakeTab({Name = "الأسماء"})
 -- Gradient Colors Function
 -- =======================
 local function getGradientColor(t)
-    return Color3.fromHSV((t % 360)/360,1,1)
+    return Color3.fromHSV((t % 360)/360, 1, 1) -- Hue يدور من 0 لـ360 تدريجيًا
 end
 
 -- =======================
@@ -1613,6 +1613,16 @@ end
 local isNameActive = false
 local nameSpeed = 0.05
 AddSection(Main, {"الاسم"})
+AddTextBox(Main, {
+    Name = "الاسم",
+    Default = "",
+    PlaceholderText = "ضع الاسم الذي تريده",
+    ClearText = true,
+    Callback = function(value)
+        local args = { [1] = "RolePlayName", [2] = value }
+        game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer(unpack(args))
+    end
+})
 AddToggle(Main, {Name = "تلوين الاسم", Default = false, Callback = function(v) isNameActive = v end})
 AddSlider(Main, {Name = "سرعة تلوين الاسم", Min = 0.01, Max = 0.2, Default = 0.05, Precise = true, Callback = function(v) nameSpeed = v end})
 
@@ -1621,8 +1631,7 @@ spawn(function()
     while true do
         if isNameActive then
             local color = getGradientColor(t)
-            -- إرسال اللون للاسم
-            local args = { [1] = "RolePlayNameColor", [2] = color }
+            local args = { [1] = "PickingRPNameColor", [2] = color }
             game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eColo1r"):FireServer(unpack(args))
             t = t + 1
         end
@@ -1636,6 +1645,16 @@ end)
 local isBioActive = false
 local bioSpeed = 0.05
 AddSection(Main, {"البايو"})
+AddTextBox(Main, {
+    Name = "البايو",
+    Default = "",
+    PlaceholderText = "ضع البايو",
+    ClearText = true,
+    Callback = function(value)
+        local args = { [1] = "RolePlayBio", [2] = value }
+        game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer(unpack(args))
+    end
+})
 AddToggle(Main, {Name = "تلوين البايو", Default = false, Callback = function(v) isBioActive = v end})
 AddSlider(Main, {Name = "سرعة تلوين البايو", Min = 0.01, Max = 0.2, Default = 0.05, Precise = true, Callback = function(v) bioSpeed = v end})
 
@@ -1644,8 +1663,7 @@ spawn(function()
     while true do
         if isBioActive then
             local color = getGradientColor(t)
-            -- إرسال اللون للبايو
-            local args = { [1] = "RolePlayBioColor", [2] = color }
+            local args = { [1] = "PickingRPBioColor", [2] = color }
             game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eColo1r"):FireServer(unpack(args))
             t = t + 1
         end
