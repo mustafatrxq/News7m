@@ -1618,7 +1618,7 @@ local isBioActive = false
 local nameSpeed = 0.05
 local bioSpeed = 0.05
 
--- Toggle و Slider للاسم
+-- Toggle للاسم
 AddToggle(Main, {
     Name = "تلوين الاسم",
     Default = false,
@@ -1627,14 +1627,19 @@ AddToggle(Main, {
     end    
 })
 
-AddSlider(Main, {
-    Name = "سرعة تلوين الاسم",
-    Min = 0.01,
-    Max = 0.2,
-    Default = 0.05,
-    Precise = true,
+-- TextBox للسرعة الاسم
+AddTextBox(Main, {
+    Name = "سرعة تلوين الاسم (0.01 - 2)",
+    Default = "0.05",
+    PlaceholderText = "اكتب سرعة بالثواني",
+    ClearText = true,
     Callback = function(value)
-        nameSpeed = value
+        local num = tonumber(value)
+        if num and num >= 0.01 and num <= 2 then
+            nameSpeed = num
+        else
+            print("السرعة يجب أن تكون بين 0.01 و 2 ثانية")
+        end
     end
 })
 
@@ -1651,7 +1656,7 @@ AddTextBox(Main, {
     end
 })
 
--- Toggle و Slider للبايو
+-- Toggle للبايو
 AddToggle(Main, {
     Name = "تلوين البايو",
     Default = false,
@@ -1660,14 +1665,19 @@ AddToggle(Main, {
     end    
 })
 
-AddSlider(Main, {
-    Name = "سرعة تلوين البايو",
-    Min = 0.01,
-    Max = 0.2,
-    Default = 0.05,
-    Precise = true,
+-- TextBox للسرعة البايو
+AddTextBox(Main, {
+    Name = "سرعة تلوين البايو (0.01 - 2)",
+    Default = "0.05",
+    PlaceholderText = "اكتب سرعة بالثواني",
+    ClearText = true,
     Callback = function(value)
-        bioSpeed = value
+        local num = tonumber(value)
+        if num and num >= 0.01 and num <= 2 then
+            bioSpeed = num
+        else
+            print("السرعة يجب أن تكون بين 0.01 و 2 ثانية")
+        end
     end
 })
 
