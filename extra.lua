@@ -1649,7 +1649,7 @@ AddToggle(Main, {
 })
 
 -- =====================
--- قائمة الألوان
+-- قائمة الألوان المشتركة (متوهجة بالكامل)
 -- =====================
 local vibrantColors = {
     Color3.fromRGB(255, 0, 0),   -- أحمر
@@ -1663,9 +1663,6 @@ local vibrantColors = {
     Color3.fromRGB(135, 206, 235) -- سماوي فاتح
 }
 
--- =====================
--- دوال التدرج التدريجي
--- =====================
 local function getRandomColor()
     return vibrantColors[math.random(#vibrantColors)]
 end
@@ -1683,20 +1680,25 @@ end
 -- =====================
 spawn(function()
     local currentColor = getRandomColor()
-    local targetColor = getRandomColor()
-    local step = 0.05
     while true do
         if isNameActive then
-            currentColor = smoothTransition(currentColor, targetColor, step)
-            local args = {[1] = "PickingRPNameColor", [2] = currentColor}
-            game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer(unpack(args))
-            if math.abs(currentColor.r - targetColor.r) < 0.01 and
-               math.abs(currentColor.g - targetColor.g) < 0.01 and
-               math.abs(currentColor.b - targetColor.b) < 0.01 then
-                targetColor = getRandomColor()
+            local targetColor = getRandomColor()
+            local holdTime = 0.5
+            local steps = 20
+            game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r")
+                :FireServer("PickingRPNameColor", currentColor)
+            wait(holdTime)
+            for i = 1, steps do
+                local t = i / steps
+                local lerpColor = smoothTransition(currentColor, targetColor, t)
+                game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r")
+                    :FireServer("PickingRPNameColor", lerpColor)
+                wait(0.07)
             end
+            currentColor = targetColor
+        else
+            wait(0.1)
         end
-        wait(0.05)
     end
 end)
 
@@ -1705,19 +1707,24 @@ end)
 -- =====================
 spawn(function()
     local currentColor = getRandomColor()
-    local targetColor = getRandomColor()
-    local step = 0.05
     while true do
         if isBioActive then
-            currentColor = smoothTransition(currentColor, targetColor, step)
-            local args = {[1] = "PickingRPBioColor", [2] = currentColor}
-            game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer(unpack(args))
-            if math.abs(currentColor.r - targetColor.r) < 0.01 and
-               math.abs(currentColor.g - targetColor.g) < 0.01 and
-               math.abs(currentColor.b - targetColor.b) < 0.01 then
-                targetColor = getRandomColor()
+            local targetColor = getRandomColor()
+            local holdTime = 0.5
+            local steps = 20
+            game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r")
+                :FireServer("PickingRPBioColor", currentColor)
+            wait(holdTime)
+            for i = 1, steps do
+                local t = i / steps
+                local lerpColor = smoothTransition(currentColor, targetColor, t)
+                game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r")
+                    :FireServer("PickingRPBioColor", lerpColor)
+                wait(0.07)
             end
+            currentColor = targetColor
+        else
+            wait(0.1)
         end
-        wait(0.05)
     end
 end)
