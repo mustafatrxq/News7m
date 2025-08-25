@@ -1660,34 +1660,43 @@ local vibrantColors = {
     Color3.fromRGB(0, 255, 255), -- سماوي
     Color3.fromRGB(255, 165, 0), -- برتقالي
     Color3.fromRGB(128, 0, 128), -- بنفسجي
-    Color3.fromRGB(255, 20, 147) -- وردي صادم
+    Color3.fromRGB(135, 206, 235) -- سماوي فاتح
 }
 
 -- =====================
--- دالة التدرج التدريجي للون
+-- دوال التدرج التدريجي
 -- =====================
-local function transitionColor(currentColor, targetColor, step)
-    return currentColor:lerp(targetColor, step)
+local function getRandomColor()
+    return vibrantColors[math.random(#vibrantColors)]
+end
+
+local function smoothTransition(current, target, step)
+    return Color3.new(
+        current.r + (target.r - current.r) * step,
+        current.g + (target.g - current.g) * step,
+        current.b + (target.b - current.b) * step
+    )
 end
 
 -- =====================
 -- Thread تلوين الاسم
 -- =====================
 spawn(function()
-    local currentColor = vibrantColors[math.random(#vibrantColors)]
-    local targetColor = vibrantColors[math.random(#vibrantColors)]
-    local step = 0.02
-    local speed = 0.05
+    local currentColor = getRandomColor()
+    local targetColor = getRandomColor()
+    local step = 0.05
     while true do
         if isNameActive then
-            currentColor = transitionColor(currentColor, targetColor, step)
+            currentColor = smoothTransition(currentColor, targetColor, step)
             local args = {[1] = "PickingRPNameColor", [2] = currentColor}
             game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer(unpack(args))
-            if (currentColor - targetColor).magnitude < 0.01 then
-                targetColor = vibrantColors[math.random(#vibrantColors)]
+            if math.abs(currentColor.r - targetColor.r) < 0.01 and
+               math.abs(currentColor.g - targetColor.g) < 0.01 and
+               math.abs(currentColor.b - targetColor.b) < 0.01 then
+                targetColor = getRandomColor()
             end
         end
-        wait(speed)
+        wait(0.05)
     end
 end)
 
@@ -1695,19 +1704,20 @@ end)
 -- Thread تلوين البايو
 -- =====================
 spawn(function()
-    local currentColor = vibrantColors[math.random(#vibrantColors)]
-    local targetColor = vibrantColors[math.random(#vibrantColors)]
-    local step = 0.02
-    local speed = 0.05
+    local currentColor = getRandomColor()
+    local targetColor = getRandomColor()
+    local step = 0.05
     while true do
         if isBioActive then
-            currentColor = transitionColor(currentColor, targetColor, step)
+            currentColor = smoothTransition(currentColor, targetColor, step)
             local args = {[1] = "PickingRPBioColor", [2] = currentColor}
             game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer(unpack(args))
-            if (currentColor - targetColor).magnitude < 0.01 then
-                targetColor = vibrantColors[math.random(#vibrantColors)]
+            if math.abs(currentColor.r - targetColor.r) < 0.01 and
+               math.abs(currentColor.g - targetColor.g) < 0.01 and
+               math.abs(currentColor.b - targetColor.b) < 0.01 then
+                targetColor = getRandomColor()
             end
         end
-        wait(speed)
+        wait(0.05)
     end
 end)
