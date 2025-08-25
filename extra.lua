@@ -1615,18 +1615,27 @@ AddTextBox(Main, {
 
 local isNameActive = false
 local isBioActive = false
+local nameSpeed = 0.05
+local bioSpeed = 0.05
 
-Toggle = AddToggle(Main, {
+-- Toggle و Slider للاسم
+AddToggle(Main, {
     Name = "تلوين الاسم",
     Default = false,
     Callback = function(value)
         isNameActive = value
-        if isNameActive then
-            print("RGB Name ativado")
-        else
-            print("RGB Name desativado")
-        end
     end    
+})
+
+AddSlider(Main, {
+    Name = "سرعة تلوين الاسم",
+    Min = 0.01,
+    Max = 0.2,
+    Default = 0.05,
+    Precise = true,
+    Callback = function(value)
+        nameSpeed = value
+    end
 })
 
 AddSection(Main, {"البايو"})
@@ -1642,84 +1651,54 @@ AddTextBox(Main, {
     end
 })
 
-Toggle = AddToggle(Main, {
+-- Toggle و Slider للبايو
+AddToggle(Main, {
     Name = "تلوين البايو",
     Default = false,
     Callback = function(value)
         isBioActive = value
-        if isBioActive then
-            print("RGB BIO ativado")
-        else
-            print("RGB BIO desativado")
-        end
     end    
 })
 
--- Function for smooth transition
-local function smoothGradient(currentColor, targetColor, step)
-    return currentColor:lerp(targetColor, step)
-end
+AddSlider(Main, {
+    Name = "سرعة تلوين البايو",
+    Min = 0.01,
+    Max = 0.2,
+    Default = 0.05,
+    Precise = true,
+    Callback = function(value)
+        bioSpeed = value
+    end
+})
 
--- RGB Name Thread
+-- =====================
+-- RGB Name Thread (HSV gradient)
+-- =====================
 spawn(function()
-    local vibrantColors = {
-        Color3.fromRGB(255, 0, 0),
-        Color3.fromRGB(0, 255, 0),
-        Color3.fromRGB(0, 0, 255),
-        Color3.fromRGB(255, 255, 0),
-        Color3.fromRGB(255, 0, 255),
-        Color3.fromRGB(0, 255, 255),
-        Color3.fromRGB(255, 165, 0),
-        Color3.fromRGB(128, 0, 128),
-        Color3.fromRGB(255, 20, 147)
-    }
-
-    local currentColor = vibrantColors[1]
-    local targetIndex = 2
-
+    local t = 0
     while true do
         if isNameActive then
-            local targetColor = vibrantColors[targetIndex]
-            currentColor = smoothGradient(currentColor, targetColor, 0.05)
-            local args = {[1] = "PickingRPNameColor", [2] = currentColor}
+            local color = Color3.fromHSV((t%360)/360, 1, 1)
+            local args = {[1] = "PickingRPNameColor", [2] = color}
             game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer(unpack(args))
-            
-            if (currentColor - targetColor).magnitude < 0.01 then
-                targetIndex = targetIndex % #vibrantColors + 1
-            end
+            t = t + 1
         end
-        wait(0.05)
+        wait(nameSpeed)
     end
 end)
 
--- RGB BIO Thread
+-- =====================
+-- RGB Bio Thread (HSV gradient)
+-- =====================
 spawn(function()
-    local vibrantColors = {
-        Color3.fromRGB(255, 0, 0),
-        Color3.fromRGB(0, 255, 0),
-        Color3.fromRGB(0, 0, 255),
-        Color3.fromRGB(255, 255, 0),
-        Color3.fromRGB(255, 0, 255),
-        Color3.fromRGB(0, 255, 255),
-        Color3.fromRGB(255, 165, 0),
-        Color3.fromRGB(128, 0, 128),
-        Color3.fromRGB(255, 20, 147)
-    }
-
-    local currentColor = vibrantColors[1]
-    local targetIndex = 2
-
+    local t = 0
     while true do
         if isBioActive then
-            local targetColor = vibrantColors[targetIndex]
-            currentColor = smoothGradient(currentColor, targetColor, 0.05)
-            local args = {[1] = "PickingRPBioColor", [2] = currentColor}
+            local color = Color3.fromHSV((t%360)/360, 1, 1)
+            local args = {[1] = "PickingRPBioColor", [2] = color}
             game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer(unpack(args))
-            
-            if (currentColor - targetColor).magnitude < 0.01 then
-                targetIndex = targetIndex % #vibrantColors + 1
-            end
+            t = t + 1
         end
-        wait(0.05)
+        wait(bioSpeed)
     end
 end)
