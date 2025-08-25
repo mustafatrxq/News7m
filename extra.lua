@@ -1601,10 +1601,17 @@ AddButton(Main, {
 local Main = MakeTab({Name = "الأسماء"})
 
 -- =======================
+-- Gradient Colors Function
+-- =======================
+local function getGradientColor(t)
+    return Color3.fromHSV((t % 360)/360,1,1)
+end
+
+-- =======================
 -- الاسم
 -- =======================
 local isNameActive = false
-local nameSpeed = 0.05 -- سرعة التدرج، كل ما صغرت → أسرع
+local nameSpeed = 0.05
 AddSection(Main, {"الاسم"})
 AddToggle(Main, {Name = "تلوين الاسم", Default = false, Callback = function(v) isNameActive = v end})
 AddSlider(Main, {Name = "سرعة تلوين الاسم", Min = 0.01, Max = 0.2, Default = 0.05, Precise = true, Callback = function(v) nameSpeed = v end})
@@ -1613,23 +1620,10 @@ spawn(function()
     local t = 0
     while true do
         if isNameActive then
-            local color = Color3.fromHSV((t%360)/360,1,1) -- Gradient سلس
+            local color = getGradientColor(t)
             -- إرسال اللون للاسم
-            game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer("PickingRPNameColor", color)
-            -- توهج الاسم
-            local player = game.Players.LocalPlayer
-            if player.Character and player.Character:FindFirstChild("Head") then
-                if not player.Character.Head:FindFirstChild("NameGlow") then
-                    local glow = Instance.new("PointLight")
-                    glow.Name = "NameGlow"
-                    glow.Range = 8
-                    glow.Brightness = 2
-                    glow.Color = color
-                    glow.Parent = player.Character.Head
-                else
-                    player.Character.Head.NameGlow.Color = color
-                end
-            end
+            local args = { [1] = "RolePlayNameColor", [2] = color }
+            game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eColo1r"):FireServer(unpack(args))
             t = t + 1
         end
         wait(nameSpeed)
@@ -1649,23 +1643,10 @@ spawn(function()
     local t = 0
     while true do
         if isBioActive then
-            local color = Color3.fromHSV((t%360)/360,1,1) -- Gradient سلس
+            local color = getGradientColor(t)
             -- إرسال اللون للبايو
-            game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPBioColo1r"):FireServer("PickingRPBioColor", color)
-            -- توهج البايو
-            local player = game.Players.LocalPlayer
-            if player.Character and player.Character:FindFirstChild("Head") then
-                if not player.Character.Head:FindFirstChild("BioGlow") then
-                    local glow = Instance.new("PointLight")
-                    glow.Name = "BioGlow"
-                    glow.Range = 8
-                    glow.Brightness = 1.5
-                    glow.Color = color
-                    glow.Parent = player.Character.Head
-                else
-                    player.Character.Head.BioGlow.Color = color
-                end
-            end
+            local args = { [1] = "RolePlayBioColor", [2] = color }
+            game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eColo1r"):FireServer(unpack(args))
             t = t + 1
         end
         wait(bioSpeed)
