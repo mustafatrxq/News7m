@@ -1,4 +1,4 @@
-loadstring(game:HttpGet(("https://raw.githubusercontent.com/R7KScript/usernaxo/refs/heads/main/GUI3")))()
+loadstring(game:HttpGet(("https://raw.githubusercontent.com/Y0dp/SCN/refs/heads/main/TT")))()
 
 MakeWindow({
   Hub = {
