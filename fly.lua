@@ -1,130 +1,92 @@
---[[
-اسمحلي اسميه: PremiumSystem
-هذ السكربت يجمع السيرفر + RemoteEvents + GUI
-ضع هذا في StarterPlayerScripts للـ GUI و في ServerScriptService للجزء السيرفر
---]]
+-- Lag Toggle Script كامل
+-- ضع هذا Script داخل ServerScriptService
 
--- ===== Server-side part =====
-if game:GetService("RunService"):IsServer() then
-    local Players = game:GetService("Players")
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 
-    -- إنشاء RemoteEvents
-    local TogglePremium = ReplicatedStorage:FindFirstChild("TogglePremium")
-    if not TogglePremium then
-        TogglePremium = Instance.new("RemoteEvent")
-        TogglePremium.Name = "TogglePremium"
-        TogglePremium.Parent = ReplicatedStorage
-    end
+-- إعدادات Lag
+local lagTime = 2      -- وقت الاختفاء/التثبيت بالثواني
+local delayTime = 5    -- الوقت بين كل Lag
+local isLagging = false -- الوضع الافتراضي مغلق
 
-    local NotifyPremium = ReplicatedStorage:FindFirstChild("PremiumNotification")
-    if not NotifyPremium then
-        NotifyPremium = Instance.new("RemoteEvent")
-        NotifyPremium.Name = "PremiumNotification"
-        NotifyPremium.Parent = ReplicatedStorage
-    end
+-- دالة لتطبيق Lag على لاعب واحد
+local function applyLag(player)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local char = player.Character
+        local originalCFrame = char.HumanoidRootPart.CFrame
 
-    -- إضافة PremiumPass لكل لاعب عند دخوله
-    Players.PlayerAdded:Connect(function(player)
-        if not player:FindFirstChild("PremiumPass") then
-            local premium = Instance.new("BoolValue")
-            premium.Name = "PremiumPass"
-            premium.Value = false -- افتراضي غير مفعل
-            premium.Parent = player
-        end
-
-        -- Leaderstats
-        local leaderstats = player:FindFirstChild("leaderstats")
-        if not leaderstats then
-            leaderstats = Instance.new("Folder")
-            leaderstats.Name = "leaderstats"
-            leaderstats.Parent = player
-        end
-
-        -- نص البريموم بجانب الاسم
-        local premiumText = Instance.new("StringValue")
-        premiumText.Name = "Premium"
-        premiumText.Value = player.PremiumPass.Value and "⭐ Premium" or ""
-        premiumText.Parent = leaderstats
-
-        -- تحديث تلقائي إذا تغيرت القيمة
-        player.PremiumPass.Changed:Connect(function(val)
-            premiumText.Value = val and "⭐ Premium" or ""
-        end)
-    end)
-
-    -- تفعيل/إيقاف البريموم لكل اللاعبين
-    TogglePremium.OnServerEvent:Connect(function(adminPlayer, state)
-        for _, player in pairs(Players:GetPlayers()) do
-            if player:FindFirstChild("PremiumPass") then
-                player.PremiumPass.Value = state
-                -- مثال: تفعيل SilverPass إذا موجودة
-                if player:FindFirstChild("PlayersBag") and player.PlayersBag:FindFirstChild("SilverPass") then
-                    player.PlayersBag.SilverPass.Value = state
-                end
+        -- الاختفاء مؤقت
+        for _, part in pairs(char:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 1
+                part.CanCollide = false
             end
         end
-        -- إشعار لكل اللاعبين
-        NotifyPremium:FireAllClients(state)
-    end)
+
+        -- إيقاف الحركة
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = 0
+            humanoid.JumpPower = 0
+        end
+
+        wait(lagTime)
+
+        -- إعادة كل شيء
+        for _, part in pairs(char:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 0
+                part.CanCollide = true
+            end
+        end
+        if humanoid then
+            humanoid.WalkSpeed = 16
+            humanoid.JumpPower = 50
+        end
+
+        char.HumanoidRootPart.CFrame = originalCFrame
+    end
 end
 
--- ===== Client-side GUI =====
-if game:GetService("RunService"):IsClient() then
-    local Players = game:GetService("Players")
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
-    local player = Players.LocalPlayer
-    local TogglePremium = ReplicatedStorage:WaitForChild("TogglePremium")
-    local NotifyPremium = ReplicatedStorage:WaitForChild("PremiumNotification")
+-- دالة لتطبيق Lag دوري على كل اللاعبين
+local function lagLoop()
+    while isLagging do
+        for _, player in pairs(Players:GetPlayers()) do
+            spawn(function()
+                applyLag(player)
+            end)
+        end
+        wait(delayTime)
+    end
+end
 
-    -- واجهة GUI
-    local ScreenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+-- GUI لتشغيل وإيقاف Lag
+local function createGUI(adminPlayer)
+    local ScreenGui = Instance.new("ScreenGui", adminPlayer:WaitForChild("PlayerGui"))
     local Frame = Instance.new("Frame", ScreenGui)
-    Frame.Size = UDim2.new(0, 220, 0, 120)
+    Frame.Size = UDim2.new(0, 200, 0, 60)
     Frame.Position = UDim2.new(0, 50, 0, 50)
-    Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Frame.BorderSizePixel = 0
+    Frame.BackgroundColor3 = Color3.fromRGB(40,40,40)
 
-    local Title = Instance.new("TextLabel", Frame)
-    Title.Size = UDim2.new(1,0,0,30)
-    Title.Position = UDim2.new(0,0,0,0)
-    Title.BackgroundTransparency = 1
-    Title.Text = "تحكم البريموم"
-    Title.TextColor3 = Color3.fromRGB(255,215,0)
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 18
+    local Button = Instance.new("TextButton", Frame)
+    Button.Size = UDim2.new(1,0,1,0)
+    Button.Text = "تشغيل Lag"
+    Button.Font = Enum.Font.GothamBold
+    Button.TextSize = 18
+    Button.TextColor3 = Color3.fromRGB(255,255,255)
 
-    -- زر تشغيل
-    local ButtonOn = Instance.new("TextButton", Frame)
-    ButtonOn.Size = UDim2.new(0.45,0,0,40)
-    ButtonOn.Position = UDim2.new(0.05,0,0.4,0)
-    ButtonOn.Text = "تشغيل"
-    ButtonOn.TextColor3 = Color3.fromRGB(0,255,0)
-    ButtonOn.Font = Enum.Font.GothamBold
-    ButtonOn.TextSize = 18
-
-    ButtonOn.MouseButton1Click:Connect(function()
-        TogglePremium:FireServer(true)
-    end)
-
-    -- زر إيقاف
-    local ButtonOff = Instance.new("TextButton", Frame)
-    ButtonOff.Size = UDim2.new(0.45,0,0,40)
-    ButtonOff.Position = UDim2.new(0.5,0,0.4,0)
-    ButtonOff.Text = "إيقاف"
-    ButtonOff.TextColor3 = Color3.fromRGB(255,0,0)
-    ButtonOff.Font = Enum.Font.GothamBold
-    ButtonOff.TextSize = 18
-
-    ButtonOff.MouseButton1Click:Connect(function()
-        TogglePremium:FireServer(false)
-    end)
-
-    -- إشعار عند التغيير
-    NotifyPremium.OnClientEvent:Connect(function(state)
-        local message = Instance.new("Message", workspace)
-        message.Text = state and "✨ تم تفعيل البريموم لجميع اللاعبين!" or "❌ تم إيقاف البريموم لجميع اللاعبين!"
-        wait(3)
-        message:Destroy()
+    Button.MouseButton1Click:Connect(function()
+        isLagging = not isLagging
+        if isLagging then
+            Button.Text = "إيقاف Lag"
+            spawn(lagLoop)
+        else
+            Button.Text = "تشغيل Lag"
+        end
     end)
 end
+
+-- إضافة GUI لأي لاعب يدخل (يفترض أن هو المسؤول)
+Players.PlayerAdded:Connect(function(player)
+    -- لو تريد تفعيله فقط لمشرف، ضع شرط هنا
+    createGUI(player)
+end)
