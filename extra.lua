@@ -1600,6 +1600,9 @@ AddButton(Main, {
 
 local Main = MakeTab({Name = "الأسماء"})
 
+-- =====================
+-- الاسم
+-- =====================
 AddSection(Main, {"الاسم"})
 
 AddTextBox(Main, {
@@ -1614,11 +1617,6 @@ AddTextBox(Main, {
 })
 
 local isNameActive = false
-local isBioActive = false
-local nameSpeed = 0.05
-local bioSpeed = 0.05
-
--- Toggle للاسم
 AddToggle(Main, {
     Name = "تلوين الاسم",
     Default = false,
@@ -1627,22 +1625,44 @@ AddToggle(Main, {
     end    
 })
 
--- TextBox للسرعة الاسم
-AddTextBox(Main, {
-    Name = "سرعة تلوين الاسم (0.01 - 2)",
-    Default = "0.05",
-    PlaceholderText = "اكتب سرعة بالثواني",
-    ClearText = true,
-    Callback = function(value)
-        local num = tonumber(value)
-        if num and num >= 0.01 and num <= 2 then
-            nameSpeed = num
-        else
-            print("السرعة يجب أن تكون بين 0.01 و 2 ثانية")
-        end
-    end
-})
+-- قائمة ألوان الاسم
+local nameColors = {
+    Color3.fromRGB(255, 0, 0),    -- أحمر
+    Color3.fromRGB(255, 255, 0),  -- أصفر
+    Color3.fromRGB(0, 0, 255),    -- أزرق
+    Color3.fromRGB(255, 165, 0),  -- برتقالي
+    Color3.fromRGB(128, 0, 128),  -- بنفسجي
+    Color3.fromRGB(135, 206, 235) -- سماوي
+}
 
+-- Thread تلوين الاسم
+spawn(function()
+    local currentColor = nameColors[1]
+    local index = 1
+    local speed = 0.05
+    local function smoothGradientStep(currentColor, colorList, step, index)
+        local nextIndex = index % #colorList + 1
+        local targetColor = colorList[nextIndex]
+        local newColor = currentColor:lerp(targetColor, step)
+        if (newColor - targetColor).magnitude < 0.01 then
+            index = nextIndex
+        end
+        return newColor, index
+    end
+
+    while true do
+        if isNameActive then
+            currentColor, index = smoothGradientStep(currentColor, nameColors, 0.02, index)
+            local args = {[1] = "PickingRPNameColor", [2] = currentColor}
+            game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer(unpack(args))
+        end
+        wait(speed)
+    end
+end)
+
+-- =====================
+-- البايو
+-- =====================
 AddSection(Main, {"البايو"})
 
 AddTextBox(Main, {
@@ -1651,12 +1671,12 @@ AddTextBox(Main, {
     PlaceholderText = "ضع البايو",
     ClearText = true,
     Callback = function(value)
-         local args = {[1] = "RolePlayBio", [2] = value}
-         game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eTex1t"):FireServer(unpack(args))
+        local args = {[1] = "RolePlayBio", [2] = value}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eTex1t"):FireServer(unpack(args))
     end
 })
 
--- Toggle للبايو
+local isBioActive = false
 AddToggle(Main, {
     Name = "تلوين البايو",
     Default = false,
@@ -1665,50 +1685,37 @@ AddToggle(Main, {
     end    
 })
 
--- TextBox للسرعة البايو
-AddTextBox(Main, {
-    Name = "سرعة تلوين البايو (0.01 - 2)",
-    Default = "0.05",
-    PlaceholderText = "اكتب سرعة بالثواني",
-    ClearText = true,
-    Callback = function(value)
-        local num = tonumber(value)
-        if num and num >= 0.01 and num <= 2 then
-            bioSpeed = num
-        else
-            print("السرعة يجب أن تكون بين 0.01 و 2 ثانية")
-        end
-    end
-})
+-- قائمة ألوان البايو (نفس الألوان ولكن مستقلة)
+local bioColors = {
+    Color3.fromRGB(255, 0, 0),    -- أحمر
+    Color3.fromRGB(255, 255, 0),  -- أصفر
+    Color3.fromRGB(0, 0, 255),    -- أزرق
+    Color3.fromRGB(255, 165, 0),  -- برتقالي
+    Color3.fromRGB(128, 0, 128),  -- بنفسجي
+    Color3.fromRGB(135, 206, 235) -- سماوي
+}
 
--- =====================
--- RGB Name Thread (HSV gradient)
--- =====================
+-- Thread تلوين البايو
 spawn(function()
-    local t = 0
-    while true do
-        if isNameActive then
-            local color = Color3.fromHSV((t%360)/360, 1, 1)
-            local args = {[1] = "PickingRPNameColor", [2] = color}
-            game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer(unpack(args))
-            t = t + 1
+    local currentColor = bioColors[1]
+    local index = 1
+    local speed = 0.05
+    local function smoothGradientStep(currentColor, colorList, step, index)
+        local nextIndex = index % #colorList + 1
+        local targetColor = colorList[nextIndex]
+        local newColor = currentColor:lerp(targetColor, step)
+        if (newColor - targetColor).magnitude < 0.01 then
+            index = nextIndex
         end
-        wait(nameSpeed)
+        return newColor, index
     end
-end)
 
--- =====================
--- RGB Bio Thread (HSV gradient)
--- =====================
-spawn(function()
-    local t = 0
     while true do
         if isBioActive then
-            local color = Color3.fromHSV((t%360)/360, 1, 1)
-            local args = {[1] = "PickingRPBioColor", [2] = color}
+            currentColor, index = smoothGradientStep(currentColor, bioColors, 0.02, index)
+            local args = {[1] = "PickingRPBioColor", [2] = currentColor}
             game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer(unpack(args))
-            t = t + 1
         end
-        wait(bioSpeed)
+        wait(speed)
     end
 end)
