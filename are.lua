@@ -1,71 +1,71 @@
--- are.lua
--- سكربت واجهة مع زر تشغيل/إيقاف اللاگ
+-- Lag + Freeze GUI Script (تعليمي)
+-- ضع هذا كـ LocalScript داخل StarterPlayerScripts
 
--- حماية بسيطة
-if game.CoreGui:FindFirstChild("LagUi") then
-    game.CoreGui.LagUi:Destroy()
-end
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
 
--- عمل واجهة
-local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-ScreenGui.Name = "LagUi"
+-- مثال RemoteEvent موجود مسبقاً في السيرفر
+local ExampleEvent = ReplicatedStorage:FindFirstChild("PhoneEvent") -- استبدل بالاسم الصحيح
 
-local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.new(0, 200, 0, 120)
-Frame.Position = UDim2.new(0.5, -100, 0.5, -60)
-Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-Frame.Active = true
-Frame.Draggable = true
-
-local UICorner = Instance.new("UICorner", Frame)
-UICorner.CornerRadius = UDim.new(0, 12)
-
-local Title = Instance.new("TextLabel", Frame)
-Title.Text = "🚨 Lag Control"
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.BackgroundTransparency = 1
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextScaled = true
-
-local Button = Instance.new("TextButton", Frame)
-Button.Size = UDim2.new(1, -20, 0, 40)
-Button.Position = UDim2.new(0, 10, 0, 50)
-Button.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-Button.Text = "تشغيل اللاگ"
-Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-Button.TextScaled = true
-
-local UICorner2 = Instance.new("UICorner", Button)
-UICorner2.CornerRadius = UDim.new(0, 8)
+-- GUI
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("❄️ Lag & Freeze Tool", "DarkTheme")
+local Tab = Window:NewTab("Main")
+local Section = Tab:NewSection("Control")
 
 -- حالة اللاگ
 local LagEnabled = false
-local Loop = nil
+local Loop
 
--- زر التشغيل/الإيقاف
-Button.MouseButton1Click:Connect(function()
-    LagEnabled = not LagEnabled
-    if LagEnabled then
-        Button.Text = "إيقاف اللاگ"
-        Button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-
-        -- تفعيل اللاگ
-        Loop = game:GetService("RunService").Heartbeat:Connect(function()
-            for _, player in pairs(game.Players:GetPlayers()) do
-                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    player.Character:TranslateBy(Vector3.new(0, math.random(-1,1), 0))
+-- دالة تشغيل اللاگ + تجميد
+local function StartLag()
+    if not ExampleEvent then
+        warn("RemoteEvent مو موجود")
+        return
+    end
+    LagEnabled = true
+    Loop = game:GetService("RunService").Heartbeat:Connect(function()
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                -- تجميد الحركة
+                local hum = p.Character:FindFirstChildOfClass("Humanoid")
+                if hum then
+                    hum.WalkSpeed = 0
+                    hum.JumpPower = 0
                 end
+                -- تأثير مرئي: تحريك الشخصية قليلًا (تذبذب)
+                p.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(math.random(-1,1),0,math.random(-1,1))
+                -- إرسال RemoteEvent إذا موجود
+                ExampleEvent:FireServer("Spam", string.rep("A",500))
             end
-        end)
+        end
+    end)
+end
 
-    else
-        Button.Text = "تشغيل اللاگ"
-        Button.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-
-        -- إيقاف اللاگ
-        if Loop then
-            Loop:Disconnect()
-            Loop = nil
+-- دالة إيقاف اللاگ + إعادة اللاعبين طبيعي
+local function StopLag()
+    LagEnabled = false
+    if Loop then
+        Loop:Disconnect()
+        Loop = nil
+    end
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= player and p.Character then
+            local hum = p.Character:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum.WalkSpeed = 16
+                hum.JumpPower = 50
+            end
         end
     end
+end
+
+-- أزرار GUI
+Section:NewButton("تشغيل اللاگ + تجميد", "يسبب Lag وتجميد للاعبين", function()
+    StartLag()
+end)
+
+Section:NewButton("ايقاف اللاگ", "يرجع كلشي طبيعي", function()
+    StopLag()
 end)
