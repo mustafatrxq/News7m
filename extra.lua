@@ -1600,73 +1600,126 @@ AddButton(Main, {
 
 local Main = MakeTab({Name = "الأسماء"})
 
--- =======================
--- Gradient Colors Function
--- =======================
-local function getGradientColor(t)
-    return Color3.fromHSV((t % 360)/360, 1, 1) -- Hue يدور من 0 لـ360 تدريجيًا
-end
-
--- =======================
--- الاسم
--- =======================
-local isNameActive = false
-local nameSpeed = 0.05
 AddSection(Main, {"الاسم"})
+
 AddTextBox(Main, {
     Name = "الاسم",
     Default = "",
-    PlaceholderText = "ضع الاسم الذي تريده",
+    PlaceholderText = "ضع الاسم",
     ClearText = true,
     Callback = function(value)
-        local args = { [1] = "RolePlayName", [2] = value }
-        game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer(unpack(args))
+        local args = {[1] = "RolePlayName", [2] = value}
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eTex1t"):FireServer(unpack(args))
     end
 })
-AddToggle(Main, {Name = "تلوين الاسم", Default = false, Callback = function(v) isNameActive = v end})
-AddSlider(Main, {Name = "سرعة تلوين الاسم", Min = 0.01, Max = 0.2, Default = 0.05, Precise = true, Callback = function(v) nameSpeed = v end})
 
-spawn(function()
-    local t = 0
-    while true do
-        if isNameActive then
-            local color = getGradientColor(t)
-            local args = { [1] = "PickingRPNameColor", [2] = color }
-            game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eColo1r"):FireServer(unpack(args))
-            t = t + 1
-        end
-        wait(nameSpeed)
-    end
-end)
-
--- =======================
--- البايو
--- =======================
+local isNameActive = false
 local isBioActive = false
-local bioSpeed = 0.05
+
+Toggle = AddToggle(Main, {
+    Name = "تلوين الاسم",
+    Default = false,
+    Callback = function(value)
+        isNameActive = value
+        if isNameActive then
+            print("RGB Name ativado")
+        else
+            print("RGB Name desativado")
+        end
+    end    
+})
+
 AddSection(Main, {"البايو"})
+
 AddTextBox(Main, {
     Name = "البايو",
     Default = "",
     PlaceholderText = "ضع البايو",
     ClearText = true,
     Callback = function(value)
-        local args = { [1] = "RolePlayBio", [2] = value }
-        game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer(unpack(args))
+         local args = {[1] = "RolePlayBio", [2] = value}
+         game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eTex1t"):FireServer(unpack(args))
     end
 })
-AddToggle(Main, {Name = "تلوين البايو", Default = false, Callback = function(v) isBioActive = v end})
-AddSlider(Main, {Name = "سرعة تلوين البايو", Min = 0.01, Max = 0.2, Default = 0.05, Precise = true, Callback = function(v) bioSpeed = v end})
 
+Toggle = AddToggle(Main, {
+    Name = "تلوين البايو",
+    Default = false,
+    Callback = function(value)
+        isBioActive = value
+        if isBioActive then
+            print("RGB BIO ativado")
+        else
+            print("RGB BIO desativado")
+        end
+    end    
+})
+
+-- Function for smooth transition
+local function smoothGradient(currentColor, targetColor, step)
+    return currentColor:lerp(targetColor, step)
+end
+
+-- RGB Name Thread
 spawn(function()
-    local t = 0
+    local vibrantColors = {
+        Color3.fromRGB(255, 0, 0),
+        Color3.fromRGB(0, 255, 0),
+        Color3.fromRGB(0, 0, 255),
+        Color3.fromRGB(255, 255, 0),
+        Color3.fromRGB(255, 0, 255),
+        Color3.fromRGB(0, 255, 255),
+        Color3.fromRGB(255, 165, 0),
+        Color3.fromRGB(128, 0, 128),
+        Color3.fromRGB(255, 20, 147)
+    }
+
+    local currentColor = vibrantColors[1]
+    local targetIndex = 2
+
+    while true do
+        if isNameActive then
+            local targetColor = vibrantColors[targetIndex]
+            currentColor = smoothGradient(currentColor, targetColor, 0.05)
+            local args = {[1] = "PickingRPNameColor", [2] = currentColor}
+            game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer(unpack(args))
+            
+            if (currentColor - targetColor).magnitude < 0.01 then
+                targetIndex = targetIndex % #vibrantColors + 1
+            end
+        end
+        wait(0.05)
+    end
+end)
+
+-- RGB BIO Thread
+spawn(function()
+    local vibrantColors = {
+        Color3.fromRGB(255, 0, 0),
+        Color3.fromRGB(0, 255, 0),
+        Color3.fromRGB(0, 0, 255),
+        Color3.fromRGB(255, 255, 0),
+        Color3.fromRGB(255, 0, 255),
+        Color3.fromRGB(0, 255, 255),
+        Color3.fromRGB(255, 165, 0),
+        Color3.fromRGB(128, 0, 128),
+        Color3.fromRGB(255, 20, 147)
+    }
+
+    local currentColor = vibrantColors[1]
+    local targetIndex = 2
+
     while true do
         if isBioActive then
-            local color = getGradientColor(t)
-            local args = { [1] = "PickingRPBioColor", [2] = color }
-            game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eColo1r"):FireServer(unpack(args))
-            t = t + 1
+            local targetColor = vibrantColors[targetIndex]
+            currentColor = smoothGradient(currentColor, targetColor, 0.05)
+            local args = {[1] = "PickingRPBioColor", [2] = currentColor}
+            game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer(unpack(args))
+            
+            if (currentColor - targetColor).magnitude < 0.01 then
+                targetIndex = targetIndex % #vibrantColors + 1
+            end
         end
-        wait(bioSpeed)
+        wait(0.05)
     end
 end)
