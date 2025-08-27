@@ -1,92 +1,57 @@
--- Lag Toggle Script كامل
--- ضع هذا Script داخل ServerScriptService
-
 local Players = game:GetService("Players")
+local player = Players.LocalPlayer
 
--- إعدادات Lag
-local lagTime = 2      -- وقت الاختفاء/التثبيت بالثواني
-local delayTime = 5    -- الوقت بين كل Lag
-local isLagging = false -- الوضع الافتراضي مغلق
+local gui = script.Parent
+local textBox = gui:WaitForChild("TextBox")
+local button = gui:WaitForChild("TextButton")
 
--- دالة لتطبيق Lag على لاعب واحد
-local function applyLag(player)
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local char = player.Character
-        local originalCFrame = char.HumanoidRootPart.CFrame
-
-        -- الاختفاء مؤقت
-        for _, part in pairs(char:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.Transparency = 1
-                part.CanCollide = false
-            end
-        end
-
-        -- إيقاف الحركة
-        local humanoid = char:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            humanoid.WalkSpeed = 0
-            humanoid.JumpPower = 0
-        end
-
-        wait(lagTime)
-
-        -- إعادة كل شيء
-        for _, part in pairs(char:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.Transparency = 0
-                part.CanCollide = true
-            end
-        end
-        if humanoid then
-            humanoid.WalkSpeed = 16
-            humanoid.JumpPower = 50
-        end
-
-        char.HumanoidRootPart.CFrame = originalCFrame
-    end
+-- دالة تبحث بأسماء اللاعبين
+local function findMatchingPlayers(partial)
+	partial = string.lower(partial)
+	local matches = {}
+	for _, p in ipairs(Players:GetPlayers()) do
+		if string.sub(string.lower(p.Name), 1, #partial) == partial then
+			table.insert(matches, p)
+		end
+	end
+	return matches
 end
 
--- دالة لتطبيق Lag دوري على كل اللاعبين
-local function lagLoop()
-    while isLagging do
-        for _, player in pairs(Players:GetPlayers()) do
-            spawn(function()
-                applyLag(player)
-            end)
-        end
-        wait(delayTime)
-    end
+-- دالة نسخ المظهر
+local function copyAppearance(fromPlayer)
+	if fromPlayer.Character and player.Character then
+		local fromHumanoid = fromPlayer.Character:FindFirstChildOfClass("Humanoid")
+		local toHumanoid = player.Character:FindFirstChildOfClass("Humanoid")
+		if fromHumanoid and toHumanoid then
+			local desc = fromHumanoid:GetAppliedDescription()
+			toHumanoid:ApplyDescription(desc)
+		end
+	end
 end
 
--- GUI لتشغيل وإيقاف Lag
-local function createGUI(adminPlayer)
-    local ScreenGui = Instance.new("ScreenGui", adminPlayer:WaitForChild("PlayerGui"))
-    local Frame = Instance.new("Frame", ScreenGui)
-    Frame.Size = UDim2.new(0, 200, 0, 60)
-    Frame.Position = UDim2.new(0, 50, 0, 50)
-    Frame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+-- زر "نسخ السكن"
+button.MouseButton1Click:Connect(function()
+	local input = textBox.Text
+	if input and input ~= "" then
+		local matches = findMatchingPlayers(input)
+		if #matches == 1 then
+			copyAppearance(matches[1])
+		elseif #matches > 1 then
+			warn("أكو أكثر من لاعب بهالحروف، زيد حروف للاسم")
+		else
+			warn("ما لكيت لاعب بهالحروف")
+		end
+	end
+end)
 
-    local Button = Instance.new("TextButton", Frame)
-    Button.Size = UDim2.new(1,0,1,0)
-    Button.Text = "تشغيل Lag"
-    Button.Font = Enum.Font.GothamBold
-    Button.TextSize = 18
-    Button.TextColor3 = Color3.fromRGB(255,255,255)
-
-    Button.MouseButton1Click:Connect(function()
-        isLagging = not isLagging
-        if isLagging then
-            Button.Text = "إيقاف Lag"
-            spawn(lagLoop)
-        else
-            Button.Text = "تشغيل Lag"
-        end
-    end)
-end
-
--- إضافة GUI لأي لاعب يدخل (يفترض أن هو المسؤول)
-Players.PlayerAdded:Connect(function(player)
-    -- لو تريد تفعيله فقط لمشرف، ضع شرط هنا
-    createGUI(player)
+-- يكمل الاسم تلقائياً إذا أكو لاعب واحد فقط يطابق
+textBox:GetPropertyChangedSignal("Text"):Connect(function()
+	local input = textBox.Text
+	if input ~= "" then
+		local matches = findMatchingPlayers(input)
+		if #matches == 1 then
+			textBox.Text = matches[1].Name
+			textBox.CursorPosition = #input + 1 -- يبقي المؤشر ورا الحروف الأصلية
+		end
+	end
 end)
