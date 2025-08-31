@@ -21,7 +21,7 @@ MakeWindow({
 })
 
 MinimizeButton({
-  Image = "rbxassetid://107399679611214",
+  Image = "rbxassetid://75529783306690",
   Size = {40, 40},
   Color = Color3.fromRGB(255, 125, 0),
   Corner = true,
@@ -32,13 +32,13 @@ MinimizeButton({
 -- تبويب معلومات السكربت
 local ScriptInfoTab = MakeTab({
   Name = "معلومات السكربت",
-  Image = "rbxassetid://107399679611214",
+  Image = "rbxassetid://75529783306690",
   TabTitle = false
 })
 
 AddImageLabel(ScriptInfoTab, {
   Name = "قناة السكربت",
-  Image = "rbxassetid://107399679611214"
+  Image = "rbxassetid://75529783306690"
 })
 
 AddButton(ScriptInfoTab, {
@@ -76,7 +76,7 @@ end)
 -- تبويب المطورين
 local DevelopersTab = MakeTab({
     Name = "المطورين",
-    Image = "rbxassetid://107399679611214",
+    Image = "rbxassetid://75529783306690",
     TabTitle = false
 })
 
