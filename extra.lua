@@ -464,9 +464,12 @@ AddButton(Main, {
 local crazyFollow = false
 local followConnection
 
-AddButton(Main, {
+AddToggle(Main, {
     Name = "الصمله بالسفينه",
-    Callback = function()
+    Default = false,
+    Callback = function(value)
+        crazyFollow = value
+
         if not selectedKillTarget then
             warn("لم يتم اختيار لاعب")
             return
@@ -478,24 +481,14 @@ AddButton(Main, {
             return
         end
 
-        crazyFollow = not crazyFollow
-
         if crazyFollow then
             MakeNotifi({
                 Title = "الصمله اشتغلت ✅",
-                Text = "السفينه رح تبقى ويا اللاعب",
+                Text = "السفينه تبقى مع اللاعب الهدف",
                 Time = 5
             })
 
-            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            local humanoid = character:WaitForChild("Humanoid")
-            local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-
-            -- روح لمكان spawn
-            humanoidRootPart.CFrame = CFrame.new(634.18, -4.00, 1839.65)
-            task.wait(0.5)
-
-            -- Spawn سفينة
+            -- Spawn السفينة
             RemoteEvent:FireServer("PickingBoat","MilitaryBoatFree")
             task.wait(1.5)
 
@@ -505,28 +498,26 @@ AddButton(Main, {
                 return
             end
 
-            -- اجلس بيها
-            local vehicleSeat = vehicle.Body:FindFirstChild("VehicleSeat")
-            if vehicleSeat then
-                humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0, 0.5, 0)
-                humanoid.Sit = true
-                firetouchinterest(humanoidRootPart, vehicleSeat, 0)
-                firetouchinterest(humanoidRootPart, vehicleSeat, 1)
-            end
-
-            -- الصمله: السفينة تضل تفتر حوالين الهدف
+            -- تابع اللاعب الهدف باستمرار
+            local targetHRP = targetPlayer.Character.HumanoidRootPart
             followConnection = game:GetService("RunService").Heartbeat:Connect(function()
                 if not crazyFollow then return end
-                if not vehicle or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+                if not vehicle or not targetHRP.Parent then return end
 
-                local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+                local targetPosition = targetHRP.Position
                 local offset = Vector3.new(
-                    math.random(-20,20),
-                    math.random(-5,5),
-                    math.random(-20,20)
+                    math.sin(tick()*3)*8,  -- حركة دائرية يمين/يسار
+                    0,
+                    math.cos(tick()*3)*8   -- حركة دائرية أمام/وراء
                 )
 
-                vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0, -2, 0) + offset))
+                -- حرك السفينة حوالين اللاعب
+                vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
+
+                -- إذا اللاعب صعد فوق السفينة، يبقى فوقها
+                if targetHRP.Position.Y < vehicle.PrimaryPart.Position.Y + 5 then
+                    targetHRP.CFrame = vehicle.PrimaryPart.CFrame * CFrame.new(0,5,0)
+                end
             end)
 
         else
@@ -541,6 +532,7 @@ AddButton(Main, {
                 followConnection = nil
             end
 
+            -- حذف السفينة
             RemoteEvent:FireServer("DeleteAllVehicles")
         end
     end
