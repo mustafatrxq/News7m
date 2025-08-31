@@ -1966,3 +1966,171 @@ spawn(function()
         end
     end
 end)
+
+local section = AddSection(Main, {"اسماء اولاد"})
+
+AddButton(section, {Name = "نَجِيبٌ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","نَجِيبٌ")
+end})
+
+AddButton(section, {Name = "عَلِيٌّ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","عَلِيٌّ")
+end})
+
+AddButton(section, {Name = "أَحْمَدُ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","أَحْمَدُ")
+end})
+
+AddButton(section, {Name = "عَـبَّـاسُ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","عَـبَّـاسُ")
+end})
+
+AddButton(section, {Name = "حَسَنٌ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","حَسَنٌ")
+end})
+
+AddButton(section, {Name = "جَوْهَر", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","جَوْهَر")
+end})
+
+AddButton(section, {Name = "حُسَينٌ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","حُسَينٌ")
+end})
+
+AddButton(section, {Name = "كُـُرار", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","كُـُرار")
+end})
+
+AddButton(section, {Name = "حًمًزُة", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","حًمًزُة")
+end})
+
+AddButton(section, {Name = "کْأّظُمً", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","کْأّظُمً")
+end})
+
+AddButton(section, {Name = "مِـصِـطٌـفُى", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","مِـصِـطٌـفُى")
+end})
+
+AddButton(section, {Name = "مِـنٌتُظٌـرَ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","مِـنٌتُظٌـرَ")
+end})
+
+AddButton(section, {Name = "مِـرَتُضـى", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","مِـرَتُضـى")
+end})
+
+AddButton(section, {Name = "ذٌوُ آلَفُقَآرَ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","ذٌوُ آلَفُقَآرَ")
+end})
+
+AddButton(section, {Name = "زَيّنٌ آلَعَآبّـدُيّنٌ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","زَيّنٌ آلَعَآبّـدُيّنٌ")
+end})
+
+AddButton(Main, {
+  Name = "مِـحً ـمِدُ",
+  Callback = function()
+local args = {
+    [1] = "RolePlayName",
+    [2] = "مِـحً ـمِدُ"
+}
+
+game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer(unpack(args))
+  end
+})
+
+AddButton(Main, {
+  Name = "نٌزَآرَ",
+  Callback = function()
+local args = {
+    [1] = "RolePlayName",
+    [2] = "نٌزَآرَ"
+}
+
+game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer(unpack(args))
+  end
+})
+
+AddButton(Main, {
+  Name = "عَلَآء",
+  Callback = function()
+local args = {
+    [1] = "RolePlayName",
+    [2] = "عَلَآء"
+}
+
+game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer(unpack(args))
+  end
+})
+
+local notesSection = AddSection(Main, {"أسماء بنات"})
+
+AddButton(notesSection, {Name = "مِـيّآرَ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","مِـيّآرَ")
+end})
+
+AddButton(notesSection, {Name = "آيّآتُ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","آيّآتُ")
+end})
+
+AddButton(notesSection, {Name = "زَيّنٌبّ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","زَيّنٌبّ")
+end})
+
+AddButton(notesSection, {Name = "قَآطٌـمِـهِ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","قَآطٌـمِـهِ")
+end})
+
+AddButton(notesSection, {Name = "لَبّـآبّـهِ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","لَبّـآبّـهِ")
+end})
+
+AddButton(notesSection, {Name = "مِـرَوُى", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","مِـرَوُى")
+end})
+
+AddButton(notesSection, {Name = "جَ ـوُآهِرَ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","جَ ـوُآهِرَ")
+end})
+
+AddButton(notesSection, {Name = "رَسًـلَ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","رَسًـلَ")
+end})
+
+AddButton(notesSection, {Name = "زَهِرَآء", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","زَهِرَآء")
+end})
+
+AddButton(notesSection, {Name = "مِـلَآكَ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","مِـلَآكَ")
+end})
+
+AddButton(notesSection, {Name = "مِـنٌآرَ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","مِـنٌآرَ")
+end})
+
+AddButton(notesSection, {Name = "رَيّمِ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","رَيّمِ")
+end})
+
+AddButton(notesSection, {Name = "رَوُآنٌ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","رَوُآنٌ")
+end})
+
+AddButton(notesSection, {Name = "رَزَآنٌ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","رَزَآنٌ")
+end})
+
+AddButton(notesSection, {Name = "دُآرَيّنٌ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","دُآرَيّنٌ")
+end})
+
+AddButton(notesSection, {Name = "دُعَآء", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","دُعَآء")
+end})
+
+AddButton(notesSection, {Name = "غّ ـزَلَ", Callback = function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer("RolePlayName","غّ ـزَلَ")
+end})
