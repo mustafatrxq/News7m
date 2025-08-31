@@ -461,92 +461,69 @@ AddButton(Main, {
     end
 })
 
-local crazyFollowBoat = false
-local followConnectionBoat
+local followSmallBoat = false
+local smallBoatConnection
 
 AddToggle(Main, {
-    Name = "الصمله بالسفينه",
+    Name = "الصمله بالسفينه الصغيرة",
     Default = false,
     Callback = function(value)
-        crazyFollowBoat = value
-
-        if not selectedKillTarget then
-            warn("لم يتم اختيار لاعب")
-            return
-        end
+        followSmallBoat = value
 
         local targetPlayer = Players:FindFirstChild(selectedKillTarget)
-        if not (targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")) then
-            warn("اللاعب غير موجود أو لا يملك الشخصية")
+        if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            warn("اللاعب غير موجود")
             return
         end
 
         local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-        local humanoid = character:WaitForChild("Humanoid")
         local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-        local originalPosition = humanoidRootPart.Position
-        local originalAnchoredState = humanoidRootPart.Anchored
 
-        if crazyFollowBoat then
+        if followSmallBoat then
+
             MakeNotifi({
-                Title = "الصمله اشتغلت ✅",
-                Text = "السفينه تبقى حول اللاعب الهدف",
-                Time = 5
+                Title="الصمله اشتغلت ✅",
+                Text="السفينه الصغيرة رح تبقى ويا اللاعب",
+                Time=5
             })
 
-            -- نقل اللاعب لموقع توليد السفينة
             humanoidRootPart.CFrame = CFrame.new(634.18, -4.00, 1839.65)
-            wait(0.5)
+            task.wait(0.5)
 
-            -- توليد السفينة
-            RemoteEvent:FireServer("PickingBoat", "MilitaryBoatFree")
-            wait(1.5)
+            RemoteEvent:FireServer("PickingBoat","MilitaryBoatFree")
+            task.wait(1.5)
 
-            local vehicle = workspace.Vehicles:FindFirstChild(LocalPlayer.Name .. "Car")
-            if not vehicle then
-                warn("ما لكيت السفينة")
-                return
+            local vehicle = workspace.Vehicles:FindFirstChild(LocalPlayer.Name.."Car")
+            if vehicle then
+                local vehicleSeat = vehicle.Body:FindFirstChild("VehicleSeat")
+                if vehicleSeat then
+                    humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0,0.5,0)
+                end
+
+                smallBoatConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                    if not followSmallBoat then return end
+                    if not vehicle or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+                    local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+                    local offset = Vector3.new(math.random(-20,20), math.random(-5,5), math.random(-20,20))
+                    vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
+                end)
             end
 
-            local targetHRP = targetPlayer.Character.HumanoidRootPart
-            followConnectionBoat = game:GetService("RunService").Heartbeat:Connect(function()
-                if not crazyFollowBoat then return end
-                if not vehicle or not targetHRP.Parent then return end
-
-                local targetPosition = targetHRP.Position
-                local offset = Vector3.new(
-                    math.sin(tick()*2)*8,
-                    0,
-                    math.cos(tick()*2)*8
-                )
-
-                -- السفينة تتحرك حول اللاعب الهدف
-                vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
-
-                -- إذا صعد اللاعب الهدف، يبقى على السفينة
-                if targetHRP.Position.Y < vehicle.PrimaryPart.Position.Y + 5 then
-                    targetHRP.CFrame = vehicle.PrimaryPart.CFrame * CFrame.new(0,5,0)
-                end
-            end)
-
         else
+
             MakeNotifi({
-                Title = "الصمله انطفت ❌",
-                Text = "تم حذف السفينة",
-                Time = 5
+                Title="الصمله انطفت ❌",
+                Text="تم حذف السفينة الصغيرة",
+                Time=5
             })
 
-            if followConnectionBoat then
-                followConnectionBoat:Disconnect()
-                followConnectionBoat = nil
+            if smallBoatConnection then
+                smallBoatConnection:Disconnect()
+                smallBoatConnection = nil
             end
 
             RemoteEvent:FireServer("DeleteAllVehicles")
 
-            -- ارجع اللاعب لموقعه الأصلي
-            humanoidRootPart.CFrame = CFrame.new(originalPosition)
-            humanoidRootPart.Anchored = originalAnchoredState
-            humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
         end
     end
 })
@@ -669,95 +646,69 @@ AddButton(Main, {
     end
 })
 
-local crazyFollowBig = false
-local followConnectionBig
-
-local crazyFollowBigBoat = false
-local followConnectionBigBoat
+local followBigBoat = false
+local bigBoatConnection
 
 AddToggle(Main, {
-    Name = "الصمله بالسفينه الكبيره",
+    Name = "الصمله بالسفينه الكبيرة",
     Default = false,
     Callback = function(value)
-        crazyFollowBigBoat = value
-
-        if not selectedBigBoatTarget then
-            warn("لم يتم اختيار لاعب")
-            return
-        end
+        followBigBoat = value
 
         local targetPlayer = Players:FindFirstChild(selectedBigBoatTarget)
-        if not (targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")) then
-            warn("اللاعب غير موجود أو لا يملك الشخصية")
+        if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            warn("اللاعب غير موجود")
             return
         end
 
         local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-        local humanoid = character:WaitForChild("Humanoid")
         local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-        local originalPosition = humanoidRootPart.Position
-        local originalAnchoredState = humanoidRootPart.Anchored
 
-        if crazyFollowBigBoat then
+        if followBigBoat then
+
             MakeNotifi({
-                Title = "الصمله اشتغلت ✅",
-                Text = "السفينه الكبيرة تتبع اللاعب الهدف",
-                Time = 5
+                Title="الصمله اشتغلت ✅",
+                Text="السفينه الكبيرة رح تبقى ويا اللاعب",
+                Time=5
             })
 
-            -- نقل اللاعب لموقع توليد السفينة الكبيرة
             humanoidRootPart.CFrame = CFrame.new(634.18, -4.00, 1839.65)
-            wait(0.5)
+            task.wait(0.5)
 
-            -- توليد السفينة الكبيرة
-            RemoteEvent:FireServer("PickingBoat", "PirateFree")
-            wait(1.5)
+            RemoteEvent:FireServer("PickingBoat","PirateFree")
+            task.wait(1.5)
 
-            local vehicle = workspace.Vehicles:FindFirstChild("doctonbcCar")
-            if not vehicle then
-                warn("ما لكيت السفينة الكبيرة")
-                return
+            local vehicle = workspace.Vehicles:FindFirstChild(LocalPlayer.Name.."Car")
+            if vehicle then
+                local vehicleSeat = vehicle.Body:FindFirstChild("VehicleSeat")
+                if vehicleSeat then
+                    humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0,0.5,0)
+                end
+
+                bigBoatConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                    if not followBigBoat then return end
+                    if not vehicle or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+                    local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+                    local offset = Vector3.new(math.random(-20,20), math.random(-5,5), math.random(-20,20))
+                    vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
+                end)
             end
 
-            local targetHRP = targetPlayer.Character.HumanoidRootPart
-            followConnectionBigBoat = game:GetService("RunService").Heartbeat:Connect(function()
-                if not crazyFollowBigBoat then return end
-                if not vehicle or not targetHRP.Parent then return end
-
-                local targetPosition = targetHRP.Position
-                local offset = Vector3.new(
-                    math.sin(tick()*2)*10,  -- حركة دائرية حول اللاعب
-                    0,
-                    math.cos(tick()*2)*10
-                )
-
-                -- السفينة الكبيرة تتحرك حول اللاعب الهدف
-                vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
-
-                -- إذا صعد اللاعب الهدف، يبقى فوق السفينة
-                if targetHRP.Position.Y < vehicle.PrimaryPart.Position.Y + 5 then
-                    targetHRP.CFrame = vehicle.PrimaryPart.CFrame * CFrame.new(0,5,0)
-                end
-            end)
-
         else
+
             MakeNotifi({
-                Title = "الصمله انطفت ❌",
-                Text = "تم حذف السفينة الكبيرة",
-                Time = 5
+                Title="الصمله انطفت ❌",
+                Text="تم حذف السفينة الكبيرة",
+                Time=5
             })
 
-            if followConnectionBigBoat then
-                followConnectionBigBoat:Disconnect()
-                followConnectionBigBoat = nil
+            if bigBoatConnection then
+                bigBoatConnection:Disconnect()
+                bigBoatConnection = nil
             end
 
             RemoteEvent:FireServer("DeleteAllVehicles")
 
-            -- ارجع اللاعب لموقعه الأصلي
-            humanoidRootPart.CFrame = CFrame.new(originalPosition)
-            humanoidRootPart.Anchored = originalAnchoredState
-            humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
         end
     end
 })
@@ -863,92 +814,69 @@ AddButton(Main, {
     end
 })
 
-local crazyFollowBus = false
-local followConnectionBus
+local followBus = false
+local busConnection
 
 AddToggle(Main, {
     Name = "الصمله بالباص",
     Default = false,
     Callback = function(value)
-        crazyFollowBus = value
-
-        if not selectedBusTarget then
-            warn("اختر لاعبًا أولًا")
-            return
-        end
+        followBus = value
 
         local targetPlayer = Players:FindFirstChild(selectedBusTarget)
-        if not (targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")) then
-            warn("اللاعب غير موجود أو لم يُحمّل")
+        if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            warn("اللاعب غير موجود")
             return
         end
 
         local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-        local humanoid = character:WaitForChild("Humanoid")
         local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-        local originalPosition = humanoidRootPart.Position
-        local originalAnchoredState = humanoidRootPart.Anchored
 
-        if crazyFollowBus then
+        if followBus then
+
             MakeNotifi({
-                Title = "الصمله اشتغلت ✅",
-                Text = "الباص يتتبع اللاعب الهدف",
-                Time = 5
+                Title="الصمله اشتغلت ✅",
+                Text="الباص رح يبقى ويا اللاعب",
+                Time=5
             })
 
-            -- نقل اللاعب لموقع توليد الباص
             humanoidRootPart.CFrame = CFrame.new(1082.86, 76.00, -1125.20)
-            wait(0.3)
+            task.wait(0.5)
 
-            -- توليد الباص
             RemoteEvent:FireServer("PickingCar","SchoolBus")
-            wait(3.5)
+            task.wait(3.5)
 
-            local vehicle = workspace.Vehicles:FindFirstChild(LocalPlayer.Name .. "Car")
-            if not vehicle then
-                warn("ما لكيت الباص")
-                return
+            local vehicle = workspace.Vehicles:FindFirstChild(LocalPlayer.Name.."Car")
+            if vehicle then
+                local vehicleSeat = vehicle.Body:FindFirstChild("VehicleSeat")
+                if vehicleSeat then
+                    humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0,0.3,0)
+                end
+
+                busConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                    if not followBus then return end
+                    if not vehicle or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+                    local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+                    local offset = Vector3.new(math.random(-25,12), math.random(-13,10), math.random(-10,18))
+                    vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
+                end)
             end
 
-            local targetHRP = targetPlayer.Character.HumanoidRootPart
-            followConnectionBus = game:GetService("RunService").Heartbeat:Connect(function()
-                if not crazyFollowBus then return end
-                if not vehicle or not targetHRP.Parent then return end
-
-                local targetPosition = targetHRP.Position
-                local offset = Vector3.new(
-                    math.sin(tick()*2)*8,
-                    0,
-                    math.cos(tick()*2)*8
-                )
-
-                -- الباص يتحرك حول اللاعب الهدف
-                vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
-
-                -- إذا صعد اللاعب الهدف، يبقى على الباص
-                if targetHRP.Position.Y < vehicle.PrimaryPart.Position.Y + 3 then
-                    targetHRP.CFrame = vehicle.PrimaryPart.CFrame * CFrame.new(0,3,0)
-                end
-            end)
-
         else
+
             MakeNotifi({
-                Title = "الصمله انطفت ❌",
-                Text = "تم حذف الباص",
-                Time = 5
+                Title="الصمله انطفت ❌",
+                Text="تم حذف الباص",
+                Time=5
             })
 
-            if followConnectionBus then
-                followConnectionBus:Disconnect()
-                followConnectionBus = nil
+            if busConnection then
+                busConnection:Disconnect()
+                busConnection = nil
             end
 
             RemoteEvent:FireServer("DeleteAllVehicles")
 
-            -- ارجع اللاعب لموقعه الأصلي
-            humanoidRootPart.CFrame = CFrame.new(originalPosition)
-            humanoidRootPart.Anchored = originalAnchoredState
-            humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
         end
     end
 })
