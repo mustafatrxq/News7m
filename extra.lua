@@ -461,6 +461,91 @@ AddButton(Main, {
     end
 })
 
+local crazyFollow = false
+local followConnection
+
+AddButton(Main, {
+    Name = "الصمله بالسفينه",
+    Callback = function()
+        if not selectedKillTarget then
+            warn("لم يتم اختيار لاعب")
+            return
+        end
+
+        local targetPlayer = Players:FindFirstChild(selectedKillTarget)
+        if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            warn("اللاعب غير موجود")
+            return
+        end
+
+        crazyFollow = not crazyFollow
+
+        if crazyFollow then
+            MakeNotifi({
+                Title = "الصمله اشتغلت ✅",
+                Text = "السفينه رح تبقى ويا اللاعب",
+                Time = 5
+            })
+
+            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local humanoid = character:WaitForChild("Humanoid")
+            local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+            -- روح لمكان spawn
+            humanoidRootPart.CFrame = CFrame.new(634.18, -4.00, 1839.65)
+            task.wait(0.5)
+
+            -- Spawn سفينة
+            RemoteEvent:FireServer("PickingBoat","MilitaryBoatFree")
+            task.wait(1.5)
+
+            local vehicle = workspace.Vehicles:FindFirstChild(LocalPlayer.Name .. "Car")
+            if not vehicle then
+                warn("ما لكيت السفينة")
+                return
+            end
+
+            -- اجلس بيها
+            local vehicleSeat = vehicle.Body:FindFirstChild("VehicleSeat")
+            if vehicleSeat then
+                humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0, 0.5, 0)
+                humanoid.Sit = true
+                firetouchinterest(humanoidRootPart, vehicleSeat, 0)
+                firetouchinterest(humanoidRootPart, vehicleSeat, 1)
+            end
+
+            -- الصمله: السفينة تضل تفتر حوالين الهدف
+            followConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                if not crazyFollow then return end
+                if not vehicle or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+
+                local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+                local offset = Vector3.new(
+                    math.random(-20,20),
+                    math.random(-5,5),
+                    math.random(-20,20)
+                )
+
+                vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0, -2, 0) + offset))
+            end)
+
+        else
+            MakeNotifi({
+                Title = "الصمله انطفت ❌",
+                Text = "تم حذف السفينة",
+                Time = 5
+            })
+
+            if followConnection then
+                followConnection:Disconnect()
+                followConnection = nil
+            end
+
+            RemoteEvent:FireServer("DeleteAllVehicles")
+        end
+    end
+})
+
 -- زر "قتل بالسفينة الكبيرة"
 AddButton(Main, {
     Name = "قتل بالسفينه الكبيره",
@@ -579,6 +664,81 @@ AddButton(Main, {
     end
 })
 
+local bigBoatFollow = false
+local followConnection
+
+AddButton(Main, {
+    Name = "صمله بالسفينة الكبيرة",
+    Callback = function()
+        if not selectedBigBoatTarget then
+            warn("اختر لاعبًا أولًا")
+            return
+        end
+
+        local targetPlayer = Players:FindFirstChild(selectedBigBoatTarget)
+        if not (targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")) then
+            warn("اللاعب غير موجود أو لم يُحمّل")
+            return
+        end
+
+        bigBoatFollow = not bigBoatFollow
+
+        if bigBoatFollow then
+            MakeNotifi({
+                Title = "الصملة بالسفينة الكبيرة ✅",
+                Text = "السفينة الكبيرة رح تبقى تلحق اللاعب",
+                Time = 5
+            })
+
+            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local humanoid = character:WaitForChild("Humanoid")
+            local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+            -- موقع spawn السفينة الكبيرة
+            humanoidRootPart.CFrame = CFrame.new(634.18, -4.00, 1839.65)
+            task.wait(0.5)
+
+            RemoteEvent:FireServer("PickingBoat","PirateFree")
+            task.wait(1.5)
+
+            local vehicle = workspace.Vehicles:FindFirstChild(LocalPlayer.Name .. "Car")
+            if not vehicle then
+                warn("لم يتم إيجاد السفينة الكبيرة")
+                return
+            end
+
+            -- الصملة: السفينة الكبيرة تظل تلحق اللاعب
+            followConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                if not bigBoatFollow then return end
+                if not vehicle or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+
+                local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+                local offset = Vector3.new(
+                    math.random(-25,25),
+                    math.random(-5,5),
+                    math.random(-25,25)
+                )
+
+                vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
+            end)
+
+        else
+            MakeNotifi({
+                Title = "الصملة بالسفينة الكبيرة ❌",
+                Text = "تم إيقاف السفينة الكبيرة",
+                Time = 5
+            })
+
+            if followConnection then
+                followConnection:Disconnect()
+                followConnection = nil
+            end
+
+            RemoteEvent:FireServer("DeleteAllVehicles")
+        end
+    end
+})
+
 -- زر "قتل بالباص"
 AddButton(Main, {
     Name = "قتل بالباص",
@@ -680,186 +840,77 @@ AddButton(Main, {
     end
 })
 
-AddSection(Main, {"الصملات"})
+local busFollow = false
+local followConnection
 
------------------------------
--- متغيرات
-local followConnectionSmallBoat = nil
-local followConnectionBus = nil
-local followConnectionBigBoat = nil
-local selectedTarget = nil
-local crazyFollowSmallBoat = false
-local crazyFollowBus = false
-local crazyFollowBigBoat = false
-
------------------------------
--- DropDown لاختيار اللاعب
-AddDropDown(Main, {
-    Name = "اختر لاعب",
-    Default = "لا يوجد",
-    Options = function()
-        local playerList = {}
-        for i, v in pairs(Players:GetPlayers()) do
-            table.insert(playerList, v.Name)
-        end
-        return playerList
-    end,
-    Callback = function(value)
-        selectedTarget = value
-    end
-})
-
------------------------------
--- زر السفينة الصغيرة
+-- زر صملة الباص
 AddButton(Main, {
-    Name = "تشغيل/ايقاف السفينة الصغيرة",
+    Name = "صمله بالباص",
     Callback = function()
-        if not selectedTarget then
-            warn("لم يتم اختيار لاعب")
+        if not selectedBusTarget then
+            warn("اختر لاعبًا أولًا")
             return
         end
 
-        crazyFollowSmallBoat = not crazyFollowSmallBoat
-
-        local targetPlayer = Players:FindFirstChild(selectedTarget)
-        if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            warn("اللاعب غير موجود")
+        local targetPlayer = Players:FindFirstChild(selectedBusTarget)
+        if not (targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")) then
+            warn("اللاعب غير موجود أو لم يُحمّل")
             return
         end
 
-        if crazyFollowSmallBoat then
+        busFollow = not busFollow
+
+        if busFollow then
             MakeNotifi({
-                Title = "الصمله اشتغلت ✅",
-                Text = "السفينة الصغيرة رح تلزق باللاعب",
+                Title = "الصملة بالباص ✅",
+                Text = "الباص رح يبقى يلاحق اللاعب",
                 Time = 5
             })
 
-            RemoteEvent:FireServer("PickingBoat","MilitaryBoatFree")
-            task.wait(1.5)
+            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local humanoid = character:WaitForChild("Humanoid")
+            local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+            -- موقع spawn الباص
+            humanoidRootPart.CFrame = CFrame.new(1082.86, 76.00, -1125.20)
+            task.wait(0.3)
+
+            RemoteEvent:FireServer("PickingCar", "SchoolBus")
+            task.wait(3.5)
 
             local vehicle = workspace.Vehicles:FindFirstChild(LocalPlayer.Name .. "Car")
-            if not vehicle then return end
+            if not vehicle then
+                warn("لم يتم إيجاد الباص")
+                return
+            end
 
-            followConnectionSmallBoat = game:GetService("RunService").Heartbeat:Connect(function()
-                if not crazyFollowSmallBoat then return end
+            -- الصملة: الباص يظل يلاحق اللاعب
+            followConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                if not busFollow then return end
+                if not vehicle or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+
                 local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
-                local offset = Vector3.new(math.random(-20,20), math.random(-5,5), math.random(-20,20))
-                vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
+                local offset = Vector3.new(
+                    math.random(-20,20),
+                    math.random(-5,5),
+                    math.random(-20,20)
+                )
+
+                vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0, -2, 0) + offset))
             end)
+
         else
             MakeNotifi({
-                Title = "الصمله انطفت ❌",
-                Text = "تم حذف السفينة",
+                Title = "الصملة بالباص ❌",
+                Text = "تم إيقاف الباص",
                 Time = 5
             })
-            if followConnectionSmallBoat then
-                followConnectionSmallBoat:Disconnect()
-                followConnectionSmallBoat = nil
+
+            if followConnection then
+                followConnection:Disconnect()
+                followConnection = nil
             end
-            RemoteEvent:FireServer("DeleteAllVehicles")
-        end
-    end
-})
 
------------------------------
--- زر الباص
-AddButton(Main, {
-    Name = "تشغيل/ايقاف الباص",
-    Callback = function()
-        if not selectedTarget then
-            warn("لم يتم اختيار لاعب")
-            return
-        end
-
-        crazyFollowBus = not crazyFollowBus
-
-        local targetPlayer = Players:FindFirstChild(selectedTarget)
-        if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            warn("اللاعب غير موجود")
-            return
-        end
-
-        if crazyFollowBus then
-            MakeNotifi({
-                Title = "الصمله اشتغلت ✅",
-                Text = "الباص رح يلزق باللاعب",
-                Time = 5
-            })
-
-            RemoteEvent:FireServer("PickingCar","SchoolBus")
-            task.wait(1.5)
-
-            local vehicle = workspace.Vehicles:FindFirstChild(LocalPlayer.Name .. "Car")
-            if not vehicle then return end
-
-            followConnectionBus = game:GetService("RunService").Heartbeat:Connect(function()
-                if not crazyFollowBus then return end
-                local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
-                local offset = Vector3.new(math.random(-20,20), math.random(-5,5), math.random(-20,20))
-                vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
-            end)
-        else
-            MakeNotifi({
-                Title = "الصمله انطفت ❌",
-                Text = "تم حذف الباص",
-                Time = 5
-            })
-            if followConnectionBus then
-                followConnectionBus:Disconnect()
-                followConnectionBus = nil
-            end
-            RemoteEvent:FireServer("DeleteAllVehicles")
-        end
-    end
-})
-
------------------------------
--- زر السفينة الكبيرة
-AddButton(Main, {
-    Name = "تشغيل/ايقاف السفينة الكبيرة",
-    Callback = function()
-        if not selectedTarget then
-            warn("لم يتم اختيار لاعب")
-            return
-        end
-
-        crazyFollowBigBoat = not crazyFollowBigBoat
-
-        local targetPlayer = Players:FindFirstChild(selectedTarget)
-        if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            warn("اللاعب غير موجود")
-            return
-        end
-
-        if crazyFollowBigBoat then
-            MakeNotifi({
-                Title = "الصمله اشتغلت ✅",
-                Text = "السفينة الكبيرة رح تلزق باللاعب",
-                Time = 5
-            })
-
-            RemoteEvent:FireServer("PickingBoat","PirateFree")
-            task.wait(1.5)
-
-            local vehicle = workspace.Vehicles:FindFirstChild(LocalPlayer.Name .. "Car")
-            if not vehicle then return end
-
-            followConnectionBigBoat = game:GetService("RunService").Heartbeat:Connect(function()
-                if not crazyFollowBigBoat then return end
-                local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
-                local offset = Vector3.new(math.random(-25,12), math.random(-13,10), math.random(-10,18))
-                vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
-            end)
-        else
-            MakeNotifi({
-                Title = "الصمله انطفت ❌",
-                Text = "تم حذف السفينة الكبيرة",
-                Time = 5
-            })
-            if followConnectionBigBoat then
-                followConnectionBigBoat:Disconnect()
-                followConnectionBigBoat = nil
-            end
             RemoteEvent:FireServer("DeleteAllVehicles")
         end
     end
