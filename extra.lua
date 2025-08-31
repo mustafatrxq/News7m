@@ -682,17 +682,20 @@ AddButton(Main, {
 
 AddSection(Main, {"الصملات"})
 
--- ==========================
--- الصمله بالسفينه العادية
--- ==========================
-local crazyFollowBoat = false
-local followConnectionBoat
+-- سفينة صغيرة
+local crazyFollowSmallBoat = false
+local followConnectionSmallBoat
 
 AddToggle(Main, {
-    Name = "الصمله بالسفينه",
+    Name = "الصمله بالسفينه الصغيرة",
     Default = false,
     Callback = function(value)
-        crazyFollowBoat = value
+        crazyFollowSmallBoat = value
+
+        if not selectedKillTarget then
+            warn("لم يتم اختيار لاعب")
+            return
+        end
 
         local targetPlayer = Players:FindFirstChild(selectedKillTarget)
         if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
@@ -700,10 +703,10 @@ AddToggle(Main, {
             return
         end
 
-        if crazyFollowBoat then
+        if crazyFollowSmallBoat then
             MakeNotifi({
-                Title = "الصمله اشتغلت ✅",
-                Text = "السفينه رح تبقى ويا اللاعب",
+                Title = "الصمله بالسفينة الصغيرة اشتغلت ✅",
+                Text = "السفينة الصغيرة رح تبقى ويا اللاعب",
                 Time = 5
             })
 
@@ -718,35 +721,38 @@ AddToggle(Main, {
             task.wait(1.5)
 
             local vehicle = workspace.Vehicles:FindFirstChild(LocalPlayer.Name .. "Car")
-            if vehicle then
-                local vehicleSeat = vehicle.Body:FindFirstChild("VehicleSeat")
-                if vehicleSeat then
-                    humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0,0.5,0)
-                    humanoid.Sit = true
-                    firetouchinterest(humanoidRootPart, vehicleSeat, 0)
-                    firetouchinterest(humanoidRootPart, vehicleSeat, 1)
-                end
-
-                followConnectionBoat = game:GetService("RunService").Heartbeat:Connect(function()
-                    if not crazyFollowBoat then return end
-                    if not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
-
-                    local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
-                    local offset = Vector3.new(math.random(-20,20), math.random(-5,5), math.random(-20,20))
-                    vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
-                end)
+            if not vehicle then
+                warn("ما لكيت السفينة الصغيرة")
+                return
             end
 
+            local vehicleSeat = vehicle.Body:FindFirstChild("VehicleSeat")
+            if vehicleSeat then
+                humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0,0.5,0)
+                humanoid.Sit = true
+                firetouchinterest(humanoidRootPart, vehicleSeat, 0)
+                firetouchinterest(humanoidRootPart, vehicleSeat, 1)
+            end
+
+            followConnectionSmallBoat = game:GetService("RunService").Heartbeat:Connect(function()
+                if not crazyFollowSmallBoat then return end
+                if not vehicle or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+
+                local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+                local offset = Vector3.new(math.random(-20,20), math.random(-5,5), math.random(-20,20))
+
+                vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
+            end)
         else
             MakeNotifi({
-                Title = "الصمله انطفت ❌",
-                Text = "تم حذف السفينة",
+                Title = "الصمله بالسفينة الصغيرة انطفت ❌",
+                Text = "تم حذف السفينة الصغيرة",
                 Time = 5
             })
 
-            if followConnectionBoat then
-                followConnectionBoat:Disconnect()
-                followConnectionBoat = nil
+            if followConnectionSmallBoat then
+                followConnectionSmallBoat:Disconnect()
+                followConnectionSmallBoat = nil
             end
 
             RemoteEvent:FireServer("DeleteAllVehicles")
@@ -755,9 +761,7 @@ AddToggle(Main, {
 })
 
 
--- ==========================
--- الصمله بالسفينه الكبيرة
--- ==========================
+-- سفينة كبيرة
 local crazyFollowBigBoat = false
 local followConnectionBigBoat
 
@@ -767,7 +771,12 @@ AddToggle(Main, {
     Callback = function(value)
         crazyFollowBigBoat = value
 
-        local targetPlayer = Players:FindFirstChild(selectedBigBoatTarget)
+        if not selectedKillTarget then
+            warn("لم يتم اختيار لاعب")
+            return
+        end
+
+        local targetPlayer = Players:FindFirstChild(selectedKillTarget)
         if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
             warn("اللاعب غير موجود")
             return
@@ -775,8 +784,8 @@ AddToggle(Main, {
 
         if crazyFollowBigBoat then
             MakeNotifi({
-                Title = "الصمله الكبيرة اشتغلت ✅",
-                Text = "السفينه الكبيرة رح تبقى ويا اللاعب",
+                Title = "الصمله بالسفينة الكبيرة اشتغلت ✅",
+                Text = "السفينة الكبيرة رح تبقى ويا اللاعب",
                 Time = 5
             })
 
@@ -787,32 +796,35 @@ AddToggle(Main, {
             humanoidRootPart.CFrame = CFrame.new(634.18, -4.00, 1839.65)
             task.wait(0.5)
 
-            RemoteEvent:FireServer("PickingBoat","PirateFree")
+            RemoteEvent:FireServer("PickingBoat","BigBoatFree")
             task.wait(1.5)
 
-            local vehicle = workspace.Vehicles:FindFirstChild("doctonbcCar")
-            if vehicle then
-                local vehicleSeat = vehicle.Body:FindFirstChild("VehicleSeat")
-                if vehicleSeat then
-                    humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0,0.5,0)
-                    humanoid.Sit = true
-                    firetouchinterest(humanoidRootPart, vehicleSeat, 0)
-                    firetouchinterest(humanoidRootPart, vehicleSeat, 1)
-                end
-
-                followConnectionBigBoat = game:GetService("RunService").Heartbeat:Connect(function()
-                    if not crazyFollowBigBoat then return end
-                    if not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
-
-                    local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
-                    local offset = Vector3.new(math.random(-20,20), math.random(-5,5), math.random(-20,20))
-                    vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
-                end)
+            local vehicle = workspace.Vehicles:FindFirstChild(LocalPlayer.Name .. "Car")
+            if not vehicle then
+                warn("ما لكيت السفينة الكبيرة")
+                return
             end
 
+            local vehicleSeat = vehicle.Body:FindFirstChild("VehicleSeat")
+            if vehicleSeat then
+                humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0,0.5,0)
+                humanoid.Sit = true
+                firetouchinterest(humanoidRootPart, vehicleSeat, 0)
+                firetouchinterest(humanoidRootPart, vehicleSeat, 1)
+            end
+
+            followConnectionBigBoat = game:GetService("RunService").Heartbeat:Connect(function()
+                if not crazyFollowBigBoat then return end
+                if not vehicle or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+
+                local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+                local offset = Vector3.new(math.random(-20,20), math.random(-5,5), math.random(-20,20))
+
+                vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
+            end)
         else
             MakeNotifi({
-                Title = "الصمله الكبيرة انطفت ❌",
+                Title = "الصمله بالسفينة الكبيرة انطفت ❌",
                 Text = "تم حذف السفينة الكبيرة",
                 Time = 5
             })
@@ -828,9 +840,7 @@ AddToggle(Main, {
 })
 
 
--- ==========================
--- الصمله بالباص
--- ==========================
+-- باص
 local crazyFollowBus = false
 local followConnectionBus
 
@@ -840,7 +850,12 @@ AddToggle(Main, {
     Callback = function(value)
         crazyFollowBus = value
 
-        local targetPlayer = Players:FindFirstChild(selectedBusTarget)
+        if not selectedKillTarget then
+            warn("لم يتم اختيار لاعب")
+            return
+        end
+
+        local targetPlayer = Players:FindFirstChild(selectedKillTarget)
         if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
             warn("اللاعب غير موجود")
             return
@@ -849,7 +864,7 @@ AddToggle(Main, {
         if crazyFollowBus then
             MakeNotifi({
                 Title = "الصمله بالباص اشتغلت ✅",
-                Text = "الباص رح يتبع اللاعب",
+                Text = "الباص رح يبقى ويا اللاعب",
                 Time = 5
             })
 
@@ -858,31 +873,34 @@ AddToggle(Main, {
             local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
             humanoidRootPart.CFrame = CFrame.new(1082.86, 76.00, -1125.20)
-            task.wait(0.3)
+            task.wait(0.5)
 
             RemoteEvent:FireServer("PickingCar","SchoolBus")
-            task.wait(3.5)
+            task.wait(1.5)
 
             local vehicle = workspace.Vehicles:FindFirstChild(LocalPlayer.Name .. "Car")
-            if vehicle then
-                local vehicleSeat = vehicle.Body:FindFirstChild("VehicleSeat")
-                if vehicleSeat then
-                    humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0,0.3,0)
-                    humanoid.Sit = true
-                    firetouchinterest(humanoidRootPart, vehicleSeat, 0)
-                    firetouchinterest(humanoidRootPart, vehicleSeat, 1)
-                end
-
-                followConnectionBus = game:GetService("RunService").Heartbeat:Connect(function()
-                    if not crazyFollowBus then return end
-                    if not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
-
-                    local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
-                    local offset = Vector3.new(math.random(-20,20), math.random(-5,5), math.random(-20,20))
-                    vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
-                end)
+            if not vehicle then
+                warn("ما لكيت الباص")
+                return
             end
 
+            local vehicleSeat = vehicle.Body:FindFirstChild("VehicleSeat")
+            if vehicleSeat then
+                humanoidRootPart.CFrame = vehicleSeat.CFrame * CFrame.new(0,0.5,0)
+                humanoid.Sit = true
+                firetouchinterest(humanoidRootPart, vehicleSeat, 0)
+                firetouchinterest(humanoidRootPart, vehicleSeat, 1)
+            end
+
+            followConnectionBus = game:GetService("RunService").Heartbeat:Connect(function()
+                if not crazyFollowBus then return end
+                if not vehicle or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+
+                local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+                local offset = Vector3.new(math.random(-20,20), math.random(-5,5), math.random(-20,20))
+
+                vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0,-2,0) + offset))
+            end)
         else
             MakeNotifi({
                 Title = "الصمله بالباص انطفت ❌",
