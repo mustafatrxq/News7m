@@ -2006,3 +2006,49 @@ for _, name in ipairs(girlNames) do
         end
     })
 end
+
+AddSection(Main, {"تغيير اسماء السب"})
+
+local toggled = false
+local names = {
+    "كسم الرول دشره", 
+    "انيك ام الرول دشره", 
+    "الرول دشره الي قدامي منيوك", 
+    "كسمك ياالرول دشره", 
+    "انيكك ياالرول دشره", 
+    "كسمك واصمل عليك", 
+    "مانع الرول دشره", 
+    "مانع مرجله الرول دشره",
+    "صياد الرول دشره",
+    "الرول دشره حموضه",
+    "الرول دشره شراميط"
+}
+
+local index = 1
+
+AddToggle(Main, {
+    Name = "سب رول",
+    Default = false,
+    Callback = function(state)
+        toggled = state
+        if toggled then
+            spawn(function()
+                while toggled do
+                    if #names > 0 then
+                        local args = {
+                            [1] = "RolePlayName",
+                            [2] = names[index]
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer(unpack(args))
+
+                        index = index + 1
+                        if index > #names then
+                            index = 1
+                        end
+                    end
+                    task.wait(0.5) -- كل نص ثانية
+                end
+            end)
+        end
+    end
+})
