@@ -2007,7 +2007,7 @@ for _, name in ipairs(girlNames) do
     })
 end
 
-AddSection(Main, {"تغيير اسماء السب"})
+AddSection(Main, {"هجمات اسماء متنوعه ضد مجتمعات روبلوكس القـ/ـذره"})
 
 local toggled = false
 local names = {
@@ -2027,7 +2027,7 @@ local names = {
 local index = 1
 
 AddToggle(Main, {
-    Name = "سب رول",
+    Name = "هجوم ضد الرول",
     Default = false,
     Callback = function(state)
         toggled = state
@@ -2052,3 +2052,136 @@ AddToggle(Main, {
         end
     end
 })
+
+local toggled = false
+local names = {
+    "عم الفيمبوي", 
+    "اهين الفيمبوي", 
+    "صياد الفيمبوي المازوخـ/ـيين", 
+    "مانع الفيمبوي", 
+    "Top 1", 
+    "لا أراكم شيء أمامي", 
+    "هاك للقضاء على الفيمبوي", 
+    "خذلك قناع من اشعاع حموضه الفيمبوي",
+    "محارب الكرنج",
+    "محارب للابد",
+    "اسحلك يافيمبوي",
+}
+
+local index = 1
+
+AddToggle(Main, {
+    Name = "هجوم ضد الفيمبوي",
+    Default = false,
+    Callback = function(state)
+        toggled = state
+        if toggled then
+            spawn(function()
+                while toggled do
+                    if #names > 0 then
+                        local args = {
+                            [1] = "RolePlayName",
+                            [2] = names[index]
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer(unpack(args))
+
+                        index = index + 1
+                        if index > #names then
+                            index = 1
+                        end
+                    end
+                    task.wait(0.5) -- كل نص ثانية
+                end
+            end)
+        end
+    end
+})
+
+local toggled = false
+local names = {
+    "هجوم ضد مازوخيه البكمي", 
+    "ازاله البكمي من المجتمع", 
+    "لا للبكمي", 
+    "انا عم البكمي", 
+    "المنقذ من البكمي سينسي", 
+    "ستيم انقاذكم من البكمي", 
+    "صياد البكمي", 
+    "Top 1 لأزاله البكمي",
+    "ارتدي قناع من كرنج البكمي",
+    "اهيـ/ـنك انتي وسيرفرك",
+    "مكافحه البكمي",
+}
+
+local index = 1
+
+AddToggle(Main, {
+    Name = "هجوم ضد البكمي",
+    Default = false,
+    Callback = function(state)
+        toggled = state
+        if toggled then
+            spawn(function()
+                while toggled do
+                    if #names > 0 then
+                        local args = {
+                            [1] = "RolePlayName",
+                            [2] = names[index]
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer(unpack(args))
+
+                        index = index + 1
+                        if index > #names then
+                            index = 1
+                        end
+                    end
+                    task.wait(0.5) -- كل نص ثانية
+                end
+            end)
+        end
+    end
+})
+
+local toggled = false
+local names = {
+    "تسجيل دخول العم", 
+    "مانع مرجله", 
+    "الي قدامي ليس لديه مرجله",
+    "سيرفركم غير صالح للعيش", 
+    "محارب المرجله", 
+    "مافيكم رجال", 
+    "أحذر من عمك", 
+    "احفظ اسمي ياصغيري",
+    "تعال عندي اعطيك حصه مرجله",
+    "يامـ/ـهان",
+    "مكافحه المرجله",
+}
+
+local index = 1
+
+AddToggle(Main, {
+    Name = "هجوم ضد عابد البنات",
+    Default = false,
+    Callback = function(state)
+        toggled = state
+        if toggled then
+            spawn(function()
+                while toggled do
+                    if #names > 0 then
+                        local args = {
+                            [1] = "RolePlayName",
+                            [2] = names[index]
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer(unpack(args))
+
+                        index = index + 1
+                        if index > #names then
+                            index = 1
+                        end
+                    end
+                    task.wait(0.5) -- كل نص ثانية
+                end
+            end)
+        end
+    end
+})
+
