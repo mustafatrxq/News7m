@@ -2190,15 +2190,14 @@ local frozenTargets = {}
 -- دالة البحث عن اللاعب حسب أول أحرف
 local function findPlayerByPrefix(prefixLetters)
     prefixLetters = prefixLetters:lower()
-    local allPlayers = game:GetService("Players"):GetPlayers()
-    local LocalPlayer = game:GetService("Players").LocalPlayer
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
 
-    for _, p in ipairs(allPlayers) do
+    for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Name:lower():sub(1, #prefixLetters) == prefixLetters then
             return p
         end
     end
-
     return nil
 end
 
@@ -2213,7 +2212,7 @@ local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
 local ToolEvent = RE:FindFirstChild("1Too1l")
 local FireEvent = RE:FindFirstChild("1Gu1n")
 
--- دوال مساعدة للتعامل مع الأدوات
+-- دوال مساعدة للأدوات
 local function clearAllTools()
     if ClearEvent then
         ClearEvent:FireServer("ClearAllTools")
@@ -2227,13 +2226,12 @@ local function getAssault()
 end
 
 local function hasAssault()
-    local backpack = LocalPlayer.Backpack
-    return backpack:FindFirstChild("Assault") ~= nil
+    return LocalPlayer.Backpack:FindFirstChild("Assault") ~= nil
 end
 
 local function waitForAssault(timeout)
-    local startTime = tick()
-    while not hasAssault() and (tick() - startTime) < timeout do
+    local start = tick()
+    while not hasAssault() and tick() - start < timeout do
         task.wait(0.2)
     end
     return hasAssault()
@@ -2274,18 +2272,16 @@ local function freezeTarget(targetPlayer)
 
     task.spawn(function()
         while task.wait(1) do
-            -- التحقق من وجود اللاعب والشخصية
-            if not frozenTargets[targetPlayer] or not targetPlayer.Parent or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            if not frozenTargets[targetPlayer] 
+               or not targetPlayer.Parent 
+               or not targetPlayer.Character 
+               or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 break
             end
 
-            -- تنظيف الأدوات الحالية
             clearAllTools()
-
-            -- الحصول على سلاح Assault
             getAssault()
 
-            -- الانتظار حتى وجود السلاح
             if waitForAssault(3) then
                 fireAtPart(targetPlayer.Character.HumanoidRootPart)
             end
@@ -2298,124 +2294,175 @@ local function unfreezeTarget(targetPlayer)
     frozenTargets[targetPlayer] = nil
 end
 
-AddSection(Main, {"اكتب اول حرفين"})
+-- الآن نضيف أربع خانات نصية مفصلة + Label + Toggle لكل خانة
+-- === خانة 1 ===
+AddLabel(Main, {
+    Text = "أكتب أول حرفين"
+})
 
-local TextBox1 = Tab:AddTextBox("", { Placeholder = "" })
-Tab:AddButton("تجميد", function()
-    local playerName = TextBox1.Value
-    local targetPlayer = findPlayerByPrefix(playerName)
+local TextBox1 = AddTextBox(Main, {
+    Placeholder = "",
+    Text = ""
+})
 
-    if targetPlayer then
-        if frozenTargets[targetPlayer] then
-            unfreezeTarget(targetPlayer)
-            MakeNotifi({
-                Title = "❌ تم الإطفاء",
-                Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
-                Time = 3
-            })
+AddToggle(Main, {
+    Name = "تجميد",
+    Default = false,
+    Callback = function(value)
+        local playerName = TextBox1.Text or ""
+        local targetPlayer = findPlayerByPrefix(playerName)
+
+        if targetPlayer then
+            if value then
+                freezeTarget(targetPlayer)
+                MakeNotifi({
+                    Title = "✅ تم التشغيل",
+                    Text = "التجميد شغال على " .. targetPlayer.Name,
+                    Time = 3
+                })
+            else
+                unfreezeTarget(targetPlayer)
+                MakeNotifi({
+                    Title = "❌ تم الإطفاء",
+                    Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
+                    Time = 3
+                })
+            end
         else
-            freezeTarget(targetPlayer)
             MakeNotifi({
-                Title = "✅ تم التشغيل",
-                Text = "التجميد شغال على " .. targetPlayer.Name,
+                Title = "⚠️ خطأ",
+                Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
                 Time = 3
             })
         end
-    else
-        MakeNotifi({
-            Title = "⚠️ خطأ",
-            Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
-            Time = 3
-        })
     end
-end)
+})
 
-local TextBox2 = Tab:AddTextBox("", { Placeholder = "" })
-Tab:AddButton("تجميد", function()
-    local playerName = TextBox2.Value
-    local targetPlayer = findPlayerByPrefix(playerName)
+-- === خانة 2 ===
+AddLabel(Main, {
+    Text = "أكتب أول حرفين"
+})
 
-    if targetPlayer then
-        if frozenTargets[targetPlayer] then
-            unfreezeTarget(targetPlayer)
-            MakeNotifi({
-                Title = "❌ تم الإطفاء",
-                Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
-                Time = 3
-            })
+local TextBox2 = AddTextBox(Main, {
+    Placeholder = "",
+    Text = ""
+})
+
+AddToggle(Main, {
+    Name = "تجميد",
+    Default = false,
+    Callback = function(value)
+        local playerName = TextBox2.Text or ""
+        local targetPlayer = findPlayerByPrefix(playerName)
+
+        if targetPlayer then
+            if value then
+                freezeTarget(targetPlayer)
+                MakeNotifi({
+                    Title = "✅ تم التشغيل",
+                    Text = "التجميد شغال على " .. targetPlayer.Name,
+                    Time = 3
+                })
+            else
+                unfreezeTarget(targetPlayer)
+                MakeNotifi({
+                    Title = "❌ تم الإطفاء",
+                    Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
+                    Time = 3
+                })
+            end
         else
-            freezeTarget(targetPlayer)
             MakeNotifi({
-                Title = "✅ تم التشغيل",
-                Text = "التجميد شغال على " .. targetPlayer.Name,
+                Title = "⚠️ خطأ",
+                Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
                 Time = 3
             })
         end
-    else
-        MakeNotifi({
-            Title = "⚠️ خطأ",
-            Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
-            Time = 3
-        })
     end
-end)
+})
 
-local TextBox3 = Tab:AddTextBox("", { Placeholder = "" })
-Tab:AddButton("تجميد", function()
-    local playerName = TextBox3.Value
-    local targetPlayer = findPlayerByPrefix(playerName)
+-- === خانة 3 ===
+AddLabel(Main, {
+    Text = "أكتب أول حرفين"
+})
 
-    if targetPlayer then
-        if frozenTargets[targetPlayer] then
-            unfreezeTarget(targetPlayer)
-            MakeNotifi({
-                Title = "❌ تم الإطفاء",
-                Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
-                Time = 3
-            })
+local TextBox3 = AddTextBox(Main, {
+    Placeholder = "",
+    Text = ""
+})
+
+AddToggle(Main, {
+    Name = "تجميد",
+    Default = false,
+    Callback = function(value)
+        local playerName = TextBox3.Text or ""
+        local targetPlayer = findPlayerByPrefix(playerName)
+
+        if targetPlayer then
+            if value then
+                freezeTarget(targetPlayer)
+                MakeNotifi({
+                    Title = "✅ تم التشغيل",
+                    Text = "التجميد شغال على " .. targetPlayer.Name,
+                    Time = 3
+                })
+            else
+                unfreezeTarget(targetPlayer)
+                MakeNotifi({
+                    Title = "❌ تم الإطفاء",
+                    Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
+                    Time = 3
+                })
+            end
         else
-            freezeTarget(targetPlayer)
             MakeNotifi({
-                Title = "✅ تم التشغيل",
-                Text = "التجميد شغال على " .. targetPlayer.Name,
+                Title = "⚠️ خطأ",
+                Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
                 Time = 3
             })
         end
-    else
-        MakeNotifi({
-            Title = "⚠️ خطأ",
-            Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
-            Time = 3
-        })
     end
-end)
+})
 
-local TextBox4 = Tab:AddTextBox("", { Placeholder = "" })
-Tab:AddButton("تجميد", function()
-    local playerName = TextBox4.Value
-    local targetPlayer = findPlayerByPrefix(playerName)
+-- === خانة 4 ===
+AddLabel(Main, {
+    Text = "أكتب أول حرفين"
+})
 
-    if targetPlayer then
-        if frozenTargets[targetPlayer] then
-            unfreezeTarget(targetPlayer)
-            MakeNotifi({
-                Title = "❌ تم الإطفاء",
-                Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
-                Time = 3
-            })
+local TextBox4 = AddTextBox(Main, {
+    Placeholder = "",
+    Text = ""
+})
+
+AddToggle(Main, {
+    Name = "تجميد",
+    Default = false,
+    Callback = function(value)
+        local playerName = TextBox4.Text or ""
+        local targetPlayer = findPlayerByPrefix(playerName)
+
+        if targetPlayer then
+            if value then
+                freezeTarget(targetPlayer)
+                MakeNotifi({
+                    Title = "✅ تم التشغيل",
+                    Text = "التجميد شغال على " .. targetPlayer.Name,
+                    Time = 3
+                })
+            else
+                unfreezeTarget(targetPlayer)
+                MakeNotifi({
+                    Title = "❌ تم الإطفاء",
+                    Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
+                    Time = 3
+                })
+            end
         else
-            freezeTarget(targetPlayer)
             MakeNotifi({
-                Title = "✅ تم التشغيل",
-                Text = "التجميد شغال على " .. targetPlayer.Name,
+                Title = "⚠️ خطأ",
+                Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
                 Time = 3
             })
         end
-    else
-        MakeNotifi({
-            Title = "⚠️ خطأ",
-            Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
-            Time = 3
-        })
     end
-end)
+})
