@@ -2187,20 +2187,9 @@ AddSection(Main, {"التجميد"})
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
+
 local frozenTargets = {}
 
--- دالة البحث عن لاعب
-local function findPlayerByPrefix(prefixLetters)
-    prefixLetters = prefixLetters:lower()
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Name:lower():sub(1, #prefixLetters) == prefixLetters then
-            return p
-        end
-    end
-    return nil
-end
-
--- دوال التجميد
 local RE = ReplicatedStorage:WaitForChild("RE")
 local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
 local ToolEvent = RE:FindFirstChild("1Too1l")
@@ -2236,10 +2225,12 @@ local function fireAtPart(targetPart)
         targetPart.Position,
         gunScript:FindFirstChild("MuzzleEffect"),
         gunScript:FindFirstChild("HitEffect"),
-        0,0,
+        0,
+        0,
         { false },
-        { 25, Vector3.new(100,100,100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25 },
-        true,false
+        { 25, Vector3.new(100, 100, 100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25 },
+        true,
+        false
     }
     FireEvent:FireServer(unpack(args))
 end
@@ -2250,7 +2241,10 @@ local function freezeTarget(targetPlayer)
 
     task.spawn(function()
         while task.wait(1) do
-            if not frozenTargets[targetPlayer] or not targetPlayer.Parent or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            if not frozenTargets[targetPlayer] 
+               or not targetPlayer.Parent 
+               or not targetPlayer.Character 
+               or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 break
             end
             clearAllTools()
@@ -2267,51 +2261,64 @@ local function unfreezeTarget(targetPlayer)
     frozenTargets[targetPlayer] = nil
 end
 
--- إنشاء 4 خانات TextBox + Toggle لكل خانة
-local TextBoxes = {}
-
-for i = 1, 4 do
-    local tb = Tab:NewTextBox("لاعب " .. i, "أكتب أول حرفين", function(value)
-        -- هنا يمكنك التعامل مع القيمة المكتوبة إذا أحببت
-    end)
-    table.insert(TextBoxes, tb)
-
-    local toggle = Tab:NewToggle("تجميد " .. i, false, function(state)
-        local playerName = tb.Value or ""
-        if #playerName < 2 then
-            MakeNotifi({
-                Title = "⚠️ خطأ",
-                Text = "اكتب أول حرفين للاعب",
-                Time = 3
-            })
-            toggle:Set(false)
-            return
+-- البحث عن لاعب حسب أول حرفين
+local function findPlayerByPrefix(prefixLetters)
+    prefixLetters = prefixLetters:lower()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Name:lower():sub(1, #prefixLetters) == prefixLetters then
+            return p
         end
+    end
+    return nil
+end
 
-        local targetPlayer = findPlayerByPrefix(playerName)
-        if targetPlayer then
-            if state then
-                freezeTarget(targetPlayer)
-                MakeNotifi({
-                    Title = "✅ تم التشغيل",
-                    Text = "التجميد شغال على " .. targetPlayer.Name,
-                    Time = 3
-                })
+-- 🔹 إنشاء 4 خانات TextBox + زر تحت كل خانة
+local ScreenGui = Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
+ScreenGui.Name = "FreezeGui"
+
+local function createBox(yPosition)
+    local Frame = Instance.new("Frame", ScreenGui)
+    Frame.Size = UDim2.new(0, 200, 0, 70)
+    Frame.Position = UDim2.new(0, 20, 0, yPosition)
+    Frame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+
+    local TextBox = Instance.new("TextBox", Frame)
+    TextBox.Size = UDim2.new(0, 180, 0, 30)
+    TextBox.Position = UDim2.new(0, 10, 0, 5)
+    TextBox.PlaceholderText = "أول حرفين للاعب"
+    TextBox.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    TextBox.TextColor3 = Color3.fromRGB(255,255,255)
+    TextBox.ClearTextOnFocus = false
+
+    local Button = Instance.new("TextButton", Frame)
+    Button.Size = UDim2.new(0, 180, 0, 30)
+    Button.Position = UDim2.new(0, 10, 0, 35)
+    Button.Text = "تجميد"
+    Button.BackgroundColor3 = Color3.fromRGB(80,80,80)
+    Button.TextColor3 = Color3.fromRGB(255,255,255)
+
+    Button.MouseButton1Click:Connect(function()
+        local prefix = TextBox.Text
+        if prefix and #prefix >= 2 then
+            local target = findPlayerByPrefix(prefix)
+            if target then
+                if frozenTargets[target] then
+                    unfreezeTarget(target)
+                    -- إشعار الإطفاء
+                    print("❌ تم الإطفاء على "..target.Name)
+                else
+                    freezeTarget(target)
+                    -- إشعار التشغيل
+                    print("✅ تم التشغيل على "..target.Name)
+                end
             else
-                unfreezeTarget(targetPlayer)
-                MakeNotifi({
-                    Title = "❌ تم الإطفاء",
-                    Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
-                    Time = 3
-                })
+                print("⚠️ لم يتم العثور على لاعب يبدأ بـ "..prefix)
             end
-        else
-            MakeNotifi({
-                Title = "⚠️ خطأ",
-                Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
-                Time = 3
-            })
-            toggle:Set(false)
         end
     end)
+end
+
+-- إنشاء 4 خانات
+for i=0,3 do
+    createBox(20 + i*80)
 end
