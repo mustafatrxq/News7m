@@ -2194,7 +2194,7 @@ local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
 local ToolEvent = RE:FindFirstChild("1Too1l")
 local FireEvent = RE:FindFirstChild("1Gu1n")
 
--- دالة البحث عن لاعب حسب أول أحرف
+-- دالة البحث عن لاعب حسب أول حرفين
 local function findPlayerByPrefix(prefixLetters)
     prefixLetters = prefixLetters:lower()
     for _, p in ipairs(Players:GetPlayers()) do
@@ -2249,33 +2249,42 @@ local function unfreezeTarget(targetPlayer)
     frozenTargets[targetPlayer] = nil
 end
 
--- إنشاء أربع خانات TextBox مع زر تحت كل خانة
+-- إنشاء أربع خانات TextBox بدون اسم ظاهر، وكل واحدة تحتها زر Toggle
 for i = 1, 4 do
-    -- خانة نصية لكل لاعب
+    -- خانة نصية فارغة بدون اسم
     local TextBox = AddTextBox(Main, {
-        Text = "" -- فارغة بدون Placeholder
+        Text = ""
     })
 
-    -- زر تحت كل خانة
-    AddButton(Main, {
-        Name = "تجميد",
-        Callback = function()
+    -- زر Toggle تحت الخانة
+    AddToggle(Main, {
+        Name = "تجميد", -- هذا الزر فقط له اسم، الخانة نفسها لا
+        Default = false,
+        Callback = function(state)
             local playerName = TextBox.Text or ""
-            local targetPlayer = findPlayerByPrefix(playerName)
+            if #playerName < 2 then
+                MakeNotifi({
+                    Title = "⚠️ خطأ",
+                    Text = "اكتب أول حرفين على الأقل للاعب",
+                    Time = 3
+                })
+                return
+            end
 
+            local targetPlayer = findPlayerByPrefix(playerName)
             if targetPlayer then
-                if frozenTargets[targetPlayer] then
-                    unfreezeTarget(targetPlayer)
-                    MakeNotifi({
-                        Title = "❌ تم الإطفاء",
-                        Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
-                        Time = 3
-                    })
-                else
+                if state then
                     freezeTarget(targetPlayer)
                     MakeNotifi({
                         Title = "✅ تم التشغيل",
                         Text = "التجميد شغال على " .. targetPlayer.Name,
+                        Time = 3
+                    })
+                else
+                    unfreezeTarget(targetPlayer)
+                    MakeNotifi({
+                        Title = "❌ تم الإطفاء",
+                        Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
                         Time = 3
                     })
                 end
