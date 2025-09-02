@@ -2186,4 +2186,101 @@ AddSection(Main, {"التجميد"})
 
 AddSection(Main, {"حتى لو حذفت الواجهه الخاصه ب التجميد رح يبقى التجميد واسم الشخص"})
 
-AddSection(Main, {"التجميد"})
+-- دالة إنشاء واجهة تجميد لكل زر
+local function createFreezeGUIForScript(buttonNumber)
+    local gui = Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
+    gui.Name = "FreezeGUI_"..buttonNumber
+    gui.Enabled = false
+
+    local frame = Instance.new("Frame", gui)
+    frame.Size = UDim2.new(0, 250, 0, 150)
+    frame.Position = UDim2.new(0, 100, 0, 100)
+    frame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+
+    -- عنوان الواجهة
+    local title = Instance.new("TextLabel", frame)
+    title.Size = UDim2.new(1,0,0,30)
+    title.Position = UDim2.new(0,0,0,0)
+    title.Text = "تجميد اللاعب - ساموراي - رقم "..buttonNumber
+    title.TextColor3 = Color3.fromRGB(255,255,255)
+    title.BackgroundColor3 = Color3.fromRGB(35,35,35)
+
+    -- زر الإخفاء
+    local hideBtn = Instance.new("TextButton", frame)
+    hideBtn.Size = UDim2.new(0, 30,0,30)
+    hideBtn.Position = UDim2.new(1,-35,0,5)
+    hideBtn.Text = "×"
+    hideBtn.TextColor3 = Color3.fromRGB(255,255,255)
+    hideBtn.BackgroundColor3 = Color3.fromRGB(150,0,0)
+    hideBtn.MouseButton1Click:Connect(function()
+        gui.Enabled = false
+    end)
+
+    local playerBox = Instance.new("TextBox", frame)
+    playerBox.Size = UDim2.new(1,-20,0,30)
+    playerBox.Position = UDim2.new(0,10,0,40)
+    playerBox.PlaceholderText = "أول حرفين للاعب"
+    playerBox.TextColor3 = Color3.fromRGB(255,255,255)
+    playerBox.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    playerBox.ClearTextOnFocus = false
+
+    local freezeButton = Instance.new("TextButton", frame)
+    freezeButton.Size = UDim2.new(1,-20,0,30)
+    freezeButton.Position = UDim2.new(0,10,0,80)
+    freezeButton.Text = "تجميد/إطفاء"
+    freezeButton.TextColor3 = Color3.fromRGB(255,255,255)
+    freezeButton.BackgroundColor3 = Color3.fromRGB(80,80,80)
+
+    freezeButton.MouseButton1Click:Connect(function()
+        local prefix = playerBox.Text
+        local target = findPlayerByPrefix(prefix)
+        if target then
+            if frozenTargets[target] then
+                unfreezeTarget(target)
+                MakeNotifi({Title="❌ تم الإطفاء",Text="تم إيقاف التجميد على "..target.Name,Time=3})
+            else
+                freezeTarget(target)
+                MakeNotifi({Title="✅ تم التشغيل",Text="التجميد شغال على "..target.Name,Time=3})
+            end
+        else
+            warn("⚠️ لم يتم العثور على لاعب يبدأ بـ "..prefix)
+        end
+    end)
+
+    return gui
+end
+
+-- إنشاء الواجهات الأربع
+local gui1 = createFreezeGUIForScript(1)
+local gui2 = createFreezeGUIForScript(2)
+local gui3 = createFreezeGUIForScript(3)
+local gui4 = createFreezeGUIForScript(4)
+
+-- دمج مع سكربتك الأصلي AddButton
+AddButton(Main, {
+    Name = "واجهة تجميد 1",
+    Callback = function()
+        gui1.Enabled = not gui1.Enabled
+    end
+})
+
+AddButton(Main, {
+    Name = "واجهة تجميد 2",
+    Callback = function()
+        gui2.Enabled = not gui2.Enabled
+    end
+})
+
+AddButton(Main, {
+    Name = "واجهة تجميد 3",
+    Callback = function()
+        gui3.Enabled = not gui3.Enabled
+    end
+})
+
+AddButton(Main, {
+    Name = "واجهة تجميد 4",
+    Callback = function()
+        gui4.Enabled = not gui4.Enabled
+    end
+})
