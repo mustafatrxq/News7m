@@ -2200,9 +2200,8 @@ local FireEvent = RE:FindFirstChild("1Gu1n")
 
 -- 🔹 دالة البحث عن لاعب حسب أول حرفين
 local function findPlayerByPrefix(prefixLetters)
-    prefixLetters = prefixLetters:lower() -- تحويل الأحرف إلى صغيرة
+    prefixLetters = prefixLetters:lower()
     for _, p in ipairs(Players:GetPlayers()) do
-        -- نتأكد أن اللاعب ليس LocalPlayer
         if p ~= LocalPlayer and p.Name:lower():sub(1, #prefixLetters) == prefixLetters then
             return p
         end
@@ -2212,14 +2211,11 @@ end
 
 -- 🔹 دالة التجميد
 local function freezeTarget(targetPlayer)
-    -- منع التجميد المكرر لنفس اللاعب
     if frozenTargets[targetPlayer] then return end
     frozenTargets[targetPlayer] = true
 
-    -- تشغيل حلقة التجميد في مهمة منفصلة
     task.spawn(function()
         while task.wait(1) do
-            -- التحقق من أن اللاعب موجود ويملك شخصية وجزء HumanoidRootPart
             if not frozenTargets[targetPlayer] 
                or not targetPlayer.Parent 
                or not targetPlayer.Character 
@@ -2227,20 +2223,16 @@ local function freezeTarget(targetPlayer)
                 break
             end
 
-            -- إزالة جميع الأدوات الحالية
-            if ClearEvent then
-                ClearEvent:FireServer("ClearAllTools")
-            end
+            -- إزالة الأدوات الحالية
+            if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
 
-            -- الحصول على السلاح Assault
-            if ToolEvent then
-                ToolEvent:InvokeServer("PickingTools", "Assault")
-            end
+            -- الحصول على سلاح Assault
+            if ToolEvent then ToolEvent:InvokeServer("PickingTools", "Assault") end
 
             -- الانتظار حتى يكون السلاح موجودًا
             repeat task.wait(0.2) until LocalPlayer.Backpack:FindFirstChild("Assault")
 
-            -- إعداد السلاح وإطلاق النار على HumanoidRootPart
+            -- إطلاق النار على HumanoidRootPart
             local gunScript = LocalPlayer.Backpack:FindFirstChild("Assault") and LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local")
             local targetPart = targetPlayer.Character.HumanoidRootPart
             if gunScript and targetPart then
@@ -2262,7 +2254,7 @@ local function freezeTarget(targetPlayer)
             end
         end
 
-        -- عند خروج اللاعب من التجميد، إزالة من الجدول
+        -- إزالة اللاعب من الجدول عند الإيقاف
         frozenTargets[targetPlayer] = nil
     end)
 end
@@ -2272,25 +2264,25 @@ local function unfreezeTarget(targetPlayer)
     frozenTargets[targetPlayer] = nil
 end
 
--- 🔹 إنشاء 4 خانات TextBox + Toggle لكل خانة
+-- 🔹 إنشاء 4 خانات TextBox + Toggle أسفل كل خانة
 local TextBoxes = {}
 local Toggles = {}
 
 for i = 1, 4 do
-    -- إنشاء خانة نصية فارغة (TextBox) بدون اسم
+    -- إنشاء خانة نصية
     local tb = AddTextBox(Main, {
-        Text = "" -- المستخدم يكتب أول حرفين
+        Placeholder = "أكتب أول حرفين",
+        Text = "" -- فارغة بشكل افتراضي
     })
     table.insert(TextBoxes, tb)
 
-    -- زر Toggle أسفل كل خانة لتشغيل/إيقاف التجميد
+    -- زر Toggle تحت كل خانة
     local toggle = AddToggle(Main, {
-        Name = "تجميد", -- اسم الزر
-        Default = false, -- الوضع الافتراضي مطفأ
+        Name = "تجميد",
+        Default = false,
         Callback = function(state)
             local playerName = tb.Text or ""
 
-            -- التأكد من كتابة حرفين على الأقل
             if #playerName < 2 then
                 MakeNotifi({
                     Title = "⚠️ خطأ",
@@ -2301,11 +2293,9 @@ for i = 1, 4 do
                 return
             end
 
-            -- البحث عن اللاعب حسب أول حرفين
             local targetPlayer = findPlayerByPrefix(playerName)
             if targetPlayer then
                 if state then
-                    -- تشغيل التجميد
                     freezeTarget(targetPlayer)
                     MakeNotifi({
                         Title = "✅ تم التشغيل",
@@ -2313,7 +2303,6 @@ for i = 1, 4 do
                         Time = 3
                     })
                 else
-                    -- إيقاف التجميد
                     unfreezeTarget(targetPlayer)
                     MakeNotifi({
                         Title = "❌ تم الإطفاء",
@@ -2322,7 +2311,6 @@ for i = 1, 4 do
                     })
                 end
             else
-                -- لا يوجد لاعب يبدأ بالحروف المكتوبة
                 MakeNotifi({
                     Title = "⚠️ خطأ",
                     Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
@@ -2335,9 +2323,7 @@ for i = 1, 4 do
     table.insert(Toggles, toggle)
 end
 
--- 🔹 ملاحظات إضافية:
--- 1. كل خانة TextBox تعمل بشكل مستقل.
--- 2. كل Toggle مستقل يمكن تشغيله على أي لاعب.
--- 3. إشعارات تظهر عند التشغيل والإيقاف.
--- 4. التجميد يعتمد على أول حرفين من اسم اللاعب.
--- 5. كل شيء موجود داخل هذا السكربت، ولا يحتاج مراقبة الدردشة أو أي شيء خارجي.
+-- ✅ كل شيء جاهز:
+-- أربع خانات، لكل خانة زر Toggle أسفلها
+-- تشغيل/إيقاف التجميد مباشر على اللاعب
+-- إشعارات تظهر عند كل تغيير
