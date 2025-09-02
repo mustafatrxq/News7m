@@ -2185,22 +2185,25 @@ local Main = MakeTab({
 AddSection(Main, {"التجميد"})
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
 local frozenTargets = {}
-
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RE = ReplicatedStorage:WaitForChild("RE")
 local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
 local ToolEvent = RE:FindFirstChild("1Too1l")
 local FireEvent = RE:FindFirstChild("1Gu1n")
 
+
+-- ============================
+-- دوال التجميد
+-- ============================
 local function clearAllTools()
     if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
 end
 
 local function getAssault()
-    if ToolEvent then ToolEvent:InvokeServer("PickingTools", "Assault") end
+    if ToolEvent then ToolEvent:InvokeServer("PickingTools","Assault") end
 end
 
 local function hasAssault()
@@ -2228,7 +2231,7 @@ local function fireAtPart(targetPart)
         0,
         0,
         {false},
-        {25, Vector3.new(100,100,100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25},
+        {25,Vector3.new(100,100,100),BrickColor.new(29),0.25,Enum.Material.SmoothPlastic,0.25},
         true,
         false
     }
@@ -2261,85 +2264,164 @@ local function unfreezeTarget(targetPlayer)
     frozenTargets[targetPlayer] = nil
 end
 
-local function findPlayerByPrefix(prefixLetters)
-    prefixLetters = prefixLetters:lower()
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Name:lower():sub(1,#prefixLetters) == prefixLetters then
-            return p
+
+-- ============================
+-- دالة تحديث أسماء اللاعبين
+-- ============================
+local function getOtherPlayerNames()
+    local names = {}
+    for _,p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer then
+            table.insert(names,p.Name)
         end
     end
-    return nil
+    return names
 end
 
--- جدول لكل DropDown
-local dropDowns = {}
 
--- دالة لتحديث اللاعبين لكل DropDown
-local function updatePlayerList(dropdown)
-    local playerNames = {}
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            table.insert(playerNames, player.Name)
-        end
+-- ============================
+-- DropDown 1 و الزر الخاص به
+-- ============================
+local dropDown1 = AddDropdown(Main,{
+    Name = "اختر لاعب للتجميد 1",
+    Options = getOtherPlayerNames(),
+    Default = getOtherPlayerNames()[1] or "",
+    Callback = function(value)
+        selected1 = value
     end
+})
+local selected1 = dropDown1.Default
 
-    dropdown.Options = playerNames
-    if not table.find(playerNames, dropdown.Selected) then
-        dropdown.Selected = playerNames[1]
-        dropdown:SetValue(dropdown.Selected)
-    end
-end
-
--- إنشاء 4 DropDowns وأزرار مرتبطة بهم
-for i = 1, 4 do
-    local selectedTarget
-    local dropDown = AddDropdown(Main, {
-        Name = "اختر لاعب للتجميد " .. i,
-        Options = {},
-        Default = "",
-        Callback = function(value)
-            selectedTarget = value
-        end
-    })
-
-    dropDown.Selected = selectedTarget or ""
-    table.insert(dropDowns, dropDown)
-
-    AddButton(Main, {
-        Name = "تجميد " .. i,
-        Callback = function()
-            if not selectedTarget then
-                warn("لم يتم اختيار لاعب")
-                return
-            end
-
-            local targetPlayer = Players:FindFirstChild(selectedTarget)
-            if targetPlayer then
-                if frozenTargets[targetPlayer] then
-                    unfreezeTarget(targetPlayer)
-                    MakeNotifi({
-                        Title = "❌ تم الإطفاء",
-                        Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
-                        Time = 3
-                    })
-                else
-                    freezeTarget(targetPlayer)
-                    MakeNotifi({
-                        Title = "✅ تم التشغيل",
-                        Text = "التجميد شغال على " .. targetPlayer.Name,
-                        Time = 3
-                    })
-                end
+AddButton(Main,{
+    Name = "تجميد 1",
+    Callback = function()
+        local target = Players:FindFirstChild(selected1)
+        if target then
+            if frozenTargets[target] then
+                unfreezeTarget(target)
+                MakeNotifi({Title="❌ تم الإطفاء",Text="تم إيقاف التجميد على "..target.Name,Time=3})
             else
-                warn("اللاعب غير موجود")
+                freezeTarget(target)
+                MakeNotifi({Title="✅ تم التشغيل",Text="التجميد شغال على "..target.Name,Time=3})
             end
+        else
+            warn("اللاعب غير موجود")
         end
-    })
+    end
+})
 
-    -- تحديث DropDown عند دخول أو خروج لاعب
-    Players.PlayerAdded:Connect(function() updatePlayerList(dropDown) end)
-    Players.PlayerRemoving:Connect(function() updatePlayerList(dropDown) end)
 
-    -- أول تحديث
-    updatePlayerList(dropDown)
-end
+-- ============================
+-- DropDown 2 و الزر الخاص به
+-- ============================
+local dropDown2 = AddDropdown(Main,{
+    Name = "اختر لاعب للتجميد 2",
+    Options = getOtherPlayerNames(),
+    Default = getOtherPlayerNames()[1] or "",
+    Callback = function(value)
+        selected2 = value
+    end
+})
+local selected2 = dropDown2.Default
+
+AddButton(Main,{
+    Name = "تجميد 2",
+    Callback = function()
+        local target = Players:FindFirstChild(selected2)
+        if target then
+            if frozenTargets[target] then
+                unfreezeTarget(target)
+                MakeNotifi({Title="❌ تم الإطفاء",Text="تم إيقاف التجميد على "..target.Name,Time=3})
+            else
+                freezeTarget(target)
+                MakeNotifi({Title="✅ تم التشغيل",Text="التجميد شغال على "..target.Name,Time=3})
+            end
+        else
+            warn("اللاعب غير موجود")
+        end
+    end
+})
+
+
+-- ============================
+-- DropDown 3 و الزر الخاص به
+-- ============================
+local dropDown3 = AddDropdown(Main,{
+    Name = "اختر لاعب للتجميد 3",
+    Options = getOtherPlayerNames(),
+    Default = getOtherPlayerNames()[1] or "",
+    Callback = function(value)
+        selected3 = value
+    end
+})
+local selected3 = dropDown3.Default
+
+AddButton(Main,{
+    Name = "تجميد 3",
+    Callback = function()
+        local target = Players:FindFirstChild(selected3)
+        if target then
+            if frozenTargets[target] then
+                unfreezeTarget(target)
+                MakeNotifi({Title="❌ تم الإطفاء",Text="تم إيقاف التجميد على "..target.Name,Time=3})
+            else
+                freezeTarget(target)
+                MakeNotifi({Title="✅ تم التشغيل",Text="التجميد شغال على "..target.Name,Time=3})
+            end
+        else
+            warn("اللاعب غير موجود")
+        end
+    end
+})
+
+
+-- ============================
+-- DropDown 4 و الزر الخاص به
+-- ============================
+local dropDown4 = AddDropdown(Main,{
+    Name = "اختر لاعب للتجميد 4",
+    Options = getOtherPlayerNames(),
+    Default = getOtherPlayerNames()[1] or "",
+    Callback = function(value)
+        selected4 = value
+    end
+})
+local selected4 = dropDown4.Default
+
+AddButton(Main,{
+    Name = "تجميد 4",
+    Callback = function()
+        local target = Players:FindFirstChild(selected4)
+        if target then
+            if frozenTargets[target] then
+                unfreezeTarget(target)
+                MakeNotifi({Title="❌ تم الإطفاء",Text="تم إيقاف التجميد على "..target.Name,Time=3})
+            else
+                freezeTarget(target)
+                MakeNotifi({Title="✅ تم التشغيل",Text="التجميد شغال على "..target.Name,Time=3})
+            end
+        else
+            warn("اللاعب غير موجود")
+        end
+    end
+})
+
+
+-- ============================
+-- تحديث تلقائي لأسماء اللاعبين في كل DropDown
+-- ============================
+Players.PlayerAdded:Connect(function()
+    local names = getOtherPlayerNames()
+    dropDown1.Options = names
+    dropDown2.Options = names
+    dropDown3.Options = names
+    dropDown4.Options = names
+end)
+
+Players.PlayerRemoving:Connect(function()
+    local names = getOtherPlayerNames()
+    dropDown1.Options = names
+    dropDown2.Options = names
+    dropDown3.Options = names
+    dropDown4.Options = names
+end)
