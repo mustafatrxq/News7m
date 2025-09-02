@@ -1374,7 +1374,11 @@ AddButton(Main, {
   end
 })
 
-local Main = MakeTab({Name = "الاغاني"})
+local Main = MakeTab({
+    Name = "الأغاني",
+    Image = "rbxassetid://95704435998219",
+    TabTitle = false
+})
 
 -- فقرة تعريف
 local Paragraph = AddParagraph(Main, {
@@ -1687,23 +1691,6 @@ AddButton(Main, {
   end
 })
 
-AddButton(Main, {
-  Name = "الآذان",
-  Callback = function()
-     local args = {
-        [1] = "SkateBoard"
-     }
-
-     game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args))
-     local args = {
-        [1] = "PickingScooterMusicText",
-        [2] = "1836685873"
-     }
-
-     game:GetService("ReplicatedStorage").RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args))
-  end
-})
-
 AddSection(Main, {"فونك"})
 
 AddButton(Main, {
@@ -1836,7 +1823,11 @@ AddButton(Main, {
     end
 })
 
-local Main = MakeTab({Name = "الأسماء"})
+local Main = MakeTab({
+    Name = "الأسماء",
+    Image = "rbxassetid://127476568939667",
+    TabTitle = false
+})
 
 -- =====================
 -- الاسم
@@ -2185,13 +2176,17 @@ AddToggle(Main, {
     end
 })
 
+local Main = MakeTab({
+    Name = "ترول الجحيم",
+    Image = "rbxassetid://87060218582359",
+    TabTitle = false
+})
+
+AddSection(Main, {"التجميد"})
+
 local frozenTargets = {}
 
--- نفترض عندك جدول TextBoxes فيه جميع مربعات النص الحالية
--- مثال: local TextBoxes = {Tab.TextBox1, Tab.TextBox2, Tab.TextBox3, Tab.TextBox4}
--- أو يمكنك جمعهم تلقائيًا إذا عندك طريقة تحديدهم
-local TextBoxes = {} -- ضع هنا جميع خاناتك
-
+-- دالة البحث عن اللاعب حسب أول أحرف
 local function findPlayerByPrefix(prefixLetters)
     prefixLetters = prefixLetters:lower()
     for _, p in ipairs(game:GetService("Players"):GetPlayers()) do
@@ -2277,10 +2272,15 @@ local function unfreezeTarget(targetPlayer)
     frozenTargets[targetPlayer] = nil
 end
 
--- إنشاء زر تولك ديناميكي لكل خانة نص
-for i, tb in ipairs(TextBoxes) do
+-- إنشاء أربع خانات + زر تحت كل خانة
+for i = 1, 4 do
+    local TextBox = Tab:AddTextBox("لاعب " .. i, {
+        Placeholder = "أكتب أول أحرف"
+    })
+
+    -- زر التولك تحت الخانة
     Tab:AddButton("تجميد " .. i, function()
-        local playerName = tb.Value
+        local playerName = TextBox.Value
         local targetPlayer = findPlayerByPrefix(playerName)
 
         if targetPlayer then
