@@ -2186,192 +2186,178 @@ AddSection(Main, {"التجميد"})
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RE = ReplicatedStorage:WaitForChild("RE")
+local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
+local ToolEvent = RE:FindFirstChild("1Too1l")
+local FireEvent = RE:FindFirstChild("1Gu1n")
 
 local frozenTargets = {}
 
--- ============================
--- دالة التجميد على BasePart
--- ============================
+-- دوال التجميد
+local function clearAllTools()
+    if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
+end
+
+local function getAssault()
+    if ToolEvent then ToolEvent:InvokeServer("PickingTools","Assault") end
+end
+
+local function hasAssault()
+    return LocalPlayer.Backpack:FindFirstChild("Assault") ~= nil
+end
+
+local function waitForAssault(timeout)
+    local start = tick()
+    while not hasAssault() and tick() - start < timeout do
+        task.wait(0.2)
+    end
+    return hasAssault()
+end
+
+local function fireAtPart(targetPart)
+    local gunScript = LocalPlayer.Backpack:FindFirstChild("Assault") and LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local")
+    if not gunScript or not targetPart then return end
+    local args = {
+        targetPart,
+        targetPart,
+        Vector3.new(1e14,1e14,1e14),
+        targetPart.Position,
+        gunScript:FindFirstChild("MuzzleEffect"),
+        gunScript:FindFirstChild("HitEffect"),
+        0,
+        0,
+        {false},
+        {25,Vector3.new(100,100,100),BrickColor.new(29),0.25,Enum.Material.SmoothPlastic,0.25},
+        true,
+        false
+    }
+    FireEvent:FireServer(unpack(args))
+end
+
 local function freezeTarget(targetPlayer)
     if frozenTargets[targetPlayer] then return end
     frozenTargets[targetPlayer] = true
-
-    local character = targetPlayer.Character
-    if character then
-        for _, part in pairs(character:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.Anchored = true
+    task.spawn(function()
+        while task.wait(1) do
+            if not frozenTargets[targetPlayer] 
+               or not targetPlayer.Parent 
+               or not targetPlayer.Character 
+               or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                break
+            end
+            clearAllTools()
+            getAssault()
+            if waitForAssault(3) then
+                fireAtPart(targetPlayer.Character.HumanoidRootPart)
             end
         end
-    end
+        frozenTargets[targetPlayer] = nil
+    end)
 end
 
 local function unfreezeTarget(targetPlayer)
-    if not frozenTargets[targetPlayer] then return end
     frozenTargets[targetPlayer] = nil
-
-    local character = targetPlayer.Character
-    if character then
-        for _, part in pairs(character:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.Anchored = false
-            end
-        end
-    end
 end
 
--- ============================
--- دالة لتحديث أسماء اللاعبين
--- ============================
-local function getOtherPlayerNames()
-    local names = {}
+local function findPlayerByName(name)
     for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer then
-            table.insert(names, p.Name)
+        if p ~= LocalPlayer and p.Name == name then
+            return p
         end
     end
-    return names
+    return nil
 end
 
--- ============================
--- DropDown 1 + زر
--- ============================
-local dropDown1 = AddDropdown(Main, {
-    Name = "اختر لاعب للتجميد 1",
-    Options = getOtherPlayerNames(),
-    Default = getOtherPlayerNames()[1] or "",
-    Callback = function(value)
-        selected1 = value
-    end
-})
-local selected1 = dropDown1.Default
+-- ========================
+-- إنشاء واجهة تجميد قابلة للإخفاء والسحب
+-- ========================
+local function createFreezeGUI(buttonNumber, defaultPlayerName)
+    local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+    gui.Name = "FreezeGUI_"..buttonNumber
+    gui.Enabled = false
 
-AddButton(Main, {
-    Name = "تجميد 1",
-    Callback = function()
-        local target = Players:FindFirstChild(selected1)
+    local frame = Instance.new("Frame", gui)
+    frame.Size = UDim2.new(0, 220, 0, 120)
+    frame.Position = UDim2.new(0, 150, 0, 150 + (buttonNumber-1)*130)
+    frame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    frame.Active = true
+    frame.Draggable = true
+
+    local title = Instance.new("TextLabel", frame)
+    title.Size = UDim2.new(1,0,0,25)
+    title.Position = UDim2.new(0,0,0,0)
+    title.Text = "تجميد اللاعب - زر "..buttonNumber
+    title.TextColor3 = Color3.fromRGB(255,255,255)
+    title.BackgroundColor3 = Color3.fromRGB(35,35,35)
+
+    local playerBox = Instance.new("TextBox", frame)
+    playerBox.Size = UDim2.new(1,-20,0,25)
+    playerBox.Position = UDim2.new(0,10,0,35)
+    playerBox.PlaceholderText = "اسم اللاعب"
+    playerBox.Text = defaultPlayerName or ""
+    playerBox.TextColor3 = Color3.fromRGB(255,255,255)
+    playerBox.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    playerBox.ClearTextOnFocus = false
+
+    local freezeButton = Instance.new("TextButton", frame)
+    freezeButton.Size = UDim2.new(1,-20,0,25)
+    freezeButton.Position = UDim2.new(0,10,0,70)
+    freezeButton.Text = "تجميد/إطفاء"
+    freezeButton.TextColor3 = Color3.fromRGB(255,255,255)
+    freezeButton.BackgroundColor3 = Color3.fromRGB(80,80,80)
+
+    freezeButton.MouseButton1Click:Connect(function()
+        local target = findPlayerByName(playerBox.Text)
         if target then
             if frozenTargets[target] then
                 unfreezeTarget(target)
-                MakeNotifi({Title="❌ تم الإطفاء", Text="تم فك التجميد على "..target.Name, Time=3})
+                print("❌ تم الإطفاء على "..target.Name)
             else
                 freezeTarget(target)
-                MakeNotifi({Title="✅ تم التشغيل", Text="تم التجميد على "..target.Name, Time=3})
+                print("✅ تم التشغيل على "..target.Name)
             end
         else
             warn("اللاعب غير موجود")
         end
-    end
-})
+    end)
 
--- ============================
--- DropDown 2 + زر
--- ============================
-local dropDown2 = AddDropdown(Main, {
-    Name = "اختر لاعب للتجميد 2",
-    Options = getOtherPlayerNames(),
-    Default = getOtherPlayerNames()[1] or "",
-    Callback = function(value)
-        selected2 = value
+    return gui
+end
+
+-- إنشاء الواجهات الأربعة
+local gui1 = createFreezeGUI(1,"Player1")
+local gui2 = createFreezeGUI(2,"Player2")
+local gui3 = createFreezeGUI(3,"Player3")
+local gui4 = createFreezeGUI(4,"Player4")
+
+-- ========================
+-- أزرار داخل Main لفتح الواجهات
+-- ========================
+AddButton(Main, {
+    Name = "واجهه تجميد 1",
+    Callback = function()
+        gui1.Enabled = not gui1.Enabled
     end
 })
-local selected2 = dropDown2.Default
 
 AddButton(Main, {
-    Name = "تجميد 2",
+    Name = "واجهه تجميد 2",
     Callback = function()
-        local target = Players:FindFirstChild(selected2)
-        if target then
-            if frozenTargets[target] then
-                unfreezeTarget(target)
-                MakeNotifi({Title="❌ تم الإطفاء", Text="تم فك التجميد على "..target.Name, Time=3})
-            else
-                freezeTarget(target)
-                MakeNotifi({Title="✅ تم التشغيل", Text="تم التجميد على "..target.Name, Time=3})
-            end
-        else
-            warn("اللاعب غير موجود")
-        end
+        gui2.Enabled = not gui2.Enabled
     end
 })
-
--- ============================
--- DropDown 3 + زر
--- ============================
-local dropDown3 = AddDropdown(Main, {
-    Name = "اختر لاعب للتجميد 3",
-    Options = getOtherPlayerNames(),
-    Default = getOtherPlayerNames()[1] or "",
-    Callback = function(value)
-        selected3 = value
-    end
-})
-local selected3 = dropDown3.Default
 
 AddButton(Main, {
-    Name = "تجميد 3",
+    Name = "واجهه تجميد 3",
     Callback = function()
-        local target = Players:FindFirstChild(selected3)
-        if target then
-            if frozenTargets[target] then
-                unfreezeTarget(target)
-                MakeNotifi({Title="❌ تم الإطفاء", Text="تم فك التجميد على "..target.Name, Time=3})
-            else
-                freezeTarget(target)
-                MakeNotifi({Title="✅ تم التشغيل", Text="تم التجميد على "..target.Name, Time=3})
-            end
-        else
-            warn("اللاعب غير موجود")
-        end
+        gui3.Enabled = not gui3.Enabled
     end
 })
-
--- ============================
--- DropDown 4 + زر
--- ============================
-local dropDown4 = AddDropdown(Main, {
-    Name = "اختر لاعب للتجميد 4",
-    Options = getOtherPlayerNames(),
-    Default = getOtherPlayerNames()[1] or "",
-    Callback = function(value)
-        selected4 = value
-    end
-})
-local selected4 = dropDown4.Default
 
 AddButton(Main, {
-    Name = "تجميد 4",
+    Name = "واجهه تجميد 4",
     Callback = function()
-        local target = Players:FindFirstChild(selected4)
-        if target then
-            if frozenTargets[target] then
-                unfreezeTarget(target)
-                MakeNotifi({Title="❌ تم الإطفاء", Text="تم فك التجميد على "..target.Name, Time=3})
-            else
-                freezeTarget(target)
-                MakeNotifi({Title="✅ تم التشغيل", Text="تم التجميد على "..target.Name, Time=3})
-            end
-        else
-            warn("اللاعب غير موجود")
-        end
+        gui4.Enabled = not gui4.Enabled
     end
 })
-
--- ============================
--- تحديث تلقائي لأسماء اللاعبين في كل DropDown
--- ============================
-Players.PlayerAdded:Connect(function()
-    local names = getOtherPlayerNames()
-    dropDown1.Options = names
-    dropDown2.Options = names
-    dropDown3.Options = names
-    dropDown4.Options = names
-end)
-
-Players.PlayerRemoving:Connect(function()
-    local names = getOtherPlayerNames()
-    dropDown1.Options = names
-    dropDown2.Options = names
-    dropDown3.Options = names
-    dropDown4.Options = names
-end)
