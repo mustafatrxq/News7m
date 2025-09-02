@@ -2221,14 +2221,14 @@ local function fireAtPart(targetPart)
     local args = {
         targetPart,
         targetPart,
-        Vector3.new(1e14, 1e14, 1e14),
+        Vector3.new(1e14,1e14,1e14),
         targetPart.Position,
         gunScript:FindFirstChild("MuzzleEffect"),
         gunScript:FindFirstChild("HitEffect"),
         0,
         0,
-        { false },
-        { 25, Vector3.new(100, 100, 100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25 },
+        {false},
+        {25, Vector3.new(100,100,100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25},
         true,
         false
     }
@@ -2264,54 +2264,82 @@ end
 local function findPlayerByPrefix(prefixLetters)
     prefixLetters = prefixLetters:lower()
     for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Name:lower():sub(1, #prefixLetters) == prefixLetters then
+        if p ~= LocalPlayer and p.Name:lower():sub(1,#prefixLetters) == prefixLetters then
             return p
         end
     end
     return nil
 end
 
--- هنا نستخدم مكتبة التبويب الحالية
-local TextBoxes = {}
+-- جدول لكل DropDown
+local dropDowns = {}
 
+-- دالة لتحديث اللاعبين لكل DropDown
+local function updatePlayerList(dropdown)
+    local playerNames = {}
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            table.insert(playerNames, player.Name)
+        end
+    end
+
+    dropdown.Options = playerNames
+    if not table.find(playerNames, dropdown.Selected) then
+        dropdown.Selected = playerNames[1]
+        dropdown:SetValue(dropdown.Selected)
+    end
+end
+
+-- إنشاء 4 DropDowns وأزرار مرتبطة بهم
 for i = 1, 4 do
-    local tb = Main:AddTextBox({
-        Name = "خانة " .. i,
-        Placeholder = "أول حرفين للاعب",
-        Callback = function() end -- لا نحتاج شيء عند الكتابة
+    local selectedTarget
+    local dropDown = AddDropdown(Main, {
+        Name = "اختر لاعب للتجميد " .. i,
+        Options = {},
+        Default = "",
+        Callback = function(value)
+            selectedTarget = value
+        end
     })
-    table.insert(TextBoxes, tb)
 
-    Main:AddButton({
+    dropDown.Selected = selectedTarget or ""
+    table.insert(dropDowns, dropDown)
+
+    AddButton(Main, {
         Name = "تجميد " .. i,
         Callback = function()
-            local prefix = tb.Value
-            if prefix and #prefix >= 2 then
-                local target = findPlayerByPrefix(prefix)
-                if target then
-                    if frozenTargets[target] then
-                        unfreezeTarget(target)
-                        MakeNotifi({
-                            Title = "❌ تم الإطفاء",
-                            Text = "تم إيقاف التجميد على " .. target.Name,
-                            Time = 3
-                        })
-                    else
-                        freezeTarget(target)
-                        MakeNotifi({
-                            Title = "✅ تم التشغيل",
-                            Text = "التجميد شغال على " .. target.Name,
-                            Time = 3
-                        })
-                    end
-                else
+            if not selectedTarget then
+                warn("لم يتم اختيار لاعب")
+                return
+            end
+
+            local targetPlayer = Players:FindFirstChild(selectedTarget)
+            if targetPlayer then
+                if frozenTargets[targetPlayer] then
+                    unfreezeTarget(targetPlayer)
                     MakeNotifi({
-                        Title = "⚠️ خطأ",
-                        Text = "لا يوجد لاعب يبدأ بـ '" .. prefix .. "'",
+                        Title = "❌ تم الإطفاء",
+                        Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
+                        Time = 3
+                    })
+                else
+                    freezeTarget(targetPlayer)
+                    MakeNotifi({
+                        Title = "✅ تم التشغيل",
+                        Text = "التجميد شغال على " .. targetPlayer.Name,
                         Time = 3
                     })
                 end
+            else
+                warn("اللاعب غير موجود")
             end
         end
     })
+
+    -- تحديث DropDown عند دخول أو خروج لاعب
+    Players.PlayerAdded:Connect(function() updatePlayerList(dropDown) end)
+    Players.PlayerRemoving:Connect(function() updatePlayerList(dropDown) end)
+
+    -- أول تحديث
+    updatePlayerList(dropDown)
 end
