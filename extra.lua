@@ -2186,15 +2186,108 @@ AddSection(Main, {"التجميد"})
 
 AddSection(Main, {"حتى لو حذفت الواجهه الخاصه ب التجميد رح يبقى التجميد واسم الشخص"})
 
--- دالة إنشاء واجهة تجميد لكل زر
-local function createFreezeGUIForScript(buttonNumber)
-    local gui = Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
+-- ==================================
+-- سكربت تجميد كامل مع واجهات وأزرار
+-- ==================================
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+local frozenTargets = {}
+
+local RE = ReplicatedStorage:WaitForChild("RE")
+local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
+local ToolEvent = RE:FindFirstChild("1Too1l")
+local FireEvent = RE:FindFirstChild("1Gu1n")
+
+-- =========================
+-- دوال التجميد والسلاح
+-- =========================
+local function clearAllTools()
+    if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
+end
+
+local function getAssault()
+    if ToolEvent then ToolEvent:InvokeServer("PickingTools","Assault") end
+end
+
+local function hasAssault()
+    return LocalPlayer.Backpack:FindFirstChild("Assault") ~= nil
+end
+
+local function fireAtPart(targetPart)
+    local weapon = LocalPlayer.Backpack:FindFirstChild("Assault")
+    if not weapon then return end
+    local gunScript = weapon:FindFirstChild("GunScript_Local")
+    if not gunScript or not targetPart then return end
+
+    local args = {
+        targetPart,
+        targetPart,
+        Vector3.new(1e14,1e14,1e14),
+        targetPart.Position,
+        gunScript:FindFirstChild("MuzzleEffect"),
+        gunScript:FindFirstChild("HitEffect"),
+        0,
+        0,
+        {false},
+        {25,Vector3.new(100,100,100),BrickColor.new(29),0.25,Enum.Material.SmoothPlastic,0.25},
+        true,
+        false
+    }
+    FireEvent:FireServer(unpack(args))
+end
+
+local function freezeTarget(targetPlayer)
+    if frozenTargets[targetPlayer] then return end
+    frozenTargets[targetPlayer] = true
+
+    task.spawn(function()
+        while task.wait(1) do
+            if not frozenTargets[targetPlayer] 
+               or not targetPlayer.Parent 
+               or not targetPlayer.Character 
+               or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                break
+            end
+
+            clearAllTools()
+            getAssault()
+            repeat task.wait(0.2) until hasAssault()
+            fireAtPart(targetPlayer.Character.HumanoidRootPart)
+        end
+        frozenTargets[targetPlayer] = nil
+    end)
+end
+
+local function unfreezeTarget(targetPlayer)
+    frozenTargets[targetPlayer] = nil
+end
+
+-- =========================
+-- دالة البحث عن لاعب باستخدام أول حرفين
+-- =========================
+local function findPlayerByPrefix(prefix)
+    prefix = prefix:lower()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Name:lower():sub(1,#prefix) == prefix then
+            return p
+        end
+    end
+    return nil
+end
+
+-- =========================
+-- دالة إنشاء واجهة لكل زر
+-- =========================
+local function createFreezeGUI(buttonNumber, defaultPrefix)
+    local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
     gui.Name = "FreezeGUI_"..buttonNumber
     gui.Enabled = false
 
     local frame = Instance.new("Frame", gui)
-    frame.Size = UDim2.new(0, 250, 0, 150)
-    frame.Position = UDim2.new(0, 100, 0, 100)
+    frame.Size = UDim2.new(0,250,0,150)
+    frame.Position = UDim2.new(0,100,0,100)
     frame.BackgroundColor3 = Color3.fromRGB(50,50,50)
 
     -- عنوان الواجهة
@@ -2205,25 +2298,17 @@ local function createFreezeGUIForScript(buttonNumber)
     title.TextColor3 = Color3.fromRGB(255,255,255)
     title.BackgroundColor3 = Color3.fromRGB(35,35,35)
 
-    -- زر الإخفاء
-    local hideBtn = Instance.new("TextButton", frame)
-    hideBtn.Size = UDim2.new(0, 30,0,30)
-    hideBtn.Position = UDim2.new(1,-35,0,5)
-    hideBtn.Text = "×"
-    hideBtn.TextColor3 = Color3.fromRGB(255,255,255)
-    hideBtn.BackgroundColor3 = Color3.fromRGB(150,0,0)
-    hideBtn.MouseButton1Click:Connect(function()
-        gui.Enabled = false
-    end)
-
+    -- TextBox لأخذ أول حرفين من اسم اللاعب
     local playerBox = Instance.new("TextBox", frame)
     playerBox.Size = UDim2.new(1,-20,0,30)
     playerBox.Position = UDim2.new(0,10,0,40)
     playerBox.PlaceholderText = "أول حرفين للاعب"
+    playerBox.Text = defaultPrefix or ""
     playerBox.TextColor3 = Color3.fromRGB(255,255,255)
     playerBox.BackgroundColor3 = Color3.fromRGB(60,60,60)
     playerBox.ClearTextOnFocus = false
 
+    -- زر التجميد
     local freezeButton = Instance.new("TextButton", frame)
     freezeButton.Size = UDim2.new(1,-20,0,30)
     freezeButton.Position = UDim2.new(0,10,0,80)
@@ -2232,55 +2317,60 @@ local function createFreezeGUIForScript(buttonNumber)
     freezeButton.BackgroundColor3 = Color3.fromRGB(80,80,80)
 
     freezeButton.MouseButton1Click:Connect(function()
-        local prefix = playerBox.Text
-        local target = findPlayerByPrefix(prefix)
-        if target then
-            if frozenTargets[target] then
-                unfreezeTarget(target)
-                MakeNotifi({Title="❌ تم الإطفاء",Text="تم إيقاف التجميد على "..target.Name,Time=3})
+        local prefixText = playerBox.Text
+        if prefixText and #prefixText >= 2 then
+            local target = findPlayerByPrefix(prefixText)
+            if target then
+                getAssault()
+                repeat task.wait(0.2) until hasAssault()
+                if frozenTargets[target] then
+                    unfreezeTarget(target)
+                    print("❌ تم الإطفاء على "..target.Name)
+                else
+                    freezeTarget(target)
+                    print("✅ تم التشغيل على "..target.Name)
+                end
             else
-                freezeTarget(target)
-                MakeNotifi({Title="✅ تم التشغيل",Text="التجميد شغال على "..target.Name,Time=3})
+                warn("⚠️ لم يتم العثور على لاعب يبدأ بـ: "..prefixText)
             end
-        else
-            warn("⚠️ لم يتم العثور على لاعب يبدأ بـ "..prefix)
         end
     end)
 
     return gui
 end
 
--- إنشاء الواجهات الأربع
-local gui1 = createFreezeGUIForScript(1)
-local gui2 = createFreezeGUIForScript(2)
-local gui3 = createFreezeGUIForScript(3)
-local gui4 = createFreezeGUIForScript(4)
+-- =========================
+-- إنشاء واجهات الأربعة أزرار
+-- =========================
+local button1GUI = createFreezeGUI(1,"Sa")
+local button2GUI = createFreezeGUI(2,"Sa")
+local button3GUI = createFreezeGUI(3,"Sa")
+local button4GUI = createFreezeGUI(4,"Sa")
 
--- دمج مع سكربتك الأصلي AddButton
-AddButton(Main, {
+-- =========================
+-- ربط أزرار Main لفتح/إغلاق الواجهات
+-- =========================
+AddButton(Main,{
     Name = "واجهة تجميد 1",
     Callback = function()
-        gui1.Enabled = not gui1.Enabled
+        button1GUI.Enabled = not button1GUI.Enabled
     end
 })
-
-AddButton(Main, {
+AddButton(Main,{
     Name = "واجهة تجميد 2",
     Callback = function()
-        gui2.Enabled = not gui2.Enabled
+        button2GUI.Enabled = not button2GUI.Enabled
     end
 })
-
-AddButton(Main, {
+AddButton(Main,{
     Name = "واجهة تجميد 3",
     Callback = function()
-        gui3.Enabled = not gui3.Enabled
+        button3GUI.Enabled = not button3GUI.Enabled
     end
 })
-
-AddButton(Main, {
+AddButton(Main,{
     Name = "واجهة تجميد 4",
     Callback = function()
-        gui4.Enabled = not gui4.Enabled
+        button4GUI.Enabled = not button4GUI.Enabled
     end
 })
