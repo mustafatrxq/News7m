@@ -2261,7 +2261,6 @@ local function unfreezeTarget(targetPlayer)
     frozenTargets[targetPlayer] = nil
 end
 
--- البحث عن لاعب حسب أول حرفين
 local function findPlayerByPrefix(prefixLetters)
     prefixLetters = prefixLetters:lower()
     for _, p in ipairs(Players:GetPlayers()) do
@@ -2272,49 +2271,47 @@ local function findPlayerByPrefix(prefixLetters)
     return nil
 end
 
--- 🔹 تكست بوكس وهمية داخل السكربت (4 خانات)
-local TextBoxes = {
-    {Value = ""}, -- خانة 1
-    {Value = ""}, -- خانة 2
-    {Value = ""}, -- خانة 3
-    {Value = ""}  -- خانة 4
-}
+-- هنا نستخدم مكتبة التبويب الحالية
+local TextBoxes = {}
 
--- 🔹 أزرار تولك برمجياً لكل خانة
-local Buttons = {}
+for i = 1, 4 do
+    local tb = Main:AddTextBox({
+        Name = "خانة " .. i,
+        Placeholder = "أول حرفين للاعب",
+        Callback = function() end -- لا نحتاج شيء عند الكتابة
+    })
+    table.insert(TextBoxes, tb)
 
-for i, tb in ipairs(TextBoxes) do
-    Buttons[i] = function()
-        local prefix = tb.Value
-        if prefix and #prefix >= 2 then
-            local target = findPlayerByPrefix(prefix)
-            if target then
-                if frozenTargets[target] then
-                    unfreezeTarget(target)
-                    print("❌ تم الإطفاء على "..target.Name)
+    Main:AddButton({
+        Name = "تجميد " .. i,
+        Callback = function()
+            local prefix = tb.Value
+            if prefix and #prefix >= 2 then
+                local target = findPlayerByPrefix(prefix)
+                if target then
+                    if frozenTargets[target] then
+                        unfreezeTarget(target)
+                        MakeNotifi({
+                            Title = "❌ تم الإطفاء",
+                            Text = "تم إيقاف التجميد على " .. target.Name,
+                            Time = 3
+                        })
+                    else
+                        freezeTarget(target)
+                        MakeNotifi({
+                            Title = "✅ تم التشغيل",
+                            Text = "التجميد شغال على " .. target.Name,
+                            Time = 3
+                        })
+                    end
                 else
-                    freezeTarget(target)
-                    print("✅ تم التشغيل على "..target.Name)
+                    MakeNotifi({
+                        Title = "⚠️ خطأ",
+                        Text = "لا يوجد لاعب يبدأ بـ '" .. prefix .. "'",
+                        Time = 3
+                    })
                 end
-            else
-                print("⚠️ لم يتم العثور على لاعب يبدأ بـ "..prefix)
             end
-        else
-            print("⚠️ يجب كتابة أول حرفين على الأقل في الخانة "..i)
         end
-    end
+    })
 end
-
--- 🔹 كيفية الاستخدام:
--- لتحديد اللاعب للخانة الأولى:
--- TextBoxes[1].Value = "Ab"  -- أول حرفين من اسم اللاعب
--- ثم استدعاء الزر:
--- Buttons[1]()  -- لتفعيل أو إيقاف التجميد على اللاعب المحدد
-
--- نفس الشيء لبقية الخانات:
--- TextBoxes[2].Value = "Cd"
--- Buttons[2]()
--- TextBoxes[3].Value = "Ef"
--- Buttons[3]()
--- TextBoxes[4].Value = "Gh"
--- Buttons[4]()
