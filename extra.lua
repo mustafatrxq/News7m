@@ -2272,53 +2272,49 @@ local function findPlayerByPrefix(prefixLetters)
     return nil
 end
 
--- 🔹 إنشاء 4 خانات TextBox + زر تحت كل خانة
-local ScreenGui = Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
-ScreenGui.Name = "FreezeGui"
+-- 🔹 تكست بوكس وهمية داخل السكربت (4 خانات)
+local TextBoxes = {
+    {Value = ""}, -- خانة 1
+    {Value = ""}, -- خانة 2
+    {Value = ""}, -- خانة 3
+    {Value = ""}  -- خانة 4
+}
 
-local function createBox(yPosition)
-    local Frame = Instance.new("Frame", ScreenGui)
-    Frame.Size = UDim2.new(0, 200, 0, 70)
-    Frame.Position = UDim2.new(0, 20, 0, yPosition)
-    Frame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+-- 🔹 أزرار تولك برمجياً لكل خانة
+local Buttons = {}
 
-    local TextBox = Instance.new("TextBox", Frame)
-    TextBox.Size = UDim2.new(0, 180, 0, 30)
-    TextBox.Position = UDim2.new(0, 10, 0, 5)
-    TextBox.PlaceholderText = "أول حرفين للاعب"
-    TextBox.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    TextBox.TextColor3 = Color3.fromRGB(255,255,255)
-    TextBox.ClearTextOnFocus = false
-
-    local Button = Instance.new("TextButton", Frame)
-    Button.Size = UDim2.new(0, 180, 0, 30)
-    Button.Position = UDim2.new(0, 10, 0, 35)
-    Button.Text = "تجميد"
-    Button.BackgroundColor3 = Color3.fromRGB(80,80,80)
-    Button.TextColor3 = Color3.fromRGB(255,255,255)
-
-    Button.MouseButton1Click:Connect(function()
-        local prefix = TextBox.Text
+for i, tb in ipairs(TextBoxes) do
+    Buttons[i] = function()
+        local prefix = tb.Value
         if prefix and #prefix >= 2 then
             local target = findPlayerByPrefix(prefix)
             if target then
                 if frozenTargets[target] then
                     unfreezeTarget(target)
-                    -- إشعار الإطفاء
                     print("❌ تم الإطفاء على "..target.Name)
                 else
                     freezeTarget(target)
-                    -- إشعار التشغيل
                     print("✅ تم التشغيل على "..target.Name)
                 end
             else
                 print("⚠️ لم يتم العثور على لاعب يبدأ بـ "..prefix)
             end
+        else
+            print("⚠️ يجب كتابة أول حرفين على الأقل في الخانة "..i)
         end
-    end)
+    end
 end
 
--- إنشاء 4 خانات
-for i=0,3 do
-    createBox(20 + i*80)
-end
+-- 🔹 كيفية الاستخدام:
+-- لتحديد اللاعب للخانة الأولى:
+-- TextBoxes[1].Value = "Ab"  -- أول حرفين من اسم اللاعب
+-- ثم استدعاء الزر:
+-- Buttons[1]()  -- لتفعيل أو إيقاف التجميد على اللاعب المحدد
+
+-- نفس الشيء لبقية الخانات:
+-- TextBoxes[2].Value = "Cd"
+-- Buttons[2]()
+-- TextBoxes[3].Value = "Ef"
+-- Buttons[3]()
+-- TextBoxes[4].Value = "Gh"
+-- Buttons[4]()
