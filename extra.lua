@@ -2186,17 +2186,16 @@ AddSection(Main, {"التجميد"})
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-
-local frozenTargets = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RE = ReplicatedStorage:WaitForChild("RE")
 local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
 local ToolEvent = RE:FindFirstChild("1Too1l")
 local FireEvent = RE:FindFirstChild("1Gu1n")
 
+local frozenTargets = {}
 
 -- ============================
--- دوال التجميد
+-- دوال التجميد وفك التجميد
 -- ============================
 local function clearAllTools()
     if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
@@ -2264,9 +2263,8 @@ local function unfreezeTarget(targetPlayer)
     frozenTargets[targetPlayer] = nil
 end
 
-
 -- ============================
--- دالة تحديث أسماء اللاعبين
+-- تحديث أسماء اللاعبين
 -- ============================
 local function getOtherPlayerNames()
     local names = {}
@@ -2278,9 +2276,8 @@ local function getOtherPlayerNames()
     return names
 end
 
-
 -- ============================
--- DropDown 1 و الزر الخاص به
+-- Dropdown 1 + زر
 -- ============================
 local dropDown1 = AddDropdown(Main,{
     Name = "اختر لاعب للتجميد 1",
@@ -2310,9 +2307,8 @@ AddButton(Main,{
     end
 })
 
-
 -- ============================
--- DropDown 2 و الزر الخاص به
+-- Dropdown 2 + زر
 -- ============================
 local dropDown2 = AddDropdown(Main,{
     Name = "اختر لاعب للتجميد 2",
@@ -2342,9 +2338,8 @@ AddButton(Main,{
     end
 })
 
-
 -- ============================
--- DropDown 3 و الزر الخاص به
+-- Dropdown 3 + زر
 -- ============================
 local dropDown3 = AddDropdown(Main,{
     Name = "اختر لاعب للتجميد 3",
@@ -2374,9 +2369,8 @@ AddButton(Main,{
     end
 })
 
-
 -- ============================
--- DropDown 4 و الزر الخاص به
+-- Dropdown 4 + زر
 -- ============================
 local dropDown4 = AddDropdown(Main,{
     Name = "اختر لاعب للتجميد 4",
@@ -2406,9 +2400,8 @@ AddButton(Main,{
     end
 })
 
-
 -- ============================
--- تحديث تلقائي لأسماء اللاعبين في كل DropDown
+-- تحديث تلقائي لأسماء اللاعبين
 -- ============================
 Players.PlayerAdded:Connect(function()
     local names = getOtherPlayerNames()
