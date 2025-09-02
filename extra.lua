@@ -2184,151 +2184,72 @@ local Main = MakeTab({
 
 AddSection(Main, {"التجميد"})
 
--- جدول اللاعبين المجمدين
-local frozenTargets = {}
+-- إنشاء شاشة GUI
+local ScreenGui = Create("ScreenGui", CoreGui, { Name = "REDz HUB library" })
 
--- البحث عن لاعب حسب أول حرفين
-local function findPlayerByPrefix(prefixLetters)
-    prefixLetters = prefixLetters:lower()
-    for _, p in ipairs(game:GetService("Players"):GetPlayers()) do
-        if p ~= game:GetService("Players").LocalPlayer and p.Name:lower():sub(1, #prefixLetters) == prefixLetters then
-            return p
-        end
-    end
-    return nil
-end
+-- إنشاء إطار القائمة الجانبية
+local Menu_Notifi = Create("Frame", ScreenGui, { Size = UDim2.new(0, 300, 1, 0), Position = UDim2.new(1, 0, 0, 0), AnchorPoint = Vector2.new(1, 0), BackgroundTransparency = 1 })
+local Padding = Create("UIPadding", Menu_Notifi, { PaddingLeft = UDim.new(0, 25), PaddingTop = UDim.new(0, 25), PaddingBottom = UDim.new(0, 50) })
+local ListLayout = Create("UIListLayout", Menu_Notifi, { Padding = UDim.new(0, 15), VerticalAlignment = "Bottom" })
 
--- الخدمات
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local LocalPlayer = Players.LocalPlayer
-
-local RE = ReplicatedStorage:WaitForChild("RE")
-local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
-local ToolEvent = RE:FindFirstChild("1Too1l")
-local FireEvent = RE:FindFirstChild("1Gu1n")
-
--- دوال التجميد
-local function clearAllTools()
-    if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
-end
-
-local function getAssault()
-    if ToolEvent then ToolEvent:InvokeServer("PickingTools", "Assault") end
-end
-
-local function hasAssault()
-    return LocalPlayer.Backpack:FindFirstChild("Assault") ~= nil
-end
-
-local function waitForAssault(timeout)
-    local start = tick()
-    while not hasAssault() and tick() - start < timeout do
-        task.wait(0.2)
-    end
-    return hasAssault()
-end
-
-local function fireAtPart(targetPart)
-    local gunScript = LocalPlayer.Backpack:FindFirstChild("Assault") and LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local")
-    if not gunScript or not targetPart then return end
-    local args = {
-        targetPart,
-        targetPart,
-        Vector3.new(1e14, 1e14, 1e14),
-        targetPart.Position,
-        gunScript:FindFirstChild("MuzzleEffect"),
-        gunScript:FindFirstChild("HitEffect"),
-        0,
-        0,
-        { false },
-        { 25, Vector3.new(100, 100, 100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25 },
-        true,
-        false
-    }
-    FireEvent:FireServer(unpack(args))
-end
-
-local function freezeTarget(targetPlayer)
-    if frozenTargets[targetPlayer] then return end
-    frozenTargets[targetPlayer] = true
-
-    task.spawn(function()
-        while task.wait(1) do
-            if not frozenTargets[targetPlayer] 
-               or not targetPlayer.Parent 
-               or not targetPlayer.Character 
-               or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                break
-            end
-            clearAllTools()
-            getAssault()
-            if waitForAssault(3) then
-                fireAtPart(targetPlayer.Character.HumanoidRootPart)
-            end
-        end
-        frozenTargets[targetPlayer] = nil
-    end)
-end
-
-local function unfreezeTarget(targetPlayer)
-    frozenTargets[targetPlayer] = nil
-end
-
--- إنشاء أربع خانات مع Toggle أسفل كل خانة
-local TextBoxes = {}
-local Toggles = {}
-
-for i = 1, 4 do
-    -- إنشاء TextBox
+-- دالة لإنشاء مربعات النص
+local function CreateTextBox(name, placeholder)
     local tb = Tab:AddTextBox({
-        Name = "لاعب " .. i,
-        Placeholder = "أكتب أول حرفين"
+        Name = name,
+        Placeholder = placeholder
     })
-    table.insert(TextBoxes, tb)
+    return tb
+end
 
-    -- Toggle أسفل كل TextBox
+-- دالة لإنشاء أزرار التبديل
+local function CreateToggle(name, default, callback)
     local toggle = Tab:AddToggle({
-        Name = "تجميد",
-        Default = false,
-        Callback = function(state)
-            local playerName = tb.Value or ""
-            if #playerName < 2 then
-                MakeNotifi({
-                    Title = "⚠️ خطأ",
-                    Text = "اكتب أول حرفين على الأقل للاعب",
-                    Time = 3
-                })
-                toggle:Set(false)
-                return
-            end
-
-            local targetPlayer = findPlayerByPrefix(playerName)
-            if targetPlayer then
-                if state then
-                    freezeTarget(targetPlayer)
-                    MakeNotifi({
-                        Title = "✅ تم التشغيل",
-                        Text = "التجميد شغال على " .. targetPlayer.Name,
-                        Time = 3
-                    })
-                else
-                    unfreezeTarget(targetPlayer)
-                    MakeNotifi({
-                        Title = "❌ تم الإطفاء",
-                        Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
-                        Time = 3
-                    })
-                end
-            else
-                MakeNotifi({
-                    Title = "⚠️ خطأ",
-                    Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
-                    Time = 3
-                })
-                toggle:Set(false)
-            end
-        end
+        Name = name,
+        Default = default,
+        Callback = callback
     })
-    table.insert(Toggles, toggle)
+    return toggle
+end
+
+-- إنشاء 4 مربعات نصية وأزرار تبديل
+for i = 1, 4 do
+    local tb = CreateTextBox("لاعب " .. i, "أكتب أول حرفين")
+    local toggle = CreateToggle("تجميد " .. i, false, function(state)
+        local playerName = tb.Value or ""
+        if #playerName < 2 then
+            MakeNotifi({
+                Title = "⚠️ خطأ",
+                Text = "اكتب أول حرفين للاعب",
+                Time = 3
+            })
+            toggle:Set(false)
+            return
+        end
+
+        local targetPlayer = findPlayerByPrefix(playerName)
+        if targetPlayer then
+            if state then
+                freezeTarget(targetPlayer)
+                MakeNotifi({
+                    Title = "✅ تم التشغيل",
+                    Text = "التجميد شغال على " .. targetPlayer.Name,
+                    Time = 3
+                })
+            else
+                unfreezeTarget(targetPlayer)
+                MakeNotifi({
+                    Title = "❌ تم الإطفاء",
+                    Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
+                    Time = 3
+                })
+            end
+        else
+            MakeNotifi({
+                Title = "⚠️ خطأ",
+                Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
+                Time = 3
+            })
+            toggle:Set(false)
+        end
+    end)
 end
