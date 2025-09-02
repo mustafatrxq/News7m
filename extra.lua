@@ -2187,29 +2187,70 @@ AddSection(Main, {"التجميد"})
 -- جدول اللاعبين المجمدين
 local frozenTargets = {}
 
--- الخدمات الأساسية
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local LocalPlayer = Players.LocalPlayer
-
--- جلب الأحداث من ReplicatedStorage
-local RE = ReplicatedStorage:WaitForChild("RE")
-local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
-local ToolEvent = RE:FindFirstChild("1Too1l")
-local FireEvent = RE:FindFirstChild("1Gu1n")
-
--- 🔹 دالة البحث عن لاعب حسب أول حرفين
+-- دالة البحث عن لاعب حسب أول حرفين
 local function findPlayerByPrefix(prefixLetters)
     prefixLetters = prefixLetters:lower()
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Name:lower():sub(1, #prefixLetters) == prefixLetters then
+    for _, p in ipairs(game:GetService("Players"):GetPlayers()) do
+        if p ~= game:GetService("Players").LocalPlayer and p.Name:lower():sub(1, #prefixLetters) == prefixLetters then
             return p
         end
     end
     return nil
 end
 
--- 🔹 دالة التجميد
+-- تعريف الخدمات
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+-- الأحداث في الريبليكيد ستورج
+local RE = ReplicatedStorage:WaitForChild("RE")
+local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
+local ToolEvent = RE:FindFirstChild("1Too1l")
+local FireEvent = RE:FindFirstChild("1Gu1n")
+
+-- دوال الأدوات
+local function clearAllTools()
+    if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
+end
+
+local function getAssault()
+    if ToolEvent then ToolEvent:InvokeServer("PickingTools", "Assault") end
+end
+
+local function hasAssault()
+    return LocalPlayer.Backpack:FindFirstChild("Assault") ~= nil
+end
+
+local function waitForAssault(timeout)
+    local start = tick()
+    while not hasAssault() and tick() - start < timeout do
+        task.wait(0.2)
+    end
+    return hasAssault()
+end
+
+local function fireAtPart(targetPart)
+    local gunScript = LocalPlayer.Backpack:FindFirstChild("Assault") and LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local")
+    if not gunScript or not targetPart then return end
+    local args = {
+        targetPart,
+        targetPart,
+        Vector3.new(1e14, 1e14, 1e14),
+        targetPart.Position,
+        gunScript:FindFirstChild("MuzzleEffect"),
+        gunScript:FindFirstChild("HitEffect"),
+        0,
+        0,
+        { false },
+        { 25, Vector3.new(100, 100, 100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25 },
+        true,
+        false
+    }
+    FireEvent:FireServer(unpack(args))
+end
+
+-- دالة التجميد
 local function freezeTarget(targetPlayer)
     if frozenTargets[targetPlayer] then return end
     frozenTargets[targetPlayer] = true
@@ -2222,67 +2263,38 @@ local function freezeTarget(targetPlayer)
                or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 break
             end
-
-            -- إزالة الأدوات الحالية
-            if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
-
-            -- الحصول على سلاح Assault
-            if ToolEvent then ToolEvent:InvokeServer("PickingTools", "Assault") end
-
-            -- الانتظار حتى يكون السلاح موجودًا
-            repeat task.wait(0.2) until LocalPlayer.Backpack:FindFirstChild("Assault")
-
-            -- إطلاق النار على HumanoidRootPart
-            local gunScript = LocalPlayer.Backpack:FindFirstChild("Assault") and LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local")
-            local targetPart = targetPlayer.Character.HumanoidRootPart
-            if gunScript and targetPart then
-                local args = {
-                    targetPart,
-                    targetPart,
-                    Vector3.new(1e14, 1e14, 1e14),
-                    targetPart.Position,
-                    gunScript:FindFirstChild("MuzzleEffect"),
-                    gunScript:FindFirstChild("HitEffect"),
-                    0,
-                    0,
-                    { false },
-                    { 25, Vector3.new(100, 100, 100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25 },
-                    true,
-                    false
-                }
-                FireEvent:FireServer(unpack(args))
+            clearAllTools()
+            getAssault()
+            if waitForAssault(3) then
+                fireAtPart(targetPlayer.Character.HumanoidRootPart)
             end
         end
-
-        -- إزالة اللاعب من الجدول عند الإيقاف
         frozenTargets[targetPlayer] = nil
     end)
 end
 
--- 🔹 دالة إيقاف التجميد
 local function unfreezeTarget(targetPlayer)
     frozenTargets[targetPlayer] = nil
 end
 
--- 🔹 إنشاء 4 خانات TextBox + Toggle أسفل كل خانة
+-- إنشاء أربع خانات مع Toggle أسفل كل خانة
 local TextBoxes = {}
 local Toggles = {}
 
 for i = 1, 4 do
     -- إنشاء خانة نصية
-    local tb = AddTextBox(Main, {
+    local tb = Tab:AddTextBox({
         Placeholder = "أكتب أول حرفين",
-        Text = "" -- فارغة بشكل افتراضي
+        Text = ""
     })
     table.insert(TextBoxes, tb)
 
-    -- زر Toggle تحت كل خانة
-    local toggle = AddToggle(Main, {
+    -- زر التولك أسفل كل خانة
+    local toggle = Tab:AddToggle({
         Name = "تجميد",
         Default = false,
         Callback = function(state)
-            local playerName = tb.Text or ""
-
+            local playerName = tb.Value or ""
             if #playerName < 2 then
                 MakeNotifi({
                     Title = "⚠️ خطأ",
@@ -2322,8 +2334,3 @@ for i = 1, 4 do
     })
     table.insert(Toggles, toggle)
 end
-
--- ✅ كل شيء جاهز:
--- أربع خانات، لكل خانة زر Toggle أسفلها
--- تشغيل/إيقاف التجميد مباشر على اللاعب
--- إشعارات تظهر عند كل تغيير
