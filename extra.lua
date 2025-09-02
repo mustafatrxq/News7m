@@ -2187,7 +2187,7 @@ AddSection(Main, {"التجميد"})
 -- جدول اللاعبين المجمدين
 local frozenTargets = {}
 
--- دالة البحث عن لاعب حسب أول حرفين
+-- البحث عن لاعب حسب أول حرفين
 local function findPlayerByPrefix(prefixLetters)
     prefixLetters = prefixLetters:lower()
     for _, p in ipairs(game:GetService("Players"):GetPlayers()) do
@@ -2198,18 +2198,17 @@ local function findPlayerByPrefix(prefixLetters)
     return nil
 end
 
--- تعريف الخدمات
+-- الخدمات
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
--- الأحداث في الريبليكيد ستورج
 local RE = ReplicatedStorage:WaitForChild("RE")
 local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
 local ToolEvent = RE:FindFirstChild("1Too1l")
 local FireEvent = RE:FindFirstChild("1Gu1n")
 
--- دوال الأدوات
+-- دوال التجميد
 local function clearAllTools()
     if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
 end
@@ -2250,7 +2249,6 @@ local function fireAtPart(targetPart)
     FireEvent:FireServer(unpack(args))
 end
 
--- دالة التجميد
 local function freezeTarget(targetPlayer)
     if frozenTargets[targetPlayer] then return end
     frozenTargets[targetPlayer] = true
@@ -2282,14 +2280,14 @@ local TextBoxes = {}
 local Toggles = {}
 
 for i = 1, 4 do
-    -- إنشاء خانة نصية
+    -- إنشاء TextBox
     local tb = Tab:AddTextBox({
-        Placeholder = "أكتب أول حرفين",
-        Text = ""
+        Name = "لاعب " .. i,
+        Placeholder = "أكتب أول حرفين"
     })
     table.insert(TextBoxes, tb)
 
-    -- زر التولك أسفل كل خانة
+    -- Toggle أسفل كل TextBox
     local toggle = Tab:AddToggle({
         Name = "تجميد",
         Default = false,
