@@ -2185,3 +2185,149 @@ AddToggle(Main, {
     end
 })
 
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+-- 🔹 الريموتات
+local RE = ReplicatedStorage:WaitForChild("RE")
+local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
+local ToolEvent = RE:FindFirstChild("1Too1l")
+local FireEvent = RE:FindFirstChild("1Gu1n")
+
+-- 🔹 جدول اللاعبين المجمدين
+local frozenTargets = {}
+
+-- 🟢 وظائف مساعدة
+local function clearAllTools()
+    if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
+end
+
+local function getAssault()
+    if ToolEvent then ToolEvent:InvokeServer("PickingTools", "Assault") end
+end
+
+local function hasAssault()
+    return LocalPlayer.Backpack:FindFirstChild("Assault") ~= nil
+end
+
+local function waitForAssault(timeout)
+    local start = tick()
+    while not hasAssault() and tick() - start < timeout do
+        task.wait(0.2)
+    end
+    return hasAssault()
+end
+
+local function fireAtPart(targetPart)
+    local gunScript = LocalPlayer.Backpack:FindFirstChild("Assault") and LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local")
+    if not gunScript or not targetPart then return end
+    local args = {
+        targetPart,
+        targetPart,
+        Vector3.new(1e14, 1e14, 1e14),
+        targetPart.Position,
+        gunScript:FindFirstChild("MuzzleEffect"),
+        gunScript:FindFirstChild("HitEffect"),
+        0,
+        0,
+        { false },
+        { 25, Vector3.new(100, 100, 100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25 },
+        true,
+        false
+    }
+    FireEvent:FireServer(unpack(args))
+end
+
+local function findPlayerByPrefix(prefixLetters)
+    prefixLetters = prefixLetters:lower()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Name:lower():sub(1, #prefixLetters) == prefixLetters then
+            return p
+        end
+    end
+    return nil
+end
+
+-- 🟢 تجميد لاعب
+local function freezeTarget(targetPlayer)
+    if frozenTargets[targetPlayer] then return end
+    frozenTargets[targetPlayer] = true
+
+    task.spawn(function()
+        while task.wait(1) do
+            if not frozenTargets[targetPlayer] 
+               or not targetPlayer.Parent 
+               or not targetPlayer.Character 
+               or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                break
+            end
+            clearAllTools()
+            getAssault()
+            if waitForAssault(3) then
+                fireAtPart(targetPlayer.Character.HumanoidRootPart)
+            end
+        end
+        frozenTargets[targetPlayer] = nil
+    end)
+end
+
+-- 🟢 فك التجميد
+local function unfreezeTarget(targetPlayer)
+    frozenTargets[targetPlayer] = nil
+end
+
+-- 🟢 GUI بـ 4 خانات
+local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
+
+-- 🔔 وظيفة لإظهار إشعار صغير
+local function showNotification(text, color)
+    local Note = Instance.new("TextLabel", ScreenGui)
+    Note.Size = UDim2.new(0, 200, 0, 30)
+    Note.Position = UDim2.new(1, -210, 0, 50) -- يمين الشاشة
+    Note.Text = text
+    Note.TextColor3 = color
+    Note.BackgroundTransparency = 0.3
+    Note.BackgroundColor3 = Color3.new(0, 0, 0)
+    Note.TextScaled = true
+    Note.AnchorPoint = Vector2.new(0, 0)
+    
+    game:GetService("Debris"):AddItem(Note, 2) -- يختفي بعد 2 ثانية
+end
+
+for i = 1, 4 do
+    local Frame = Instance.new("Frame", ScreenGui)
+    Frame.Size = UDim2.new(0, 220, 0, 65)
+    Frame.Position = UDim2.new(0, 20, 0, 20 + (i - 1) * 75)
+
+    local TextBox = Instance.new("TextBox", Frame)
+    TextBox.Size = UDim2.new(0, 210, 0, 25)
+    TextBox.Position = UDim2.new(0, 5, 0, 5)
+    TextBox.PlaceholderText = "اكتب اول احرف من اسم اللاعب"
+
+    local ToggleBtn = Instance.new("TextButton", Frame)
+    ToggleBtn.Size = UDim2.new(0, 210, 0, 25)
+    ToggleBtn.Position = UDim2.new(0, 5, 0, 35)
+    ToggleBtn.Text = "🔴 غير مفعل"
+
+    local currentTarget = nil
+
+    ToggleBtn.MouseButton1Click:Connect(function()
+        if currentTarget and frozenTargets[currentTarget] then
+            -- إلغاء التجميد
+            unfreezeTarget(currentTarget)
+            ToggleBtn.Text = "🔴 غير مفعل"
+            showNotification("❌ تم الإطفاء", Color3.new(1, 0, 0))
+            currentTarget = nil
+        else
+            -- تفعيل التجميد
+            local targetPlayer = findPlayerByPrefix(TextBox.Text)
+            if targetPlayer then
+                freezeTarget(targetPlayer)
+                currentTarget = targetPlayer
+                ToggleBtn.Text = "🟢 مفعل على " .. targetPlayer.Name
+                showNotification("✅ تم التشغيل", Color3.new(0, 1, 0))
+            end
+        end
+    end)
+end
