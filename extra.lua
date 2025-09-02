@@ -2184,51 +2184,68 @@ local Main = MakeTab({
 
 AddSection(Main, {"التجميد"})
 
+-- جدول اللاعبين المجمدين
 local frozenTargets = {}
 
 -- دالة البحث عن اللاعب حسب أول أحرف
 local function findPlayerByPrefix(prefixLetters)
     prefixLetters = prefixLetters:lower()
-    for _, p in ipairs(game:GetService("Players"):GetPlayers()) do
-        if p ~= game:GetService("Players").LocalPlayer and p.Name:lower():sub(1, #prefixLetters) == prefixLetters then
+    local allPlayers = game:GetService("Players"):GetPlayers()
+    local LocalPlayer = game:GetService("Players").LocalPlayer
+
+    for _, p in ipairs(allPlayers) do
+        if p ~= LocalPlayer and p.Name:lower():sub(1, #prefixLetters) == prefixLetters then
             return p
         end
     end
+
     return nil
 end
 
+-- الخدمات الأساسية
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
+-- الحصول على الأحداث من ReplicatedStorage
 local RE = ReplicatedStorage:WaitForChild("RE")
 local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
 local ToolEvent = RE:FindFirstChild("1Too1l")
 local FireEvent = RE:FindFirstChild("1Gu1n")
 
+-- دوال مساعدة للتعامل مع الأدوات
 local function clearAllTools()
-    if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
+    if ClearEvent then
+        ClearEvent:FireServer("ClearAllTools")
+    end
 end
 
 local function getAssault()
-    if ToolEvent then ToolEvent:InvokeServer("PickingTools", "Assault") end
+    if ToolEvent then
+        ToolEvent:InvokeServer("PickingTools", "Assault")
+    end
 end
 
 local function hasAssault()
-    return LocalPlayer.Backpack:FindFirstChild("Assault") ~= nil
+    local backpack = LocalPlayer.Backpack
+    return backpack:FindFirstChild("Assault") ~= nil
 end
 
 local function waitForAssault(timeout)
-    local start = tick()
-    while not hasAssault() and tick() - start < timeout do
+    local startTime = tick()
+    while not hasAssault() and (tick() - startTime) < timeout do
         task.wait(0.2)
     end
     return hasAssault()
 end
 
 local function fireAtPart(targetPart)
-    local gunScript = LocalPlayer.Backpack:FindFirstChild("Assault") and LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local")
-    if not gunScript or not targetPart then return end
+    if not targetPart then return end
+    local gun = LocalPlayer.Backpack:FindFirstChild("Assault")
+    if not gun then return end
+    local gunScript = gun:FindFirstChild("GunScript_Local")
+    if not gunScript then return end
+
     local args = {
         targetPart,
         targetPart,
@@ -2239,27 +2256,36 @@ local function fireAtPart(targetPart)
         0,
         0,
         { false },
-        { 25, Vector3.new(100, 100, 100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25 },
+        { 25, Vector3.new(100,100,100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25 },
         true,
         false
     }
+
     FireEvent:FireServer(unpack(args))
 end
 
+-- دوال التجميد والإيقاف
 local function freezeTarget(targetPlayer)
-    if frozenTargets[targetPlayer] then return end
+    if frozenTargets[targetPlayer] then
+        return
+    end
+
     frozenTargets[targetPlayer] = true
 
     task.spawn(function()
         while task.wait(1) do
-            if not frozenTargets[targetPlayer] 
-               or not targetPlayer.Parent 
-               or not targetPlayer.Character 
-               or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            -- التحقق من وجود اللاعب والشخصية
+            if not frozenTargets[targetPlayer] or not targetPlayer.Parent or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 break
             end
+
+            -- تنظيف الأدوات الحالية
             clearAllTools()
+
+            -- الحصول على سلاح Assault
             getAssault()
+
+            -- الانتظار حتى وجود السلاح
             if waitForAssault(3) then
                 fireAtPart(targetPlayer.Character.HumanoidRootPart)
             end
@@ -2272,39 +2298,124 @@ local function unfreezeTarget(targetPlayer)
     frozenTargets[targetPlayer] = nil
 end
 
--- إنشاء أربع خانات + زر تحت كل خانة
-for i = 1, 4 do
-    local TextBox = Tab:AddTextBox("لاعب " .. i, {
-        Placeholder = "أكتب أول أحرف"
-    })
+AddSection(Main, {"اكتب اول حرفين"})
 
-    -- زر التولك تحت الخانة
-    Tab:AddButton("تجميد " .. i, function()
-        local playerName = TextBox.Value
-        local targetPlayer = findPlayerByPrefix(playerName)
+local TextBox1 = Tab:AddTextBox("", { Placeholder = "" })
+Tab:AddButton("تجميد", function()
+    local playerName = TextBox1.Value
+    local targetPlayer = findPlayerByPrefix(playerName)
 
-        if targetPlayer then
-            if frozenTargets[targetPlayer] then
-                unfreezeTarget(targetPlayer)
-                MakeNotifi({
-                    Title = "❌ تم الإطفاء",
-                    Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
-                    Time = 3
-                })
-            else
-                freezeTarget(targetPlayer)
-                MakeNotifi({
-                    Title = "✅ تم التشغيل",
-                    Text = "التجميد شغال على " .. targetPlayer.Name,
-                    Time = 3
-                })
-            end
-        else
+    if targetPlayer then
+        if frozenTargets[targetPlayer] then
+            unfreezeTarget(targetPlayer)
             MakeNotifi({
-                Title = "⚠️ خطأ",
-                Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
+                Title = "❌ تم الإطفاء",
+                Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
+                Time = 3
+            })
+        else
+            freezeTarget(targetPlayer)
+            MakeNotifi({
+                Title = "✅ تم التشغيل",
+                Text = "التجميد شغال على " .. targetPlayer.Name,
                 Time = 3
             })
         end
-    end)
-end
+    else
+        MakeNotifi({
+            Title = "⚠️ خطأ",
+            Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
+            Time = 3
+        })
+    end
+end)
+
+local TextBox2 = Tab:AddTextBox("", { Placeholder = "" })
+Tab:AddButton("تجميد", function()
+    local playerName = TextBox2.Value
+    local targetPlayer = findPlayerByPrefix(playerName)
+
+    if targetPlayer then
+        if frozenTargets[targetPlayer] then
+            unfreezeTarget(targetPlayer)
+            MakeNotifi({
+                Title = "❌ تم الإطفاء",
+                Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
+                Time = 3
+            })
+        else
+            freezeTarget(targetPlayer)
+            MakeNotifi({
+                Title = "✅ تم التشغيل",
+                Text = "التجميد شغال على " .. targetPlayer.Name,
+                Time = 3
+            })
+        end
+    else
+        MakeNotifi({
+            Title = "⚠️ خطأ",
+            Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
+            Time = 3
+        })
+    end
+end)
+
+local TextBox3 = Tab:AddTextBox("", { Placeholder = "" })
+Tab:AddButton("تجميد", function()
+    local playerName = TextBox3.Value
+    local targetPlayer = findPlayerByPrefix(playerName)
+
+    if targetPlayer then
+        if frozenTargets[targetPlayer] then
+            unfreezeTarget(targetPlayer)
+            MakeNotifi({
+                Title = "❌ تم الإطفاء",
+                Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
+                Time = 3
+            })
+        else
+            freezeTarget(targetPlayer)
+            MakeNotifi({
+                Title = "✅ تم التشغيل",
+                Text = "التجميد شغال على " .. targetPlayer.Name,
+                Time = 3
+            })
+        end
+    else
+        MakeNotifi({
+            Title = "⚠️ خطأ",
+            Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
+            Time = 3
+        })
+    end
+end)
+
+local TextBox4 = Tab:AddTextBox("", { Placeholder = "" })
+Tab:AddButton("تجميد", function()
+    local playerName = TextBox4.Value
+    local targetPlayer = findPlayerByPrefix(playerName)
+
+    if targetPlayer then
+        if frozenTargets[targetPlayer] then
+            unfreezeTarget(targetPlayer)
+            MakeNotifi({
+                Title = "❌ تم الإطفاء",
+                Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
+                Time = 3
+            })
+        else
+            freezeTarget(targetPlayer)
+            MakeNotifi({
+                Title = "✅ تم التشغيل",
+                Text = "التجميد شغال على " .. targetPlayer.Name,
+                Time = 3
+            })
+        end
+    else
+        MakeNotifi({
+            Title = "⚠️ خطأ",
+            Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
+            Time = 3
+        })
+    end
+end)
