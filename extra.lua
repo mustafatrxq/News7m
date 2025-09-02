@@ -2186,100 +2186,57 @@ AddSection(Main, {"التجميد"})
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RE = ReplicatedStorage:WaitForChild("RE")
-local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
-local ToolEvent = RE:FindFirstChild("1Too1l")
-local FireEvent = RE:FindFirstChild("1Gu1n")
 
 local frozenTargets = {}
 
 -- ============================
--- دوال التجميد وفك التجميد
+-- دالة التجميد على BasePart
 -- ============================
-local function clearAllTools()
-    if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
-end
-
-local function getAssault()
-    if ToolEvent then ToolEvent:InvokeServer("PickingTools","Assault") end
-end
-
-local function hasAssault()
-    return LocalPlayer.Backpack:FindFirstChild("Assault") ~= nil
-end
-
-local function waitForAssault(timeout)
-    local start = tick()
-    while not hasAssault() and tick() - start < timeout do
-        task.wait(0.2)
-    end
-    return hasAssault()
-end
-
-local function fireAtPart(targetPart)
-    local gunScript = LocalPlayer.Backpack:FindFirstChild("Assault") and LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local")
-    if not gunScript or not targetPart then return end
-    local args = {
-        targetPart,
-        targetPart,
-        Vector3.new(1e14,1e14,1e14),
-        targetPart.Position,
-        gunScript:FindFirstChild("MuzzleEffect"),
-        gunScript:FindFirstChild("HitEffect"),
-        0,
-        0,
-        {false},
-        {25,Vector3.new(100,100,100),BrickColor.new(29),0.25,Enum.Material.SmoothPlastic,0.25},
-        true,
-        false
-    }
-    FireEvent:FireServer(unpack(args))
-end
-
 local function freezeTarget(targetPlayer)
     if frozenTargets[targetPlayer] then return end
     frozenTargets[targetPlayer] = true
 
-    task.spawn(function()
-        while task.wait(1) do
-            if not frozenTargets[targetPlayer] 
-               or not targetPlayer.Parent 
-               or not targetPlayer.Character 
-               or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                break
-            end
-            clearAllTools()
-            getAssault()
-            if waitForAssault(3) then
-                fireAtPart(targetPlayer.Character.HumanoidRootPart)
+    local character = targetPlayer.Character
+    if character then
+        for _, part in pairs(character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.Anchored = true
             end
         end
-        frozenTargets[targetPlayer] = nil
-    end)
+    end
 end
 
 local function unfreezeTarget(targetPlayer)
+    if not frozenTargets[targetPlayer] then return end
     frozenTargets[targetPlayer] = nil
+
+    local character = targetPlayer.Character
+    if character then
+        for _, part in pairs(character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.Anchored = false
+            end
+        end
+    end
 end
 
 -- ============================
--- تحديث أسماء اللاعبين
+-- دالة لتحديث أسماء اللاعبين
 -- ============================
 local function getOtherPlayerNames()
     local names = {}
-    for _,p in ipairs(Players:GetPlayers()) do
+    for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer then
-            table.insert(names,p.Name)
+            table.insert(names, p.Name)
         end
     end
     return names
 end
 
 -- ============================
--- Dropdown 1 + زر
+-- DropDown 1 + زر
 -- ============================
-local dropDown1 = AddDropdown(Main,{
+local dropDown1 = AddDropdown(Main, {
     Name = "اختر لاعب للتجميد 1",
     Options = getOtherPlayerNames(),
     Default = getOtherPlayerNames()[1] or "",
@@ -2289,17 +2246,17 @@ local dropDown1 = AddDropdown(Main,{
 })
 local selected1 = dropDown1.Default
 
-AddButton(Main,{
+AddButton(Main, {
     Name = "تجميد 1",
     Callback = function()
         local target = Players:FindFirstChild(selected1)
         if target then
             if frozenTargets[target] then
                 unfreezeTarget(target)
-                MakeNotifi({Title="❌ تم الإطفاء",Text="تم إيقاف التجميد على "..target.Name,Time=3})
+                MakeNotifi({Title="❌ تم الإطفاء", Text="تم فك التجميد على "..target.Name, Time=3})
             else
                 freezeTarget(target)
-                MakeNotifi({Title="✅ تم التشغيل",Text="التجميد شغال على "..target.Name,Time=3})
+                MakeNotifi({Title="✅ تم التشغيل", Text="تم التجميد على "..target.Name, Time=3})
             end
         else
             warn("اللاعب غير موجود")
@@ -2308,9 +2265,9 @@ AddButton(Main,{
 })
 
 -- ============================
--- Dropdown 2 + زر
+-- DropDown 2 + زر
 -- ============================
-local dropDown2 = AddDropdown(Main,{
+local dropDown2 = AddDropdown(Main, {
     Name = "اختر لاعب للتجميد 2",
     Options = getOtherPlayerNames(),
     Default = getOtherPlayerNames()[1] or "",
@@ -2320,17 +2277,17 @@ local dropDown2 = AddDropdown(Main,{
 })
 local selected2 = dropDown2.Default
 
-AddButton(Main,{
+AddButton(Main, {
     Name = "تجميد 2",
     Callback = function()
         local target = Players:FindFirstChild(selected2)
         if target then
             if frozenTargets[target] then
                 unfreezeTarget(target)
-                MakeNotifi({Title="❌ تم الإطفاء",Text="تم إيقاف التجميد على "..target.Name,Time=3})
+                MakeNotifi({Title="❌ تم الإطفاء", Text="تم فك التجميد على "..target.Name, Time=3})
             else
                 freezeTarget(target)
-                MakeNotifi({Title="✅ تم التشغيل",Text="التجميد شغال على "..target.Name,Time=3})
+                MakeNotifi({Title="✅ تم التشغيل", Text="تم التجميد على "..target.Name, Time=3})
             end
         else
             warn("اللاعب غير موجود")
@@ -2339,9 +2296,9 @@ AddButton(Main,{
 })
 
 -- ============================
--- Dropdown 3 + زر
+-- DropDown 3 + زر
 -- ============================
-local dropDown3 = AddDropdown(Main,{
+local dropDown3 = AddDropdown(Main, {
     Name = "اختر لاعب للتجميد 3",
     Options = getOtherPlayerNames(),
     Default = getOtherPlayerNames()[1] or "",
@@ -2351,17 +2308,17 @@ local dropDown3 = AddDropdown(Main,{
 })
 local selected3 = dropDown3.Default
 
-AddButton(Main,{
+AddButton(Main, {
     Name = "تجميد 3",
     Callback = function()
         local target = Players:FindFirstChild(selected3)
         if target then
             if frozenTargets[target] then
                 unfreezeTarget(target)
-                MakeNotifi({Title="❌ تم الإطفاء",Text="تم إيقاف التجميد على "..target.Name,Time=3})
+                MakeNotifi({Title="❌ تم الإطفاء", Text="تم فك التجميد على "..target.Name, Time=3})
             else
                 freezeTarget(target)
-                MakeNotifi({Title="✅ تم التشغيل",Text="التجميد شغال على "..target.Name,Time=3})
+                MakeNotifi({Title="✅ تم التشغيل", Text="تم التجميد على "..target.Name, Time=3})
             end
         else
             warn("اللاعب غير موجود")
@@ -2370,9 +2327,9 @@ AddButton(Main,{
 })
 
 -- ============================
--- Dropdown 4 + زر
+-- DropDown 4 + زر
 -- ============================
-local dropDown4 = AddDropdown(Main,{
+local dropDown4 = AddDropdown(Main, {
     Name = "اختر لاعب للتجميد 4",
     Options = getOtherPlayerNames(),
     Default = getOtherPlayerNames()[1] or "",
@@ -2382,17 +2339,17 @@ local dropDown4 = AddDropdown(Main,{
 })
 local selected4 = dropDown4.Default
 
-AddButton(Main,{
+AddButton(Main, {
     Name = "تجميد 4",
     Callback = function()
         local target = Players:FindFirstChild(selected4)
         if target then
             if frozenTargets[target] then
                 unfreezeTarget(target)
-                MakeNotifi({Title="❌ تم الإطفاء",Text="تم إيقاف التجميد على "..target.Name,Time=3})
+                MakeNotifi({Title="❌ تم الإطفاء", Text="تم فك التجميد على "..target.Name, Time=3})
             else
                 freezeTarget(target)
-                MakeNotifi({Title="✅ تم التشغيل",Text="التجميد شغال على "..target.Name,Time=3})
+                MakeNotifi({Title="✅ تم التشغيل", Text="تم التجميد على "..target.Name, Time=3})
             end
         else
             warn("اللاعب غير موجود")
@@ -2401,7 +2358,7 @@ AddButton(Main,{
 })
 
 -- ============================
--- تحديث تلقائي لأسماء اللاعبين
+-- تحديث تلقائي لأسماء اللاعبين في كل DropDown
 -- ============================
 Players.PlayerAdded:Connect(function()
     local names = getOtherPlayerNames()
