@@ -2185,20 +2185,32 @@ AddToggle(Main, {
     end
 })
 
+local frozenTargets = {}
+
+-- نفترض عندك جدول TextBoxes فيه جميع مربعات النص الحالية
+-- مثال: local TextBoxes = {Tab.TextBox1, Tab.TextBox2, Tab.TextBox3, Tab.TextBox4}
+-- أو يمكنك جمعهم تلقائيًا إذا عندك طريقة تحديدهم
+local TextBoxes = {} -- ضع هنا جميع خاناتك
+
+local function findPlayerByPrefix(prefixLetters)
+    prefixLetters = prefixLetters:lower()
+    for _, p in ipairs(game:GetService("Players"):GetPlayers()) do
+        if p ~= game:GetService("Players").LocalPlayer and p.Name:lower():sub(1, #prefixLetters) == prefixLetters then
+            return p
+        end
+    end
+    return nil
+end
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
--- 🔹 الريموتات
 local RE = ReplicatedStorage:WaitForChild("RE")
 local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
 local ToolEvent = RE:FindFirstChild("1Too1l")
 local FireEvent = RE:FindFirstChild("1Gu1n")
 
--- 🔹 جدول اللاعبين المجمدين
-local frozenTargets = {}
-
--- 🟢 وظائف مساعدة
 local function clearAllTools()
     if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
 end
@@ -2239,17 +2251,6 @@ local function fireAtPart(targetPart)
     FireEvent:FireServer(unpack(args))
 end
 
-local function findPlayerByPrefix(prefixLetters)
-    prefixLetters = prefixLetters:lower()
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Name:lower():sub(1, #prefixLetters) == prefixLetters then
-            return p
-        end
-    end
-    return nil
-end
-
--- 🟢 تجميد لاعب
 local function freezeTarget(targetPlayer)
     if frozenTargets[targetPlayer] then return end
     frozenTargets[targetPlayer] = true
@@ -2272,62 +2273,38 @@ local function freezeTarget(targetPlayer)
     end)
 end
 
--- 🟢 فك التجميد
 local function unfreezeTarget(targetPlayer)
     frozenTargets[targetPlayer] = nil
 end
 
--- 🟢 GUI بـ 4 خانات
-local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
+-- إنشاء زر تولك ديناميكي لكل خانة نص
+for i, tb in ipairs(TextBoxes) do
+    Tab:AddButton("تجميد " .. i, function()
+        local playerName = tb.Value
+        local targetPlayer = findPlayerByPrefix(playerName)
 
--- 🔔 وظيفة لإظهار إشعار صغير
-local function showNotification(text, color)
-    local Note = Instance.new("TextLabel", ScreenGui)
-    Note.Size = UDim2.new(0, 200, 0, 30)
-    Note.Position = UDim2.new(1, -210, 0, 50) -- يمين الشاشة
-    Note.Text = text
-    Note.TextColor3 = color
-    Note.BackgroundTransparency = 0.3
-    Note.BackgroundColor3 = Color3.new(0, 0, 0)
-    Note.TextScaled = true
-    Note.AnchorPoint = Vector2.new(0, 0)
-    
-    game:GetService("Debris"):AddItem(Note, 2) -- يختفي بعد 2 ثانية
-end
-
-for i = 1, 4 do
-    local Frame = Instance.new("Frame", ScreenGui)
-    Frame.Size = UDim2.new(0, 220, 0, 65)
-    Frame.Position = UDim2.new(0, 20, 0, 20 + (i - 1) * 75)
-
-    local TextBox = Instance.new("TextBox", Frame)
-    TextBox.Size = UDim2.new(0, 210, 0, 25)
-    TextBox.Position = UDim2.new(0, 5, 0, 5)
-    TextBox.PlaceholderText = "اكتب اول احرف من اسم اللاعب"
-
-    local ToggleBtn = Instance.new("TextButton", Frame)
-    ToggleBtn.Size = UDim2.new(0, 210, 0, 25)
-    ToggleBtn.Position = UDim2.new(0, 5, 0, 35)
-    ToggleBtn.Text = "🔴 غير مفعل"
-
-    local currentTarget = nil
-
-    ToggleBtn.MouseButton1Click:Connect(function()
-        if currentTarget and frozenTargets[currentTarget] then
-            -- إلغاء التجميد
-            unfreezeTarget(currentTarget)
-            ToggleBtn.Text = "🔴 غير مفعل"
-            showNotification("❌ تم الإطفاء", Color3.new(1, 0, 0))
-            currentTarget = nil
-        else
-            -- تفعيل التجميد
-            local targetPlayer = findPlayerByPrefix(TextBox.Text)
-            if targetPlayer then
+        if targetPlayer then
+            if frozenTargets[targetPlayer] then
+                unfreezeTarget(targetPlayer)
+                MakeNotifi({
+                    Title = "❌ تم الإطفاء",
+                    Text = "تم إيقاف التجميد على " .. targetPlayer.Name,
+                    Time = 3
+                })
+            else
                 freezeTarget(targetPlayer)
-                currentTarget = targetPlayer
-                ToggleBtn.Text = "🟢 مفعل على " .. targetPlayer.Name
-                showNotification("✅ تم التشغيل", Color3.new(0, 1, 0))
+                MakeNotifi({
+                    Title = "✅ تم التشغيل",
+                    Text = "التجميد شغال على " .. targetPlayer.Name,
+                    Time = 3
+                })
             end
+        else
+            MakeNotifi({
+                Title = "⚠️ خطأ",
+                Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
+                Time = 3
+            })
         end
     end)
 end
