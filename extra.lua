@@ -2184,6 +2184,7 @@ local Main = MakeTab({
 
 AddSection(Main, {"التجميد"})
 
+-- جدول اللاعبين المجمدين
 local frozenTargets = {}
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -2194,7 +2195,7 @@ local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
 local ToolEvent = RE:FindFirstChild("1Too1l")
 local FireEvent = RE:FindFirstChild("1Gu1n")
 
--- دالة البحث عن لاعب حسب أول حرفين
+-- 🔹 البحث عن لاعب حسب أول حرفين
 local function findPlayerByPrefix(prefixLetters)
     prefixLetters = prefixLetters:lower()
     for _, p in ipairs(Players:GetPlayers()) do
@@ -2205,14 +2206,17 @@ local function findPlayerByPrefix(prefixLetters)
     return nil
 end
 
--- دالة التجميد
+-- 🔹 دالة التجميد
 local function freezeTarget(targetPlayer)
     if frozenTargets[targetPlayer] then return end
     frozenTargets[targetPlayer] = true
 
     task.spawn(function()
         while task.wait(1) do
-            if not frozenTargets[targetPlayer] or not targetPlayer.Parent or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            if not frozenTargets[targetPlayer] 
+               or not targetPlayer.Parent 
+               or not targetPlayer.Character 
+               or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 break
             end
 
@@ -2249,25 +2253,28 @@ local function unfreezeTarget(targetPlayer)
     frozenTargets[targetPlayer] = nil
 end
 
--- إنشاء أربع خانات TextBox بدون اسم ظاهر، وكل واحدة تحتها زر Toggle
-for i = 1, 4 do
-    -- خانة نصية فارغة بدون اسم
-    local TextBox = AddTextBox(Main, {
-        Text = ""
-    })
+-- 🔹 إنشاء 4 خانات TextBox + Toggle لكل خانة
+local TextBoxes = {}
+local Toggles = {}
 
-    -- زر Toggle تحت الخانة
-    AddToggle(Main, {
-        Name = "تجميد", -- هذا الزر فقط له اسم، الخانة نفسها لا
+for i = 1, 4 do
+    -- خانة نصية فارغة
+    local tb = AddTextBox(Main, {Text = ""}) -- بدون اسم
+    table.insert(TextBoxes, tb)
+
+    -- زر Toggle تحت كل خانة
+    local toggle = AddToggle(Main, {
+        Name = "تجميد",
         Default = false,
         Callback = function(state)
-            local playerName = TextBox.Text or ""
+            local playerName = tb.Text or ""
             if #playerName < 2 then
                 MakeNotifi({
                     Title = "⚠️ خطأ",
                     Text = "اكتب أول حرفين على الأقل للاعب",
                     Time = 3
                 })
+                toggle:Set(false)
                 return
             end
 
@@ -2294,7 +2301,9 @@ for i = 1, 4 do
                     Text = "لا يوجد لاعب يبدأ بـ '" .. playerName .. "'",
                     Time = 3
                 })
+                toggle:Set(false)
             end
         end
     })
+    table.insert(Toggles, toggle)
 end
