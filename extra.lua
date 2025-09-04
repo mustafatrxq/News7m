@@ -2354,23 +2354,44 @@ AddButton(Main,{
     Name = "واجهة تجميد 1",
     Callback = function()
         button1GUI.Enabled = not button1GUI.Enabled
+        
+        -- يرسل الرسالة بالشات
+        game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
+            "[Server hack from Xpolit hub🥶]",
+            "All"
+        )
     end
 })
+
 AddButton(Main,{
     Name = "واجهة تجميد 2",
     Callback = function()
         button2GUI.Enabled = not button2GUI.Enabled
+        game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
+            "[Server hack from Xpolit hub🥶]",
+            "All"
+        )
     end
 })
+
 AddButton(Main,{
     Name = "واجهة تجميد 3",
     Callback = function()
         button3GUI.Enabled = not button3GUI.Enabled
+        game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
+            "[Server hack from Xpolit hub🥶]",
+            "All"
+        )
     end
 })
+
 AddButton(Main,{
     Name = "واجهة تجميد 4",
     Callback = function()
         button4GUI.Enabled = not button4GUI.Enabled
+        game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
+            "[Server hack from Xpolit hub🥶]",
+            "All"
+        )
     end
 })
