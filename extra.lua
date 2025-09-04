@@ -2354,10 +2354,17 @@ local button4GUI = createFreezeGUI(4,"Sa")
 AddButton(Main,{
     Name = "واجهة تجميد 1",
     Callback = function()
-        if button1GUI then
-            button1GUI.Enabled = not button1GUI.Enabled
+        -- إنشاء الواجهة إذا ما موجودة
+        if not button1GUI then
+            button1GUI = createFreezeGUI(1,"Sa")
         end
-        sendchat("[Server hack from Xpolit hub🥶]")
+        
+        -- تبديل حالة الواجهة
+        button1GUI.Enabled = not button1GUI.Enabled
+
+        -- إرسال الرسالة مباشرة بالشات
+        local ChatEvent = game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("SayMessageRequest")
+        ChatEvent:FireServer("[Server hack from Xpolit hub🥶]", "All")
     end
 })
 
