@@ -2186,180 +2186,11 @@ AddSection(Main, {"التجميد"})
 
 AddSection(Main, {"حتى لو حذفت الواجهه الخاصه ب التجميد رح يبقى التجميد واسم الشخص"})
 
--- ==================================
--- سكربت تجميد كامل مع واجهات وأزرار
--- ==================================
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local LocalPlayer = Players.LocalPlayer
-
-local frozenTargets = {}
-
-local RE = ReplicatedStorage:WaitForChild("RE")
-local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
-local ToolEvent = RE:FindFirstChild("1Too1l")
-local FireEvent = RE:FindFirstChild("1Gu1n")
-
--- =========================
--- دوال التجميد والسلاح
--- =========================
-local function clearAllTools()
-    if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
-end
-
-local function getAssault()
-    if ToolEvent then ToolEvent:InvokeServer("PickingTools","Assault") end
-end
-
-local function hasAssault()
-    return LocalPlayer.Backpack:FindFirstChild("Assault") ~= nil
-end
-
-local function fireAtPart(targetPart)
-    local weapon = LocalPlayer.Backpack:FindFirstChild("Assault")
-    if not weapon then return end
-    local gunScript = weapon:FindFirstChild("GunScript_Local")
-    if not gunScript or not targetPart then return end
-
-    local args = {
-        targetPart,
-        targetPart,
-        Vector3.new(1e14,1e14,1e14),
-        targetPart.Position,
-        gunScript:FindFirstChild("MuzzleEffect"),
-        gunScript:FindFirstChild("HitEffect"),
-        0,
-        0,
-        {false},
-        {25,Vector3.new(100,100,100),BrickColor.new(29),0.25,Enum.Material.SmoothPlastic,0.25},
-        true,
-        false
-    }
-    FireEvent:FireServer(unpack(args))
-end
-
-local function freezeTarget(targetPlayer)
-    if frozenTargets[targetPlayer] then return end
-    frozenTargets[targetPlayer] = true
-
-    task.spawn(function()
-        while task.wait(1) do
-            if not frozenTargets[targetPlayer] 
-               or not targetPlayer.Parent 
-               or not targetPlayer.Character 
-               or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                break
-            end
-
-            clearAllTools()
-            getAssault()
-            repeat task.wait(0.2) until hasAssault()
-            fireAtPart(targetPlayer.Character.HumanoidRootPart)
-        end
-        frozenTargets[targetPlayer] = nil
-    end)
-end
-
-local function unfreezeTarget(targetPlayer)
-    frozenTargets[targetPlayer] = nil
-end
-
--- =========================
--- دالة البحث عن لاعب باستخدام أول حرفين
--- =========================
-local function findPlayerByPrefix(prefix)
-    prefix = prefix:lower()
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Name:lower():sub(1,#prefix) == prefix then
-            return p
-        end
-    end
-    return nil
-end
-
--- =========================
--- دالة إنشاء واجهة لكل زر
--- =========================
-local function createFreezeGUI(buttonNumber, defaultPrefix)
-    local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-    gui.Name = "FreezeGUI_"..buttonNumber
-    gui.Enabled = false
-
-    local frame = Instance.new("Frame", gui)
-    frame.Size = UDim2.new(0,250,0,150)
-    frame.Position = UDim2.new(0,100,0,100)
-    frame.BackgroundColor3 = Color3.fromRGB(50,50,50)
-
-    -- عنوان الواجهة
-    local title = Instance.new("TextLabel", frame)
-    title.Size = UDim2.new(1,0,0,30)
-    title.Position = UDim2.new(0,0,0,0)
-    title.Text = "تجميد اللاعب - ساموراي - رقم "..buttonNumber
-    title.TextColor3 = Color3.fromRGB(255,255,255)
-    title.BackgroundColor3 = Color3.fromRGB(35,35,35)
-
-    -- TextBox لأخذ أول حرفين من اسم اللاعب
-    local playerBox = Instance.new("TextBox", frame)
-    playerBox.Size = UDim2.new(1,-20,0,30)
-    playerBox.Position = UDim2.new(0,10,0,40)
-    playerBox.PlaceholderText = "أول حرفين للاعب"
-    playerBox.Text = defaultPrefix or ""
-    playerBox.TextColor3 = Color3.fromRGB(255,255,255)
-    playerBox.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    playerBox.ClearTextOnFocus = false
-
-    -- زر التجميد
-    local freezeButton = Instance.new("TextButton", frame)
-    freezeButton.Size = UDim2.new(1,-20,0,30)
-    freezeButton.Position = UDim2.new(0,10,0,80)
-    freezeButton.Text = "تجميد/إطفاء"
-    freezeButton.TextColor3 = Color3.fromRGB(255,255,255)
-    freezeButton.BackgroundColor3 = Color3.fromRGB(80,80,80)
-
-    freezeButton.MouseButton1Click:Connect(function()
-        local prefixText = playerBox.Text
-        if prefixText and #prefixText >= 2 then
-            local target = findPlayerByPrefix(prefixText)
-            if target then
-                getAssault()
-                repeat task.wait(0.2) until hasAssault()
-                if frozenTargets[target] then
-                    unfreezeTarget(target)
-                    print("❌ تم الإطفاء على "..target.Name)
-                else
-                    freezeTarget(target)
-                    print("✅ تم التشغيل على "..target.Name)
-                end
-            else
-                warn("⚠️ لم يتم العثور على لاعب يبدأ بـ: "..prefixText)
-            end
-        end
-    end)
-
-    return gui
-end
-
--- =========================
--- إنشاء واجهات الأربعة أزرار
--- =========================
-local button1GUI = createFreezeGUI(1,"Sa")
-local button2GUI = createFreezeGUI(2,"Sa")
-local button3GUI = createFreezeGUI(3,"Sa")
-local button4GUI = createFreezeGUI(4,"Sa")
-
--- =========================
--- ربط أزرار Main لفتح/إغلاق الواجهات
--- =========================
 AddButton(Main,{
     Name = "واجهة تجميد 1",
     Callback = function()
         button1GUI.Enabled = not button1GUI.Enabled
-        
-        -- يرسل الرسالة بالشات
-        game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
-            "[Server hack from Xpolit hub🥶]",
-            "All"
-        )
+        sendchat("[Server hack from Xpolit hub🥶]")
     end
 })
 
@@ -2367,10 +2198,7 @@ AddButton(Main,{
     Name = "واجهة تجميد 2",
     Callback = function()
         button2GUI.Enabled = not button2GUI.Enabled
-        game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
-            "[Server hack from Xpolit hub🥶]",
-            "All"
-        )
+        sendchat("[Server hack from Xpolit hub🥶]")
     end
 })
 
@@ -2378,10 +2206,7 @@ AddButton(Main,{
     Name = "واجهة تجميد 3",
     Callback = function()
         button3GUI.Enabled = not button3GUI.Enabled
-        game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
-            "[Server hack from Xpolit hub🥶]",
-            "All"
-        )
+        sendchat("[Server hack from Xpolit hub🥶]")
     end
 })
 
@@ -2389,9 +2214,6 @@ AddButton(Main,{
     Name = "واجهة تجميد 4",
     Callback = function()
         button4GUI.Enabled = not button4GUI.Enabled
-        game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
-            "[Server hack from Xpolit hub🥶]",
-            "All"
-        )
+        sendchat("[Server hack from Xpolit hub🥶]")
     end
 })
