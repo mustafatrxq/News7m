@@ -2431,75 +2431,99 @@ AddSection(Main, {
     "3. اضغط 'إيقاف أوامر التجميد' لإيقاف جميع الأوامر."
 })
 
--- ==================================
--- سكربت تجميد شامل مع أوامر شات
--- يدعم: تجميد لاعب محدد / إلغاء تجميد / تجميد الكل / إلغاء تجميد الكل
--- حقوق تظهر كل دقيقتين
--- ==================================
-
+local tcs = game:GetService("TextChatService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
-local TextChatService = game:GetService("TextChatService")
 
 -- =========================
 -- المتغيرات
 -- =========================
 local prefixFreeze = "/تجميد"
 local prefixUnfreeze = "/الغاء التجميد"
+local prefixFreezeAll = "/تجميد الكل"
+local prefixUnfreezeAll = "/الغاء تجميد الكل"
 local frozenTargets = {}
 local commandsEnabled = false
+local freezeAllEnabled = false -- جديد: حالة تجميد الكل
 local rightsText = "[Freezing Chat Script by Xpolit Hub 🥶]"
 
-local RE = ReplicatedStorage:WaitForChild("RE")
-local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
-local ToolEvent = RE:FindFirstChild("1Too1l")
-local FireEvent = RE:FindFirstChild("1Gu1n")
+-- =========================
+-- دوال الدردشة
+-- =========================
+local chat = tcs.ChatInputBarConfiguration.TargetTextChannel
+function sendchat(msg)
+    if (tcs.ChatVersion == Enum.ChatVersion.LegacyChatService) then
+        game:GetService("ReplicatedStorage"):FindFirstChild("DefaultChatSystemChatEvents")
+            :FindFirstChild("SayMessageRequest"):FireServer(msg, "All")
+    else
+        chat:SendAsync(msg)
+    end
+end
 
 -- =========================
--- دوال السلاح والتجميد
+-- البحث عن لاعب بأول حرفين أو أكثر
 -- =========================
-local function clearAllTools()
-    if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
+local function findPlayerByPrefix(prefixLetters)
+    prefixLetters = prefixLetters:lower()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Name:lower():sub(1, #prefixLetters) == prefixLetters then
+            return p
+        end
+    end
+    return nil
 end
 
-local function getAssault()
-    if ToolEvent then ToolEvent:InvokeServer("PickingTools","Assault") end
-end
-
-local function hasAssault()
-    return LocalPlayer.Backpack:FindFirstChild("Assault") ~= nil
-end
-
-local function fireAtPart(targetPart)
-    local weapon = LocalPlayer.Backpack:FindFirstChild("Assault")
-    if not weapon then return end
-    local gunScript = weapon:FindFirstChild("GunScript_Local")
-    if not gunScript or not targetPart then return end
-
-    local args = {
-        targetPart,
-        targetPart,
-        Vector3.new(1e14,1e14,1e14),
-        targetPart.Position,
-        gunScript:FindFirstChild("MuzzleEffect"),
-        gunScript:FindFirstChild("HitEffect"),
-        0,
-        0,
-        {false},
-        {25,Vector3.new(100,100,100),BrickColor.new(29),0.25,Enum.Material.SmoothPlastic,0.25},
-        true,
-        false
-    }
-    FireEvent:FireServer(unpack(args))
-end
-
+-- =========================
+-- دالة التجميد لشخص واحد (الطريقة القديمة بالأسلحة)
+-- =========================
 local function freezeTarget(targetPlayer)
-    if frozenTargets[targetPlayer] then return end
+    if not commandsEnabled then return end
+    if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        return
+    end
+
+    local RE = ReplicatedStorage:WaitForChild("RE")
+    local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
+    local ToolEvent = RE:FindFirstChild("1Too1l")
+    local FireEvent = RE:FindFirstChild("1Gu1n")
+
+    local function clearAllTools()
+        if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
+    end
+
+    local function getAssault()
+        if ToolEvent then ToolEvent:InvokeServer("PickingTools", "Assault") end
+    end
+
+    local function hasAssault()
+        return LocalPlayer.Backpack:FindFirstChild("Assault") ~= nil
+    end
+
+    local function fireAtPart(targetPart)
+        local gunScript = LocalPlayer.Backpack:FindFirstChild("Assault") and LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local")
+        if not gunScript or not targetPart then return end
+        local args = {
+            targetPart,
+            targetPart,
+            Vector3.new(1e14, 1e14, 1e14),
+            targetPart.Position,
+            gunScript:FindFirstChild("MuzzleEffect"),
+            gunScript:FindFirstChild("HitEffect"),
+            0,
+            0,
+            { false },
+            { 25, Vector3.new(100, 100, 100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25 },
+            true,
+            false
+        }
+        FireEvent:FireServer(unpack(args))
+    end
+
     frozenTargets[targetPlayer] = true
 
     task.spawn(function()
-        while commandsEnabled and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") do
+        while commandsEnabled and frozenTargets[targetPlayer] and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") do
             clearAllTools()
             getAssault()
             repeat task.wait(0.2) until hasAssault()
@@ -2510,101 +2534,94 @@ local function freezeTarget(targetPlayer)
     end)
 end
 
-local function unfreezeTarget(targetPlayer)
-    frozenTargets[targetPlayer] = nil
-end
-
 -- =========================
--- تجميد/إلغاء تجميد الكل
+-- دالة تجميد الكل عن طريق Anchored
 -- =========================
-local function freezeAll()
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer then
-            freezeTarget(p)
+local function freezeAllPlayers()
+    freezeAllEnabled = true
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            for _, part in pairs(player.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.Anchored = true
+                end
+            end
         end
     end
 end
 
-local function unfreezeAll()
-    frozenTargets = {}
-end
-
--- =========================
--- البحث عن لاعب بأول حرفين أو أكثر
--- =========================
-local function findPlayerByPrefix(prefix)
-    prefix = prefix:lower()
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Name:lower():sub(1,#prefix) == prefix then
-            return p
+local function unfreezeAllPlayers()
+    freezeAllEnabled = false
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            for _, part in pairs(player.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.Anchored = false
+                end
+            end
         end
     end
-    return nil
 end
 
 -- =========================
--- دوال الدردشة
+-- تجميد اللاعبين الجدد تلقائيًا
 -- =========================
-local chat = TextChatService.ChatInputBarConfiguration.TargetTextChannel
-
-local function sendchat(msg)
-    if (TextChatService.ChatVersion == Enum.ChatVersion.LegacyChatService) then
-        game:GetService("ReplicatedStorage"):FindFirstChild("DefaultChatSystemChatEvents")
-            :FindFirstChild("SayMessageRequest"):FireServer(msg, "All")
-    else
-        chat:SendAsync(msg)
-    end
-end
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(char)
+        if freezeAllEnabled then
+            for _, part in pairs(char:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.Anchored = true
+                end
+            end
+        end
+    end)
+end)
 
 -- =========================
 -- مراقبة الرسائل الجديدة
 -- =========================
-TextChatService.MessageReceived:Connect(function(msg)
+tcs.MessageReceived:Connect(function(msg)
     if not commandsEnabled then return end
     if msg.TextSource and msg.TextSource.UserId ~= LocalPlayer.UserId then return end
 
-    local txt = msg.Text
+    local text = msg.Text
 
-    -- تجميد لاعب محدد
-    if txt:sub(1,#prefixFreeze) == prefixFreeze then
-        local targetPrefix = txt:sub(#prefixFreeze + 2)
-        if targetPrefix == "الكل" then
-            freezeAll()
-            print("✅ تم تجميد جميع اللاعبين.")
+    if text:sub(1,#prefixFreeze) == prefixFreeze then
+        local targetPrefix = text:sub(#prefixFreeze + 2)
+        local target = findPlayerByPrefix(targetPrefix)
+        if target then
+            freezeTarget(target)
         else
-            local target = findPlayerByPrefix(targetPrefix)
-            if target then
-                freezeTarget(target)
-                print("✅ تم تجميد "..target.Name)
-            else
-                warn("لم يتم العثور على لاعب يبدأ بـ: "..targetPrefix)
-            end
+            warn("لم يتم العثور على لاعب يبدأ بـ: "..targetPrefix)
         end
 
-    -- إلغاء تجميد لاعب محدد
-    elseif txt:sub(1,#prefixUnfreeze) == prefixUnfreeze then
-        local targetPrefix = txt:sub(#prefixUnfreeze + 2)
-        if targetPrefix == "الكل" then
-            unfreezeAll()
-            print("❌ تم إلغاء تجميد جميع اللاعبين.")
-        else
-            local target = findPlayerByPrefix(targetPrefix)
-            if target then
-                unfreezeTarget(target)
-                print("❌ تم إلغاء التجميد على "..target.Name)
-            end
+    elseif text:sub(1,#prefixUnfreeze) == prefixUnfreeze then
+        local targetPrefix = text:sub(#prefixUnfreeze + 2)
+        local target = findPlayerByPrefix(targetPrefix)
+        if target then
+            frozenTargets[target] = nil
+            print("تم إلغاء التجميد على "..target.Name)
         end
+
+    elseif text:sub(1,#prefixFreezeAll) == prefixFreezeAll then
+        freezeAllPlayers()
+        print("✅ تم تجميد كل اللاعبين")
+
+    elseif text:sub(1,#prefixUnfreezeAll) == prefixUnfreezeAll then
+        unfreezeAllPlayers()
+        print("✅ تم إلغاء تجميد كل اللاعبين")
     end
 end)
 
 -- =========================
--- أزرار تفعيل/إيقاف أوامر الشات
+-- زر تفعيل أوامر الشات
 -- =========================
 AddButton(Main,{
     Name = "تفعيل أوامر التجميد من خلال الشات",
     Callback = function()
         commandsEnabled = true
-        sendchat(rightsText) -- حقوق تظهر فوراً
+        sendchat(rightsText)
         task.spawn(function()
             while commandsEnabled do
                 task.wait(120) -- كل دقيقتين
@@ -2615,11 +2632,15 @@ AddButton(Main,{
     end
 })
 
+-- =========================
+-- زر إيقاف كل الأوامر
+-- =========================
 AddButton(Main,{
     Name = "إيقاف أوامر التجميد",
     Callback = function()
         commandsEnabled = false
-        unfreezeAll()
+        frozenTargets = {}
+        unfreezeAllPlayers()
         print("❌ تم إيقاف كل أوامر التجميد.")
     end
 })
