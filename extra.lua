@@ -2187,11 +2187,12 @@ AddSection(Main, {"التجميد"})
 AddSection(Main, {"حتى لو حذفت الواجهه الخاصه ب التجميد رح يبقى التجميد واسم الشخص"})
 
 -- ==================================
--- سكربت تجميد كامل مع واجهات وأزرار
+-- سكربت تجميد كامل مع واجهات جديدة + صوت نقرة + رسالة بالشات
 -- ==================================
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
+local TextChatService = game:GetService("TextChatService")
 
 local frozenTargets = {}
 
@@ -2278,6 +2279,23 @@ local function findPlayerByPrefix(prefix)
 end
 
 -- =========================
+-- صوت النقر
+-- =========================
+local clickSound = Instance.new("Sound")
+clickSound.SoundId = "rbxassetid://12222005" -- صوت نقرة
+clickSound.Volume = 1
+clickSound.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local function playClick()
+    if clickSound.IsLoaded then
+        clickSound:Play()
+    else
+        clickSound.Loaded:Wait()
+        clickSound:Play()
+    end
+end
+
+-- =========================
 -- دالة إنشاء واجهة لكل زر
 -- =========================
 local function createFreezeGUI(buttonNumber, defaultPrefix)
@@ -2298,6 +2316,19 @@ local function createFreezeGUI(buttonNumber, defaultPrefix)
     title.TextColor3 = Color3.fromRGB(255,255,255)
     title.BackgroundColor3 = Color3.fromRGB(35,35,35)
 
+    -- زر إغلاق (❌)
+    local closeButton = Instance.new("TextButton", frame)
+    closeButton.Size = UDim2.new(0,30,0,30)
+    closeButton.Position = UDim2.new(1,-30,0,0)
+    closeButton.Text = "X"
+    closeButton.TextColor3 = Color3.fromRGB(255,0,0)
+    closeButton.BackgroundColor3 = Color3.fromRGB(40,40,40)
+
+    closeButton.MouseButton1Click:Connect(function()
+        playClick()
+        gui.Enabled = false
+    end)
+
     -- TextBox لأخذ أول حرفين من اسم اللاعب
     local playerBox = Instance.new("TextBox", frame)
     playerBox.Size = UDim2.new(1,-20,0,30)
@@ -2317,6 +2348,7 @@ local function createFreezeGUI(buttonNumber, defaultPrefix)
     freezeButton.BackgroundColor3 = Color3.fromRGB(80,80,80)
 
     freezeButton.MouseButton1Click:Connect(function()
+        playClick()
         local prefixText = playerBox.Text
         if prefixText and #prefixText >= 2 then
             local target = findPlayerByPrefix(prefixText)
@@ -2340,62 +2372,49 @@ local function createFreezeGUI(buttonNumber, defaultPrefix)
 end
 
 -- =========================
--- إنشاء واجهات الأربعة أزرار
+-- إنشاء واجهات الأربعة أزرار (الجديدة)
 -- =========================
-local button1GUI = createFreezeGUI(1,"Sa")
-local button2GUI = createFreezeGUI(2,"Sa")
-local button3GUI = createFreezeGUI(3,"Sa")
-local button4GUI = createFreezeGUI(4,"Sa")
+local button1GUI, button2GUI, button3GUI, button4GUI
 
 -- =========================
--- ربط أزرار Main لفتح/إغلاق الواجهات
+-- دالة لفتح/إغلاق الواجهة + رسالة بالشات + صوت
 -- =========================
-local TextChatService = game:GetService("TextChatService")
+local function toggleGUI(gui)
+    playClick()
+    gui.Enabled = not gui.Enabled
+    if gui.Enabled then
+        TextChatService.TextChannels.RBXGeneral:SendAsync("[The server was hacked by freezing solo from Xpolit hub🥶]")
+    end
+end
 
--- زر يفتح الواجهة + يرسل رسالة من حساب اللاعب
+-- =========================
+-- ربط أزرار Main بالواجهات الجديدة
+-- =========================
 AddButton(Main,{
     Name = "واجهة تجميد 1",
     Callback = function()
-        if not button1GUI then
-            button1GUI = createFreezeGUI(1,"Sa")
-        end
-
-        button1GUI.Enabled = not button1GUI.Enabled
-
-        -- إرسال الرسالة من حساب اللاعب مباشرة
-        TextChatService.TextChannels.RBXGeneral:SendAsync("[Server hack from Xpolit hub🥶]")
+        if not button1GUI then button1GUI = createFreezeGUI(1,"Sa") end
+        toggleGUI(button1GUI)
     end
 })
-
--- زر واجهة 2
 AddButton(Main,{
     Name = "واجهة تجميد 2",
     Callback = function()
-        if button2GUI then
-            button2GUI.Enabled = not button2GUI.Enabled
-        end
-        sendchat("[Server hack from Xpolit hub🥶]")
+        if not button2GUI then button2GUI = createFreezeGUI(2,"Sa") end
+        toggleGUI(button2GUI)
     end
 })
-
--- زر واجهة 3
 AddButton(Main,{
     Name = "واجهة تجميد 3",
     Callback = function()
-        if button3GUI then
-            button3GUI.Enabled = not button3GUI.Enabled
-        end
-        sendchat("[Server hack from Xpolit hub🥶]")
+        if not button3GUI then button3GUI = createFreezeGUI(3,"Sa") end
+        toggleGUI(button3GUI)
     end
 })
-
--- زر واجهة 4
 AddButton(Main,{
     Name = "واجهة تجميد 4",
     Callback = function()
-        if button4GUI then
-            button4GUI.Enabled = not button4GUI.Enabled
-        end
-        sendchat("[Server hack from Xpolit hub🥶]")
+        if not button4GUI then button4GUI = createFreezeGUI(4,"Sa") end
+        toggleGUI(button4GUI)
     end
 })
