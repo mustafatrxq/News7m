@@ -2445,7 +2445,6 @@ local prefixFreezeAll = "/تجميد الكل"
 local prefixUnfreezeAll = "/الغاء تجميد الكل"
 local frozenTargets = {}
 local commandsEnabled = false
-local freezeAllEnabled = false -- جديد: حالة تجميد الكل
 local rightsText = "[Freezing Chat Script by Xpolit Hub 🥶]"
 
 -- =========================
@@ -2475,13 +2474,12 @@ local function findPlayerByPrefix(prefixLetters)
 end
 
 -- =========================
--- دالة التجميد لشخص واحد (الطريقة القديمة بالأسلحة)
+-- تجميد لاعب واحد (بالسلاح)
 -- =========================
 local function freezeTarget(targetPlayer)
     if not commandsEnabled then return end
-    if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        return
-    end
+    if frozenTargets[targetPlayer] then return end
+    frozenTargets[targetPlayer] = true
 
     local RE = ReplicatedStorage:WaitForChild("RE")
     local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
@@ -2501,29 +2499,32 @@ local function freezeTarget(targetPlayer)
     end
 
     local function fireAtPart(targetPart)
-        local gunScript = LocalPlayer.Backpack:FindFirstChild("Assault") and LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local")
+        local weapon = LocalPlayer.Backpack:FindFirstChild("Assault")
+        if not weapon then return end
+        local gunScript = weapon:FindFirstChild("GunScript_Local")
         if not gunScript or not targetPart then return end
+
         local args = {
             targetPart,
             targetPart,
-            Vector3.new(1e14, 1e14, 1e14),
+            Vector3.new(1e14,1e14,1e14),
             targetPart.Position,
             gunScript:FindFirstChild("MuzzleEffect"),
             gunScript:FindFirstChild("HitEffect"),
             0,
             0,
-            { false },
-            { 25, Vector3.new(100, 100, 100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25 },
+            {false},
+            {25,Vector3.new(100,100,100),BrickColor.new(29),0.25,Enum.Material.SmoothPlastic,0.25},
             true,
             false
         }
         FireEvent:FireServer(unpack(args))
     end
 
-    frozenTargets[targetPlayer] = true
-
     task.spawn(function()
-        while commandsEnabled and frozenTargets[targetPlayer] and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") do
+        while commandsEnabled and frozenTargets[targetPlayer] 
+        and targetPlayer.Character 
+        and targetPlayer.Character:FindFirstChild("HumanoidRootPart") do
             clearAllTools()
             getAssault()
             repeat task.wait(0.2) until hasAssault()
@@ -2534,12 +2535,15 @@ local function freezeTarget(targetPlayer)
     end)
 end
 
+local function unfreezeTarget(targetPlayer)
+    frozenTargets[targetPlayer] = nil
+end
+
 -- =========================
--- دالة تجميد الكل عن طريق Anchored
+-- تجميد الكل (BasePart.Anchored)
 -- =========================
-local function freezeAllPlayers()
-    freezeAllEnabled = true
-    for _, player in ipairs(Players:GetPlayers()) do
+local function freezeAll()
+    for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character then
             for _, part in pairs(player.Character:GetChildren()) do
                 if part:IsA("BasePart") then
@@ -2548,11 +2552,11 @@ local function freezeAllPlayers()
             end
         end
     end
+    print("✅ تم تجميد كل اللاعبين")
 end
 
-local function unfreezeAllPlayers()
-    freezeAllEnabled = false
-    for _, player in ipairs(Players:GetPlayers()) do
+local function unfreezeAll()
+    for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character then
             for _, part in pairs(player.Character:GetChildren()) do
                 if part:IsA("BasePart") then
@@ -2561,22 +2565,8 @@ local function unfreezeAllPlayers()
             end
         end
     end
+    print("❌ تم إلغاء تجميد كل اللاعبين")
 end
-
--- =========================
--- تجميد اللاعبين الجدد تلقائيًا
--- =========================
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function(char)
-        if freezeAllEnabled then
-            for _, part in pairs(char:GetChildren()) do
-                if part:IsA("BasePart") then
-                    part.Anchored = true
-                end
-            end
-        end
-    end)
-end)
 
 -- =========================
 -- مراقبة الرسائل الجديدة
@@ -2600,17 +2590,15 @@ tcs.MessageReceived:Connect(function(msg)
         local targetPrefix = text:sub(#prefixUnfreeze + 2)
         local target = findPlayerByPrefix(targetPrefix)
         if target then
-            frozenTargets[target] = nil
+            unfreezeTarget(target)
             print("تم إلغاء التجميد على "..target.Name)
         end
 
-    elseif text:sub(1,#prefixFreezeAll) == prefixFreezeAll then
-        freezeAllPlayers()
-        print("✅ تم تجميد كل اللاعبين")
+    elseif text == prefixFreezeAll then
+        freezeAll()
 
-    elseif text:sub(1,#prefixUnfreezeAll) == prefixUnfreezeAll then
-        unfreezeAllPlayers()
-        print("✅ تم إلغاء تجميد كل اللاعبين")
+    elseif text == prefixUnfreezeAll then
+        unfreezeAll()
     end
 end)
 
@@ -2624,7 +2612,7 @@ AddButton(Main,{
         sendchat(rightsText)
         task.spawn(function()
             while commandsEnabled do
-                task.wait(120) -- كل دقيقتين
+                task.wait(120)
                 sendchat(rightsText)
             end
         end)
@@ -2640,7 +2628,7 @@ AddButton(Main,{
     Callback = function()
         commandsEnabled = false
         frozenTargets = {}
-        unfreezeAllPlayers()
+        unfreezeAll()
         print("❌ تم إيقاف كل أوامر التجميد.")
     end
 })
