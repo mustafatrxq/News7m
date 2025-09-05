@@ -2418,3 +2418,192 @@ AddButton(Main,{
         toggleGUI(button4GUI)
     end
 })
+
+AddSection(Main, {"التجميد من خلال اوامر الشات"})
+
+AddSection(Main, {
+    "1. اضغط 'تفعيل أوامر التجميد من خلال الشات' لتشغيل الأوامر.",
+    "2. استخدم أوامر التجميد عبر الشات:",
+    "   - /تجميد <أول حرفين من اسم اللاعب>",
+    "   - /الغاء التجميد <أول حرفين من اسم اللاعب>",
+    "   - /تجميد الكل",
+    "   - /الغاء تجميد الكل",
+    "3. اضغط 'إيقاف أوامر التجميد' لإيقاف جميع الأوامر."
+})
+
+local tcs = game:GetService("TextChatService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+-- =========================
+-- المتغيرات
+-- =========================
+local prefixFreeze = "/تجميد"
+local prefixUnfreeze = "/الغاء التجميد"
+local prefixFreezeAll = "/تجميد الكل"
+local prefixUnfreezeAll = "/الغاء تجميد الكل"
+local frozenTargets = {}
+local commandsEnabled = false
+local rightsText = "[Freezing Chat Script by Xpolit Hub 🥶]"
+
+-- =========================
+-- دوال الدردشة
+-- =========================
+local chat = tcs.ChatInputBarConfiguration.TargetTextChannel
+
+function sendchat(msg)
+    if (tcs.ChatVersion == Enum.ChatVersion.LegacyChatService) then
+        game:GetService("ReplicatedStorage"):FindFirstChild("DefaultChatSystemChatEvents")
+            :FindFirstChild("SayMessageRequest"):FireServer(msg, "All")
+    else
+        chat:SendAsync(msg)
+    end
+end
+
+-- =========================
+-- البحث عن لاعب بأول حرفين أو أكثر
+-- =========================
+local function findPlayerByPrefix(prefixLetters)
+    prefixLetters = prefixLetters:lower()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Name:lower():sub(1, #prefixLetters) == prefixLetters then
+            return p
+        end
+    end
+    return nil
+end
+
+-- =========================
+-- دالة التجميد لشخص واحد
+-- =========================
+local function freezeTarget(targetPlayer)
+    if not commandsEnabled then return end
+    if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        return
+    end
+
+    local RE = ReplicatedStorage:WaitForChild("RE")
+    local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
+    local ToolEvent = RE:FindFirstChild("1Too1l")
+    local FireEvent = RE:FindFirstChild("1Gu1n")
+
+    local function clearAllTools()
+        if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
+    end
+
+    local function getAssault()
+        if ToolEvent then ToolEvent:InvokeServer("PickingTools", "Assault") end
+    end
+
+    local function hasAssault()
+        return LocalPlayer.Backpack:FindFirstChild("Assault") ~= nil
+    end
+
+    local function fireAtPart(targetPart)
+        local gunScript = LocalPlayer.Backpack:FindFirstChild("Assault") and LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local")
+        if not gunScript or not targetPart then return end
+        local args = {
+            targetPart,
+            targetPart,
+            Vector3.new(1e14, 1e14, 1e14),
+            targetPart.Position,
+            gunScript:FindFirstChild("MuzzleEffect"),
+            gunScript:FindFirstChild("HitEffect"),
+            0,
+            0,
+            { false },
+            { 25, Vector3.new(100, 100, 100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25 },
+            true,
+            false
+        }
+        FireEvent:FireServer(unpack(args))
+    end
+
+    frozenTargets[targetPlayer] = true
+
+    task.spawn(function()
+        while commandsEnabled and frozenTargets[targetPlayer] and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") do
+            clearAllTools()
+            getAssault()
+            repeat task.wait(0.2) until hasAssault()
+            fireAtPart(targetPlayer.Character.HumanoidRootPart)
+            task.wait(1)
+        end
+        frozenTargets[targetPlayer] = nil
+    end)
+end
+
+-- =========================
+-- مراقبة الرسائل الجديدة
+-- =========================
+tcs.MessageReceived:Connect(function(msg)
+    if not commandsEnabled then return end
+    if msg.TextSource and msg.TextSource.UserId ~= LocalPlayer.UserId then return end
+
+    local text = msg.Text
+
+    -- تجميد لاعب محدد
+    if text:sub(1,#prefixFreeze) == prefixFreeze then
+        local targetPrefix = text:sub(#prefixFreeze + 2)
+        local target = findPlayerByPrefix(targetPrefix)
+        if target then
+            freezeTarget(target)
+        else
+            warn("لم يتم العثور على لاعب يبدأ بـ: "..targetPrefix)
+        end
+
+    -- إلغاء تجميد لاعب محدد
+    elseif text:sub(1,#prefixUnfreeze) == prefixUnfreeze then
+        local targetPrefix = text:sub(#prefixUnfreeze + 2)
+        local target = findPlayerByPrefix(targetPrefix)
+        if target then
+            frozenTargets[target] = nil
+            print("تم إلغاء التجميد على "..target.Name)
+        end
+
+    -- تجميد الكل
+    elseif text:sub(1,#prefixFreezeAll) == prefixFreezeAll then
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer then
+                freezeTarget(p)
+            end
+        end
+
+    -- إلغاء تجميد الكل
+    elseif text:sub(1,#prefixUnfreezeAll) == prefixUnfreezeAll then
+        frozenTargets = {}
+        print("تم إلغاء تجميد جميع اللاعبين")
+    end
+end)
+
+-- =========================
+-- زر تفعيل أوامر الشات
+-- =========================
+AddButton(Main,{
+    Name = "تفعيل أوامر التجميد من خلال الشات",
+    Callback = function()
+        commandsEnabled = true
+        sendchat(rightsText) -- حقوق تظهر فوراً
+        -- حقوق تظهر كل 2 دقيقة
+        task.spawn(function()
+            while commandsEnabled do
+                task.wait(120) -- كل دقيقتين
+                sendchat(rightsText)
+            end
+        end)
+        print("✅ تم تفعيل أوامر التجميد.")
+    end
+})
+
+-- =========================
+-- زر إيقاف كل الأوامر
+-- =========================
+AddButton(Main,{
+    Name = "إيقاف أوامر التجميد",
+    Callback = function()
+        commandsEnabled = false
+        frozenTargets = {} -- إلغاء كل التجميد الجاري
+        print("❌ تم إيقاف كل أوامر التجميد.")
+    end
+})
