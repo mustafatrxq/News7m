@@ -2350,21 +2350,20 @@ local button4GUI = createFreezeGUI(4,"Sa")
 -- =========================
 -- ربط أزرار Main لفتح/إغلاق الواجهات
 -- =========================
--- زر واجهة 1
+local TextChatService = game:GetService("TextChatService")
+
+-- زر يفتح الواجهة + يرسل رسالة من حساب اللاعب
 AddButton(Main,{
     Name = "واجهة تجميد 1",
     Callback = function()
-        -- إنشاء الواجهة إذا ما موجودة
         if not button1GUI then
             button1GUI = createFreezeGUI(1,"Sa")
         end
-        
-        -- تبديل حالة الواجهة
+
         button1GUI.Enabled = not button1GUI.Enabled
 
-        -- إرسال الرسالة مباشرة بالشات
-        local ChatEvent = game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("SayMessageRequest")
-        ChatEvent:FireServer("[Server hack from Xpolit hub🥶]", "All")
+        -- إرسال الرسالة من حساب اللاعب مباشرة
+        TextChatService.TextChannels.RBXGeneral:SendAsync("[Server hack from Xpolit hub🥶]")
     end
 })
 
