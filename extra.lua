@@ -2781,3 +2781,146 @@ AddButton(Main,{
         unfreezeAll()
     end
 })
+
+AddSection(Main, {"البانق"})
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+-- 🔹 قيم السرعة
+local speedOptions = {
+    ["سريع جدًا"] = 0.05,
+    ["سريع"] = 0.1,
+    ["متوسط"] = 0.3,
+    ["بطيء"] = 0.7
+}
+
+-- 🔹 تخزين السرعة لكل بانق
+getgenv().bangSpeeds = {
+    ["بانق"] = 0.1,
+    ["بانق للوجه"] = 0.1
+}
+
+-- 🔹 اللاعب المحدد
+getgenv().selectedPlayer = nil
+
+-- 🔹 دالة لجلب أسماء اللاعبين
+local function fetchPlayerNames()
+    local namesList = {}
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= Players.LocalPlayer then
+            table.insert(namesList, plr.Name)
+        end
+    end
+    return namesList
+end
+
+-- 🔹 Dropdown لاختيار الضحية
+local targetDropdown
+local function createTargetDropdown()
+    if targetDropdown then
+        targetDropdown:Update(fetchPlayerNames()) -- تحديث الخيارات
+        return
+    end
+    targetDropdown = AddDropdown(Main, {
+        Name = "اختر الضحية",
+        Default = "...",
+        Options = fetchPlayerNames(),
+        Callback = function(Value)
+            if Value ~= "" then
+                getgenv().selectedPlayer = Value
+            end
+        end
+    })
+end
+
+createTargetDropdown()
+
+-- 🔹 زر لتحديث قائمة اللاعبين
+AddButton(Main, {
+    Name = "تحديث قائمة اللاعبين",
+    Callback = function()
+        createTargetDropdown()
+    end
+})
+
+-- 🔹 دالة إنشاء دروب داون سرعة لكل بانق
+local function createSpeedDropdown(name)
+    AddDropdown(Main, {
+        Name = "سرعة " .. name,
+        Default = "سريع",
+        Options = {"سريع جدًا", "سريع", "متوسط", "بطيء"},
+        Callback = function(Value)
+            getgenv().bangSpeeds[name] = speedOptions[Value] or 0.1
+        end
+    })
+end
+
+-- 🔹 دالة إنشاء بانق
+local function createBangToggle(name, faceBang)
+    local bangActive = false
+    local connection
+    local togglePosition = false
+
+    AddToggle(Main, {
+        Name = name,
+        Default = false,
+        Callback = function(Value)
+            bangActive = Value
+
+            local player = Players.LocalPlayer
+            local char = player.Character
+            if not char then return end
+
+            local humanoid = char:FindFirstChildOfClass("Humanoid")
+            if not humanoid then return end
+
+            if Value then
+                humanoid.PlatformStand = true
+
+                if connection then connection:Disconnect() end
+
+                connection = RunService.Heartbeat:Connect(function()
+                    if bangActive and getgenv().selectedPlayer then
+                        local targetPlayer = Players:FindFirstChild(getgenv().selectedPlayer)
+                        if targetPlayer and targetPlayer.Character and targetPlayer.Character.PrimaryPart then
+                            local targetHead = targetPlayer.Character:FindFirstChild("Head")
+                            if targetHead and char.PrimaryPart then
+                                local offset = togglePosition and 1 or 3
+                                if faceBang then
+                                    -- بانق للوجه
+                                    char:SetPrimaryPartCFrame(
+                                        targetHead.CFrame *
+                                        CFrame.new(0, 1, -offset) *
+                                        CFrame.Angles(0, math.rad(180), 0)
+                                    )
+                                else
+                                    -- بانق
+                                    char:SetPrimaryPartCFrame(
+                                        targetHead.CFrame *
+                                        CFrame.new(0, -1, offset)
+                                    )
+                                end
+                                togglePosition = not togglePosition
+                                task.wait(getgenv().bangSpeeds[name])
+                            end
+                        end
+                    end
+                end)
+            else
+                humanoid.PlatformStand = false
+                if connection then
+                    connection:Disconnect()
+                    connection = nil
+                end
+            end
+        end    
+    })
+
+    -- 🔹 دروب داون سرعة لكل بانق
+    createSpeedDropdown(name)
+end
+
+-- 🔹 بانق وزر للوجه
+createBangToggle("بانق", false)
+createBangToggle("بانق للوجه", true)
