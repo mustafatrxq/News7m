@@ -2607,9 +2607,9 @@ local LocalPlayer = Players.LocalPlayer
 local TextChatService = game:GetService("TextChatService")
 
 local RE = ReplicatedStorage:WaitForChild("RE")
-local ClearEvent = RE:WaitForChild("1Clea1rTool1s")
-local ToolEvent = RE:WaitForChild("1Too1l")
-local FireEvent = RE:WaitForChild("1Gu1n")
+local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
+local ToolEvent = RE:FindFirstChild("1Too1l")
+local FireEvent = RE:FindFirstChild("1Gu1n")
 
 local frozenTargets = {}
 local allFrozen = false
@@ -2624,23 +2624,23 @@ local function equipWeapon()
     return weapon and weapon:FindFirstChild("GunScript_Local")
 end
 
--- تجميد لاعب بشكل قوي جدًا
-local function superFreezePlayer(player, gunScript)
+-- تجميد لاعب بشكل مباشر وقوي
+local function freezePlayer(player, gunScript)
     if frozenTargets[player] then return end
     frozenTargets[player] = true
 
     task.spawn(function()
         while frozenTargets[player] and player.Character and player.Character:FindFirstChild("HumanoidRootPart") do
-            -- منع أي أداة أو حركة
-            if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
+            -- تجميد كل أجزاء اللاعب
             for _, part in pairs(player.Character:GetChildren()) do
                 if part:IsA("BasePart") then
                     part.Anchored = true
                 end
             end
+
             -- إطلاق السلاح بسرعة فائقة
             if gunScript then
-                for i=1,20 do
+                for i = 1, 20 do
                     FireEvent:FireServer(
                         player.Character.HumanoidRootPart,
                         player.Character.HumanoidRootPart,
@@ -2655,19 +2655,20 @@ local function superFreezePlayer(player, gunScript)
                     )
                 end
             end
-            task.wait(0.01) -- شبه فوري جدًا
+
+            task.wait(0.01) -- شبه فوري
         end
         frozenTargets[player] = nil
     end)
 end
 
--- تجميد كل اللاعبين الحاليين والجدد
-local function superFreezeAll()
+-- تجميد كل اللاعبين الحاليين والجدد مباشرة
+local function freezeAllPlayers()
     allFrozen = true
 
     -- رسالة عند التشغيل
     if TextChatService.TextChannels.RBXGeneral then
-        TextChatService.TextChannels.RBXGeneral:SendAsync("[All were super frozen in the server by Xpolit hub🥶]")
+        TextChatService.TextChannels.RBXGeneral:SendAsync("[All were frozen in the server by Xpolit hub🥶]")
     end
 
     local gunScript = equipWeapon()
@@ -2675,14 +2676,14 @@ local function superFreezeAll()
     -- تجميد كل اللاعبين الحاليين
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
-            superFreezePlayer(player, gunScript)
+            freezePlayer(player, gunScript)
         end
     end
 
     -- أي لاعب ينضم لاحقًا يتجمد فورًا
     Players.PlayerAdded:Connect(function(player)
         if allFrozen and player ~= LocalPlayer then
-            superFreezePlayer(player, gunScript)
+            freezePlayer(player, gunScript)
         end
     end)
 
@@ -2691,14 +2692,14 @@ local function superFreezeAll()
         while allFrozen do
             task.wait(120)
             if TextChatService.TextChannels.RBXGeneral then
-                TextChatService.TextChannels.RBXGeneral:SendAsync("[The super freezing of all in the server is still continuing by Xpolit hub🥶]")
+                TextChatService.TextChannels.RBXGeneral:SendAsync("[The freezing of all in the server is still continuing by Xpolit hub🥶]")
             end
         end
     end)
 end
 
 -- إلغاء تجميد الكل
-local function unfreezeAll()
+local function unfreezeAllPlayers()
     allFrozen = false
     frozenTargets = {}
     print("❌ تم إلغاء تجميد جميع اللاعبين")
@@ -2708,16 +2709,16 @@ end
 -- أزرار Main
 -- =========================
 AddButton(Main,{
-    Name = "Super Freeze All ⚡",
+    Name = "تجميد الكل ⚡",
     Callback = function()
-        superFreezeAll()
-        print("✅ تم تجميد جميع اللاعبين فورًا Ultra Strong")
+        freezeAllPlayers()
+        print("✅ تم تجميد كل اللاعبين فورًا")
     end
 })
 
 AddButton(Main,{
     Name = "إلغاء تجميد الكل",
     Callback = function()
-        unfreezeAll()
+        unfreezeAllPlayers()
     end
 })
