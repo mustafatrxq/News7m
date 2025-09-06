@@ -2644,3 +2644,107 @@ AddButton(Main,{
         print("❌ تم إيقاف جميع الأوامر.")
     end
 })
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+local RE = ReplicatedStorage:WaitForChild("RE")
+local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
+local ToolEvent = RE:FindFirstChild("1Too1l")
+local FireEvent = RE:FindFirstChild("1Gu1n")
+
+local frozenTargets = {}
+local weaponName = "Assault"
+
+-- =========================
+-- دوال السلاح
+-- =========================
+local function clearAllTools()
+    if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
+end
+
+local function getWeapon()
+    if ToolEvent then ToolEvent:InvokeServer("PickingTools", weaponName) end
+end
+
+local function hasWeapon()
+    return LocalPlayer.Backpack:FindFirstChild(weaponName) ~= nil
+end
+
+local function fireAtPart(targetPart)
+    local gunScript = LocalPlayer.Backpack:FindFirstChild(weaponName) and LocalPlayer.Backpack[weaponName]:FindFirstChild("GunScript_Local")
+    if not gunScript or not targetPart then return end
+
+    local args = {
+        targetPart,
+        targetPart,
+        Vector3.new(1e14,1e14,1e14),
+        targetPart.Position,
+        gunScript:FindFirstChild("MuzzleEffect"),
+        gunScript:FindFirstChild("HitEffect"),
+        0,
+        0,
+        {false},
+        {25,Vector3.new(100,100,100),BrickColor.new(29),0.25,Enum.Material.SmoothPlastic,0.25},
+        true,
+        false
+    }
+    FireEvent:FireServer(unpack(args))
+end
+
+-- =========================
+-- تجميد لاعب محدد (للإستخدام في الكل)
+-- =========================
+local function freezeTarget(targetPlayer)
+    frozenTargets[targetPlayer] = true
+
+    task.spawn(function()
+        while frozenTargets[targetPlayer] and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") do
+            clearAllTools()
+            getWeapon()
+            repeat task.wait(0.2) until hasWeapon()
+            fireAtPart(targetPlayer.Character.HumanoidRootPart)
+            task.wait(1)
+        end
+        frozenTargets[targetPlayer] = nil
+    end)
+end
+
+-- =========================
+-- تجميد الكل
+-- =========================
+local function freezeAll()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer then
+            freezeTarget(p)
+        end
+    end
+end
+
+-- =========================
+-- إلغاء تجميد الكل
+-- =========================
+local function unfreezeAll()
+    frozenTargets = {}
+    print("تم إلغاء تجميد جميع اللاعبين")
+end
+
+-- =========================
+-- أزرار Main
+-- =========================
+AddButton(Main,{
+    Name = "تجميد الكل",
+    Callback = function()
+        freezeAll()
+        print("✅ تم تجميد جميع اللاعبين")
+    end
+})
+
+AddButton(Main,{
+    Name = "إلغاء تجميد الكل",
+    Callback = function()
+        unfreezeAll()
+        print("❌ تم إلغاء التجميد على جميع اللاعبين")
+    end
+})
