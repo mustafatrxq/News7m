@@ -2695,18 +2695,10 @@ AddSection(Main, {"تجميد الكل بواسطه الزر"})
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
--- 🔹 قيم السرعة مخففة وسلسة
-local speedOptions = {
-    ["سريع جدًا"] = 0.25,
-    ["سريع"] = 0.4,
-    ["متوسط"] = 0.6,
-    ["بطيء"] = 0.9
-}
-
--- 🔹 تخزين السرعة لكل بانق
-getgenv().bangSpeeds = {
-    ["بانق"] = 0.4,         
-    ["بانق للوجه"] = 0.4
+-- 🔹 السرعات الثابتة والمخففة
+local bangSpeeds = {
+    ["بانق"] = 0.5,          -- حركة خلفية سلسة
+    ["بانق للوجه"] = 0.5     -- حركة وجهي سلسة
 }
 
 -- 🔹 اللاعب المحدد
@@ -2757,7 +2749,6 @@ local function createBangToggle(name, faceBang)
     local bangActive = false
     local connection
     local togglePosition = false
-    local currentSpeed = getgenv().bangSpeeds[name] or 0.4 -- سرعة أولية
 
     AddToggle(Main, {
         Name = name,
@@ -2800,9 +2791,8 @@ local function createBangToggle(name, faceBang)
                                 end
                                 togglePosition = not togglePosition
 
-                                -- 🔹 قراءة السرعة مباشرة من الدروب داون كل مرة
-                                currentSpeed = getgenv().bangSpeeds[name] or 0.4
-                                task.wait(currentSpeed)
+                                -- 🔹 سرعة ثابتة
+                                task.wait(bangSpeeds[name])
                             end
                         end
                     end
@@ -2815,17 +2805,6 @@ local function createBangToggle(name, faceBang)
                 end
             end
         end    
-    })
-
-    -- 🔹 دروب داون سرعة لكل بانق تعمل مباشرة
-    AddDropdown(Main, {
-        Name = "سرعة " .. name,
-        Default = "سريع",
-        Options = {"سريع جدًا", "سريع", "متوسط", "بطيء"},
-        Callback = function(Value)
-            getgenv().bangSpeeds[name] = speedOptions[Value] or 0.4
-            currentSpeed = getgenv().bangSpeeds[name] -- 🔹 تحديث السرعة فورًا
-        end
     })
 end
 
