@@ -2603,33 +2603,44 @@ AddSection(Main, {"تجميد الكل بواسطه الزر"})
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local LocalPlayer = game:GetService("Players").LocalPlayer
+local LocalPlayer = Players.LocalPlayer
+local TextChatService = game:GetService("TextChatService")
 
 local RE = ReplicatedStorage:WaitForChild("RE")
-local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
-local ToolEvent = RE:FindFirstChild("1Too1l")
-local FireEvent = RE:FindFirstChild("1Gu1n")
+local ClearEvent = RE:WaitForChild("1Clea1rTool1s")
+local ToolEvent = RE:WaitForChild("1Too1l")
+local FireEvent = RE:WaitForChild("1Gu1n")
 
 local frozenTargets = {}
 local allFrozen = false
-local recurringMsgTask = nil
 local weaponName = "Assault"
 
--- دالة السلاح لتجميد لاعب بسرعة قصوى ومتوازي
-local function freezePlayerFast(player)
+-- تجهيز السلاح مرة واحدة
+local function equipWeapon()
+    if ToolEvent then
+        ToolEvent:InvokeServer("PickingTools", weaponName)
+    end
+    local weapon = LocalPlayer.Backpack:FindFirstChild(weaponName)
+    return weapon and weapon:FindFirstChild("GunScript_Local")
+end
+
+-- تجميد لاعب بشكل قوي جدًا
+local function superFreezePlayer(player, gunScript)
     if frozenTargets[player] then return end
     frozenTargets[player] = true
 
     task.spawn(function()
         while frozenTargets[player] and player.Character and player.Character:FindFirstChild("HumanoidRootPart") do
-            -- تنظيف الأدوات والحصول على السلاح
+            -- منع أي أداة أو حركة
             if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
-            if ToolEvent then ToolEvent:InvokeServer("PickingTools", weaponName) end
-            local weapon = LocalPlayer.Backpack:FindFirstChild(weaponName)
-            if weapon then
-                local gunScript = weapon:FindFirstChild("GunScript_Local")
-                if gunScript then
-                    -- إطلاق التجميد بسرعة قصوى
+            for _, part in pairs(player.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.Anchored = true
+                end
+            end
+            -- إطلاق السلاح بسرعة فائقة
+            if gunScript then
+                for i=1,20 do
                     FireEvent:FireServer(
                         player.Character.HumanoidRootPart,
                         player.Character.HumanoidRootPart,
@@ -2644,39 +2655,49 @@ local function freezePlayerFast(player)
                     )
                 end
             end
-            task.wait(0.01) -- شبه فوري
+            task.wait(0.01) -- شبه فوري جدًا
         end
         frozenTargets[player] = nil
     end)
 end
 
--- دالة تجميد الكل بسرعة قصوى ومتوازية
-local function freezeAllFast()
+-- تجميد كل اللاعبين الحاليين والجدد
+local function superFreezeAll()
     allFrozen = true
-    local chatService = game:GetService("TextChatService")
-    if chatService.TextChannels.RBXGeneral then
-        chatService.TextChannels.RBXGeneral:SendAsync("[All were frozen in the server by Xpolit hub🥶]")
+
+    -- رسالة عند التشغيل
+    if TextChatService.TextChannels.RBXGeneral then
+        TextChatService.TextChannels.RBXGeneral:SendAsync("[All were super frozen in the server by Xpolit hub🥶]")
     end
 
-    -- تجميد كل اللاعبين بشكل متوازي
+    local gunScript = equipWeapon()
+
+    -- تجميد كل اللاعبين الحاليين
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
-            freezePlayerFast(player)
+            superFreezePlayer(player, gunScript)
         end
     end
 
+    -- أي لاعب ينضم لاحقًا يتجمد فورًا
+    Players.PlayerAdded:Connect(function(player)
+        if allFrozen and player ~= LocalPlayer then
+            superFreezePlayer(player, gunScript)
+        end
+    end)
+
     -- رسائل دورية كل دقيقتين
-    recurringMsgTask = task.spawn(function()
+    task.spawn(function()
         while allFrozen do
             task.wait(120)
-            if chatService.TextChannels.RBXGeneral then
-                chatService.TextChannels.RBXGeneral:SendAsync("[The freezing of all in the server is still continuing by Xpolit hub🥶]")
+            if TextChatService.TextChannels.RBXGeneral then
+                TextChatService.TextChannels.RBXGeneral:SendAsync("[The super freezing of all in the server is still continuing by Xpolit hub🥶]")
             end
         end
     end)
 end
 
--- دالة إلغاء تجميد الكل
+-- إلغاء تجميد الكل
 local function unfreezeAll()
     allFrozen = false
     frozenTargets = {}
@@ -2687,10 +2708,10 @@ end
 -- أزرار Main
 -- =========================
 AddButton(Main,{
-    Name = "تجميد الكل X2",
+    Name = "Super Freeze All ⚡",
     Callback = function()
-        freezeAllFast()
-        print("✅ تم تجميد جميع اللاعبين بسرعة قصوى")
+        superFreezeAll()
+        print("✅ تم تجميد جميع اللاعبين فورًا Ultra Strong")
     end
 })
 
