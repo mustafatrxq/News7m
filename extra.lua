@@ -1174,65 +1174,6 @@ AddButton(Main, {
     end
 })
 
--- زر فلنج اللاعب يدور ويلتصق فيه وبعدها ينقله تحت الماب ويقتله
-AddButton(Main, {
-    Name = "فلنج اللاعب",
-    Callback = function()
-        if not selectedDragTarget then
-            warn("اختر لاعبًا أولًا")
-            return
-        end
-
-        local targetPlayer = Players:FindFirstChild(selectedDragTarget)
-        if not (targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")) then
-            warn("اللاعب غير موجود أو لم يُحمّل")
-            return
-        end
-
-        local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-        local humanoid = character:WaitForChild("Humanoid")
-        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-
-        local originalPosition = humanoidRootPart.Position
-        local originalAnchoredState = humanoidRootPart.Anchored
-
-        local Thrust = Instance.new('BodyThrust')
-        Thrust.Force = Vector3.new(999999, 999999, 999999)
-        Thrust.Name = "FlingForce"
-        Thrust.Parent = humanoidRootPart
-
-        local runTime = 4
-        local startTime = tick()
-
-        while tick() - startTime < runTime do
-            if not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                break
-            end
-
-            humanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
-            Thrust.Location = targetPlayer.Character.HumanoidRootPart.Position
-
-            -- إضافة دوران سريع (spin)
-            humanoidRootPart.CFrame = humanoidRootPart.CFrame * CFrame.Angles(0, math.rad(90), 0)
-
-            RunService.Heartbeat:Wait()
-        end
-
-        Thrust:Destroy()
-
-        -- انقل اللاعب تحت الماب ليتم قتله
-        local underMapPosition = Vector3.new(-86, -224, 34)
-        humanoidRootPart.CFrame = CFrame.new(underMapPosition + Vector3.new(0, 5, 0))
-
-        wait(1)
-
-        -- عد للموضع الأصلي
-        humanoidRootPart.CFrame = CFrame.new(originalPosition)
-        humanoidRootPart.Anchored = originalAnchoredState
-        humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
-    end
-})
-
 -- تهيئة القائمة عند بداية السكربت
 UpdateDragDropdown()
 
@@ -1372,6 +1313,156 @@ AddButton(Main, {
   Callback = function()
       loadstring(game:HttpGet("https://pastefy.app/YZoglOyJ/raw"))()
   end
+})
+
+AddSection(Main, {"خواص أتباع الضحيه (مؤقته)"})
+
+-- Function to get all player names
+local function getPlayerNames()
+    local playerNames = {}
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        table.insert(playerNames, player.Name)
+    end
+    return playerNames
+end
+
+-- Store selected player for later use
+local selectedPlayer = nil
+local followHead = false
+local connection = nil
+
+-- Function to spectate the selected player
+local function spectatePlayer(enable)
+    local player = game.Players.LocalPlayer
+    local camera = workspace.CurrentCamera
+
+    if selectedPlayer then
+        local targetPlayer = game.Players:FindFirstChild(selectedPlayer)
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            if enable then
+                -- Set camera to follow the selected player
+                camera.CameraSubject = targetPlayer.Character.Humanoid
+            else
+                -- Reset camera to default (back to the local player)
+                camera.CameraSubject = player.Character.Humanoid
+            end
+        else
+            print("Selected player not available or out of game.")
+        end
+    else
+        print("No player selected!")
+    end
+end
+
+-- Function to float just above the selected player's head without falling
+local function floatAbovePlayerHead()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        local humanoidRootPart = character.HumanoidRootPart
+
+        if selectedPlayer then
+            local targetPlayer = game.Players:FindFirstChild(selectedPlayer)
+
+            if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Head") then
+                local targetHead = targetPlayer.Character.Head
+
+                -- Position above the selected player's head
+                humanoidRootPart.CFrame = targetHead.CFrame * CFrame.new(0, 3, 0)
+
+                -- Keep updating the position every frame
+                connection = game:GetService("RunService").Heartbeat:Connect(function()
+                    if followHead and targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Head") then
+                        -- Update to stay above the player's head
+                        humanoidRootPart.CFrame = targetPlayer.Character.Head.CFrame * CFrame.new(0, 3, 0)
+                    else
+                        connection:Disconnect() -- Disconnect if the toggle is off
+                    end
+                end)
+            else
+                print("Target player not found or not in the game.")
+            end
+        else
+            print("No player selected!")
+        end
+    end
+end
+
+-- Function to trigger the secondary script
+local function triggerCharacterSizeDown()
+    local args = {
+        [1] = "CharacterSizeDown",
+        [2] = 2.4
+    }
+    game:GetService("ReplicatedStorage").RE:FindFirstChild("1Clothe1s"):FireServer(unpack(args))
+end
+
+-- Function to teleport behind the selected player and return after 1.5 seconds
+local function moveBehindAndReturn()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+
+    if humanoidRootPart and selectedPlayer then
+        local targetPlayer = game.Players:FindFirstChild(selectedPlayer)
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local targetHumanoidRootPart = targetPlayer.Character.HumanoidRootPart
+
+            -- Store the original position
+            local originalPosition = humanoidRootPart.CFrame
+
+            -- Move behind the selected player
+            humanoidRootPart.CFrame = targetHumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+
+            -- Wait for 1.5 seconds before returning
+            wait(1.5)
+
+            -- Return to original position
+            humanoidRootPart.CFrame = originalPosition
+        else
+            print("Selected player not found or not in the game.")
+        end
+    else
+        print("No player or HumanoidRootPart found!")
+    end
+end
+
+-- Create the dropdown with player names
+AddDropdown(Main, {
+    Name = "اختار ضحيتك",
+    Default = "",
+    Options = getPlayerNames(),
+    Callback = function(value)
+        selectedPlayer = value
+        print("Player selected: " .. value)
+    end    
+})
+
+AddButton(Main, {
+    Name = "تحديث القائمة",
+    Callback = function()
+        UMupdatePlayerList()
+    end    
+})
+
+local flingToggle
+
+-- Add a toggle that allows the player to spectate the selected player
+AddToggle(Main, {
+    Name = "مشاهده الضحيه",
+    Default = false,
+    Callback = function(value)
+        spectatePlayer(value)
+    end    
+})
+
+-- Add a button to teleport to the selected player
+AddButton(Main, {
+    Name = "الانتقال الى الضحيه",
+    Callback = function()
+        floatAbovePlayerHead()
+    end    
 })
 
 local Main = MakeTab({
