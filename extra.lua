@@ -2815,194 +2815,122 @@ createBangToggle("بانق للوجه", true)
 AddSection(Main, {"بانق وتجميد نفس الوقت"})
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer
+local RE = ReplicatedStorage:WaitForChild("RE")
+local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
+local ToolEvent = RE:FindFirstChild("1Too1l")
+local FireEvent = RE:FindFirstChild("1Gu1n")
 
--- 🔹 سرعة ثابتة ومخففة
-local bangSpeeds = {
-    ["بانق"] = 0.5,
-    ["بانق للوجه"] = 0.5
-}
+-- 🔹 دالة تجميد اللاعب
+local freezeConnections = {}
+local function startFreeze(targetPlayer, id)
+    if freezeConnections[id] then return end
+    local running = true
 
-getgenv().selectedPlayer = nil
-
--- 🔹 دالة لجلب أسماء اللاعبين
-local function fetchPlayerNames()
-    local namesList = {}
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer then
-            table.insert(namesList, plr.Name)
-        end
-    end
-    return namesList
-end
-
--- 🔹 Dropdown لاختيار الضحية
-local targetDropdown
-local function createTargetDropdown()
-    if targetDropdown then
-        targetDropdown:Remove()
-    end
-
-    targetDropdown = AddDropdown(Main, {
-        Name = "اختر الضحية",
-        Default = "...",
-        Options = fetchPlayerNames(),
-        Callback = function(Value)
-            if Value ~= "" then
-                getgenv().selectedPlayer = Value
-            end
-        end
-    })
-end
-
-createTargetDropdown()
-
--- 🔹 زر لتحديث قائمة اللاعبين
-AddButton(Main, {
-    Name = "تحديث قائمة اللاعبين",
-    Callback = function()
-        createTargetDropdown()
-    end
-})
-
--- 🔹 دالة التجميد
-local function freezeTarget(targetPlayer)
-    if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        return
-    end
-
-    local RE = ReplicatedStorage:WaitForChild("RE")
-    local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
-    local ToolEvent = RE:FindFirstChild("1Too1l")
-    local FireEvent = RE:FindFirstChild("1Gu1n")
-
-    local function clearAllTools()
-        if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
-    end
-
-    local function getAssault()
-        if ToolEvent then ToolEvent:InvokeServer("PickingTools", "Assault") end
-    end
-
-    local function hasAssault()
-        return LocalPlayer.Backpack:FindFirstChild("Assault") ~= nil
-    end
-
-    local function fireAtPart(targetPart)
-        local gunScript = LocalPlayer.Backpack:FindFirstChild("Assault") and LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local")
-        if not gunScript or not targetPart then return end
-        local args = {
-            targetPart,
-            targetPart,
-            Vector3.new(1e14, 1e14, 1e14),
-            targetPart.Position,
-            gunScript:FindFirstChild("MuzzleEffect"),
-            gunScript:FindFirstChild("HitEffect"),
-            0,
-            0,
-            { false },
-            { 25, Vector3.new(100, 100, 100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25 },
-            true,
-            false
-        }
-        FireEvent:FireServer(unpack(args))
-    end
+    freezeConnections[id] = {
+        stop = function() running = false end
+    }
 
     task.spawn(function()
-        while task.wait(1) do
-            if not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then break end
-            clearAllTools()
-            getAssault()
-            repeat task.wait(0.2) until hasAssault()
-            fireAtPart(targetPlayer.Character.HumanoidRootPart)
+        while running and targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") do
+            if ClearEvent then ClearEvent:FireServer("ClearAllTools") end
+            if ToolEvent then ToolEvent:InvokeServer("PickingTools", "Assault") end
+
+            repeat task.wait(0.2) until LocalPlayer.Backpack:FindFirstChild("Assault") or not running
+            local gunScript = LocalPlayer.Backpack:FindFirstChild("Assault") and LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local")
+            if gunScript and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local targetPart = targetPlayer.Character.HumanoidRootPart
+                local args = {
+                    targetPart,
+                    targetPart,
+                    Vector3.new(1e14, 1e14, 1e14),
+                    targetPart.Position,
+                    gunScript:FindFirstChild("MuzzleEffect"),
+                    gunScript:FindFirstChild("HitEffect"),
+                    0,
+                    0,
+                    { false },
+                    { 25, Vector3.new(100, 100, 100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25 },
+                    true,
+                    false
+                }
+                FireEvent:FireServer(unpack(args))
+            end
+            task.wait(1)
         end
     end)
 end
 
--- 🔹 دالة لجلب السلاح Assault
-local function giveAssault()
-    local RE = ReplicatedStorage:WaitForChild("RE")
-    local ToolEvent = RE:FindFirstChild("1Too1l")
-    if ToolEvent then
-        ToolEvent:InvokeServer("PickingTools", "Assault")
+local function stopFreeze(id)
+    if freezeConnections[id] then
+        freezeConnections[id].stop()
+        freezeConnections[id] = nil
     end
 end
 
-local function hasAssault()
-    return LocalPlayer.Backpack:FindFirstChild("Assault") ~= nil
-end
-
--- 🔹 دالة إنشاء بانق
-local function createBangToggle(name, faceBang)
+-- 🔹 دالة بانق
+local function createBangToggle(name, yOffset, faceBang, id)
+    local bangConnection
     local bangActive = false
-    local connection
     local togglePosition = false
-    local currentSpeed = bangSpeeds[name]
+    local speed = 0.8 -- ثانية
 
     AddToggle(Main, {
         Name = name,
         Default = false,
         Callback = function(Value)
             bangActive = Value
-            local char = LocalPlayer.Character
-            if not char then return end
+
+            local player = LocalPlayer
+            local char = player.Character
+            if not char or not char.PrimaryPart then return end
+
             local humanoid = char:FindFirstChildOfClass("Humanoid")
             if not humanoid then return end
 
             if Value then
                 humanoid.PlatformStand = true
-                if connection then connection:Disconnect() end
 
-                connection = RunService.Heartbeat:Connect(function()
-                    if bangActive and getgenv().selectedPlayer then
-                        local targetPlayer = Players:FindFirstChild(getgenv().selectedPlayer)
-                        if targetPlayer and targetPlayer.Character and targetPlayer.Character.PrimaryPart then
-                            local targetHead = targetPlayer.Character:FindFirstChild("Head")
-                            if targetHead and char.PrimaryPart then
-                                -- 🔹 جلب السلاح إذا غير موجود
-                                if not hasAssault() then
-                                    giveAssault()
-                                    repeat task.wait(0.2) until hasAssault()
-                                end
+                local targetPlayer = getgenv().selectedPlayer and Players:FindFirstChild(getgenv().selectedPlayer)
+                if not targetPlayer then return end
 
-                                -- 🔹 حركة البانق
-                                local offset = togglePosition and 1 or 3
-                                if faceBang then
-                                    char:SetPrimaryPartCFrame(
-                                        targetHead.CFrame *
-                                        CFrame.new(0, 1, -offset) *
-                                        CFrame.Angles(0, math.rad(180), 0)
-                                    )
-                                else
-                                    char:SetPrimaryPartCFrame(
-                                        targetHead.CFrame *
-                                        CFrame.new(0, -1, offset)
-                                    )
-                                end
-                                togglePosition = not togglePosition
+                -- بدء التجميد
+                startFreeze(targetPlayer, id)
 
-                                -- 🔹 تجميد اللاعب بعد السلاح جاهز
-                                freezeTarget(targetPlayer)
-
-                                task.wait(currentSpeed)
+                if bangConnection then bangConnection:Disconnect() end
+                bangConnection = RunService.Heartbeat:Connect(function()
+                    if bangActive and targetPlayer and targetPlayer.Character and targetPlayer.Character.PrimaryPart then
+                        local targetHead = targetPlayer.Character:FindFirstChild("Head")
+                        if targetHead and char.PrimaryPart then
+                            local offset = togglePosition and 1 or 4
+                            if faceBang then
+                                char:SetPrimaryPartCFrame(targetHead.CFrame * CFrame.new(0, 1, -offset) * CFrame.Angles(0, math.rad(180), 0))
+                            else
+                                char:SetPrimaryPartCFrame(targetHead.CFrame * CFrame.new(0, yOffset, offset))
                             end
+                            togglePosition = not togglePosition
+                            task.wait(speed)
                         end
                     end
                 end)
             else
                 humanoid.PlatformStand = false
-                if connection then
-                    connection:Disconnect()
-                    connection = nil
+
+                if bangConnection then
+                    bangConnection:Disconnect()
+                    bangConnection = nil
                 end
+
+                -- إيقاف التجميد
+                stopFreeze(id)
             end
-        end    
+        end
     })
 end
 
--- 🔹 إنشاء البانق وزر للوجه
-createBangToggle("بانق", false)
-createBangToggle("بانق للوجه", true)
+-- 🔹 إنشاء التبديلين
+createBangToggle("بانق", -1, false, "bangNormal")
+createBangToggle("بانق للوجه", 1, true, "bangFace")
