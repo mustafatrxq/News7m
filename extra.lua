@@ -93,12 +93,12 @@ AddButton(DevelopersTab, {
 })
 
 AddButton(DevelopersTab, {
-    Name = "يوزر تيك توك المطور عرك",
+    Name = "يوزر تيك توك المطور لـوكـاࢪد",
     Callback = function()
-        setclipboard("@dmc_ark")
+        setclipboard("@dmc_alucard")
         game.StarterGui:SetCore("SendNotification", {
             Title = "تم النسخ ✅",
-            Text = "نسخت يوزر تيك توك المطور عرك",
+            Text = "نسخت يوزر تيك توك المطور لـوكـاࢪد",
             Duration = 3
         })
     end
@@ -3026,3 +3026,114 @@ end
 -- 🔹 إنشاء التبديلين
 createBangToggle("بانق", -1, false, "bangNormal")
 createBangToggle("بانق للوجه", 1, true, "bangFace")
+
+local Main = MakeTab({
+    Name = "تنقل",
+    Image = "rbxassetid://75014710749916",
+    TabTitle = false
+})
+
+AddButton(Main, {
+  Name = "أداة تنقل",
+  Callback = function()
+    mouse = game.Players.LocalPlayer:GetMouse() 
+
+tool = Instance.new("Tool") 
+
+tool.RequiresHandle = false 
+
+tool.Name = "أداة تنقل المطور ساموراي" 
+
+tool.Activated:connect(function() 
+
+local pos = mouse.Hit+Vector3.new(0,2.5,0) 
+
+pos = CFrame.new(pos.X,pos.Y,pos.Z) 
+
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = pos 
+
+end) 
+
+tool.Parent = game.Players.LocalPlayer.Backpack
+  end
+})
+
+-- دالة تسوي زر تنقل استعراضي
+local function CreateTeleportButton(parent, name, x, y, z)
+    AddButton(parent, {
+        Name = name,
+        Callback = function()
+            local plr = game.Players.LocalPlayer
+            local char = plr.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+
+            if hrp then
+                local TweenService = game:GetService("TweenService")
+                local duration = 2.5
+                local finalPos = Vector3.new(x, y, z)
+
+                local midPos = (hrp.Position + finalPos) / 2
+                midPos = midPos + Vector3.new(0, 15, 0) -- ارتفاع الطيران
+
+                local spinAngle = math.rad(360) -- لفة كاملة
+
+                local tween1 = TweenService:Create(
+                    hrp,
+                    TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+                    {CFrame = CFrame.new(midPos) * CFrame.Angles(0, spinAngle / 2, 0)}
+                )
+
+                local tween2 = TweenService:Create(
+                    hrp,
+                    TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.In),
+                    {CFrame = CFrame.new(finalPos) * CFrame.Angles(0, spinAngle, 0)}
+                )
+
+                tween1:Play()
+                tween1.Completed:Connect(function()
+                    tween2:Play()
+                end)
+            else
+                warn("HumanoidRootPart not found")
+            end
+        end
+    })
+end
+
+-- إنشاء الأزرار لكل الأماكن
+CreateTeleportButton(Main, "النافورة", -26, 6, -16)
+CreateTeleportButton(Main, "باب محطة القطار", 20, 6, 52)
+CreateTeleportButton(Main, "الأسواق", 18, 6, -106)
+CreateTeleportButton(Main, "صالون", -74, 6, -100)
+CreateTeleportButton(Main, "المرقص والعياذ بالله", -75, 23, -133)
+CreateTeleportButton(Main, "مكتب", -123, 24, -135)
+CreateTeleportButton(Main, "محل أيس كريم", -127, 6, -114)
+CreateTeleportButton(Main, "ألعاب", -168, 6, -110)
+CreateTeleportButton(Main, "مكان الشرطة", -120, 6, -10)
+CreateTeleportButton(Main, "مستشفى", -303, 6, -19)
+CreateTeleportButton(Main, "مختبر المستشفى المهجور", -281, 20, 82)
+CreateTeleportButton(Main, "المقبرة", -458, 6, 53)
+CreateTeleportButton(Main, "مدرسة", -268, 6, 214)
+CreateTeleportButton(Main, "حضانة", -174, 6, 175)
+CreateTeleportButton(Main, "لوحة 1", -240, 96, -548)
+CreateTeleportButton(Main, "لوحة 2", 357, 65, 582)
+CreateTeleportButton(Main, "لوحة 3", -624, 35, 356)
+CreateTeleportButton(Main, "مبنى الإشعاع", 501, 16, 389)
+CreateTeleportButton(Main, "البيت المهجور", 1017, 8, 47)
+CreateTeleportButton(Main, "مكان الأحصنة", -757, 21, -62)
+CreateTeleportButton(Main, "الحضيرة", -848, 8, -441)
+CreateTeleportButton(Main, "مكان الباخرة", -114, 10, 866)
+CreateTeleportButton(Main, "مكان الدرون", -663, 255, 761)
+CreateTeleportButton(Main, "مكان البوابة الكبيرة", -589, 144, -58)
+CreateTeleportButton(Main, "مكان الأسلحة", -119, -25, 235)
+CreateTeleportButton(Main, "مطعم", 161, 7, 52)
+CreateTeleportButton(Main, "الجزيرة", -1925, 25, 127)
+CreateTeleportButton(Main, "المطار", 310, 7, 31)
+CreateTeleportButton(Main, "المكان السري تحت الجبل", 179, 6, -464)
+CreateTeleportButton(Main, "مكان سري", 672, 6, -296) -- فوق تحت الماب 1
+CreateTeleportButton(Main, "تحت الماب 1", 0, 6, -495)
+CreateTeleportButton(Main, "تحت الماب 2", -343, 6, -613)
+CreateTeleportButton(Main, "تحت الماب 3", 505, -74, 143)
+CreateTeleportButton(Main, "فوق الإشعاع", 757, 162, 549)
+CreateTeleportButton(Main, "مكان رسبنه الباص", 1169, 82, -1119)
+CreateTeleportButton(Main, "مكان رسبنه السفينة", 1780, 18, 81)
