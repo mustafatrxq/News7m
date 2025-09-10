@@ -116,6 +116,117 @@ AddButton(DevelopersTab, {
     end
 })
 
+local Main = MakeTab({
+    Name = "السيرفر",
+    Image = "rbxassetid://108520547056160",
+    TabTitle = false
+})
+
+local TeleportService = game:GetService("TeleportService")
+local LocalPlayer = game.Players.LocalPlayer
+local placeId = game.PlaceId
+
+--========================
+-- العداد + الوقت (عام للجميع)
+--========================
+local playerCountLabel = AddTextLabel(Main, "الاعبين في السيرفر: 0")
+local timeLabel = AddTextLabel(Main, "وقت: --:--:--")
+
+local function updatePlayerCount()
+    playerCountLabel.Text = "الاعبين في السيرفر: " .. #game.Players:GetPlayers()
+end
+
+game.Players.PlayerAdded:Connect(updatePlayerCount)
+game.Players.PlayerRemoving:Connect(updatePlayerCount)
+updatePlayerCount()
+
+task.spawn(function()
+    while true do
+        local currentTime = os.date("%H:%M:%S")
+        timeLabel.Text = "وقت: " .. currentTime
+        task.wait(1)
+    end
+end)
+
+--========================
+-- التبديلات والإشعارات
+--========================
+_G.NotificationsEnabled = false 
+_G.SystemNotificationsEnabled = false 
+_G.KillNotificationsEnabled = false 
+
+local function ShowNotification(title, text, duration)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = title,
+        Text = text,
+        Duration = duration or 3
+    })
+end
+
+game.Players.PlayerAdded:Connect(function(player)
+    if _G.NotificationsEnabled then
+        ShowNotification("دخول لاعب", player.Name .. " دخل اللعبة")
+    end
+end)
+
+game.Players.PlayerRemoving:Connect(function(player)
+    if _G.NotificationsEnabled then
+        ShowNotification("خروج لاعب", player.Name .. " غادر اللعبة")
+    end
+end)
+
+AddToggle(Main, {
+    Name = "اشعارات دخول وخروج",
+    Default = false,
+    Callback = function(Value)
+        _G.NotificationsEnabled = Value
+    end
+})
+
+AddToggle(Main, {
+    Name = "اشعارات النظام", 
+    Default = false,
+    Callback = function(Value)
+        _G.SystemNotificationsEnabled = Value
+        if Value then
+            ShowNotification("النظام", "تم تفعيل اشعارات النظام", 5)
+        end
+    end
+})
+
+AddToggle(Main, {
+    Name = "اشعارات القتل",
+    Default = false, 
+    Callback = function(Value)
+        _G.KillNotificationsEnabled = Value
+        if Value then
+            ShowNotification("القتل", "تم تفعيل اشعارات القتل", 5)
+        end
+    end
+})
+
+AddButton(Main, {
+    Name = "اختبار الاشعارات",
+    Callback = function()
+        if _G.NotificationsEnabled or _G.SystemNotificationsEnabled or _G.KillNotificationsEnabled then
+            ShowNotification("اختبار", "تم اختبار الاشعارات", 3)
+        else
+            print("⚠️ فعل واحد من التبديلات حتى تجرب الإشعارات.")
+        end
+    end
+})
+
+--========================
+-- زر إعادة دخول السيرفر
+--========================
+AddButton(Main, {
+    Name = "اعادة دخول السيرفر",
+    Callback = function()
+        local currentJobId = game.JobId
+        TeleportService:TeleportToPlaceInstance(placeId, currentJobId, LocalPlayer)
+    end
+})
+
 -- تبويب السكربتات
 local ScriptsTab = MakeTab({
     Name = "السكربتات",
