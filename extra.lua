@@ -63,29 +63,24 @@ local StarterGui = game:GetService("StarterGui")
 local SoundService = game:GetService("SoundService")
 local placeId = game.PlaceId
 
---========================
--- Label مركب للعرض
---========================
-local InfoLabel = AddTextLabel(ScriptInfoTab, "")
-local function UpdateLabel()
-    InfoLabel.Text = 
-        "User: " .. LocalPlayer.Name .. "\n" ..
-        "Map: " .. game.PlaceId .. "\n" ..
-        "Time: " .. os.date("%H:%M:%S") .. "\n" ..
-        "Players: " .. #Players:GetPlayers()
-end
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
--- تحديث أولي
-UpdateLabel()
+local Label = AddTextLabel(ScriptInfoTab,
+  "User: " .. LocalPlayer.Name .. "\n" ..
+  "Map: " .. game.PlaceId .. "\n" ..
+  "Time: " .. os.date("%H:%M:%S")
+)
 
---========================
--- تحديث الوقت وعدد اللاعبين كل ثانية
---========================
 task.spawn(function()
-    while true do
-        task.wait(1)
-        UpdateLabel()
-    end
+  while true do
+    task.wait(1)
+    Label.Update(
+      "User: " .. LocalPlayer.Name .. "\n" ..
+      "Map: " .. game.PlaceId .. "\n" ..
+      "Time: " .. os.date("%H:%M:%S")
+    )
+  end
 end)
 
 --========================
