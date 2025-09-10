@@ -122,56 +122,80 @@ local Main = MakeTab({
     TabTitle = false
 })
 
-local TeleportService = game:GetService("TeleportService")
+--========================
+-- خدمات وروابط
+--========================
+local Players = game:GetService("Players")
 local LocalPlayer = game.Players.LocalPlayer
+local TeleportService = game:GetService("TeleportService")
+local StarterGui = game:GetService("StarterGui")
+local SoundService = game:GetService("SoundService")
 local placeId = game.PlaceId
 
 --========================
--- العداد + الوقت (عام للجميع)
+-- العداد + الوقت
 --========================
 local playerCountLabel = AddTextLabel(Main, "الاعبين في السيرفر: 0")
 local timeLabel = AddTextLabel(Main, "وقت: --:--:--")
 
-local function updatePlayerCount()
-    playerCountLabel.Text = "الاعبين في السيرفر: " .. #game.Players:GetPlayers()
+local function updatePlayerCount(count)
+    playerCountLabel.Text = "الاعبين في السيرفر: " .. tostring(count or #Players:GetPlayers())
 end
 
-game.Players.PlayerAdded:Connect(updatePlayerCount)
-game.Players.PlayerRemoving:Connect(updatePlayerCount)
-updatePlayerCount()
+-- تحديث أولي
+task.delay(1, function()
+    updatePlayerCount()
+end)
 
+-- تحديث الوقت كل ثانية
 task.spawn(function()
-    while true do
-        local currentTime = os.date("%H:%M:%S")
+    while task.wait(1) do
+        local currentTime = os.date("%X")
         timeLabel.Text = "وقت: " .. currentTime
-        task.wait(1)
     end
 end)
 
 --========================
--- التبديلات والإشعارات
+-- الأصوات للإشعارات
 --========================
-_G.NotificationsEnabled = false 
-_G.SystemNotificationsEnabled = false 
-_G.KillNotificationsEnabled = false 
+local function PlaySound()
+    local sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid://142376088" -- صوت لطيف
+    sound.Volume = 0.7
+    sound.PlaybackSpeed = 1
+    sound.Parent = SoundService
+    sound:Play()
+    game:GetService("Debris"):AddItem(sound, 5)
+end
+
+--========================
+-- الإشعارات (مع العدد)
+--========================
+_G.NotificationsEnabled = false
 
 local function ShowNotification(title, text, duration)
-    game:GetService("StarterGui"):SetCore("SendNotification", {
+    StarterGui:SetCore("SendNotification", {
         Title = title,
         Text = text,
         Duration = duration or 3
     })
 end
 
-game.Players.PlayerAdded:Connect(function(player)
+Players.PlayerAdded:Connect(function(player)
+    local count = #Players:GetPlayers() + 1
+    updatePlayerCount(count)
     if _G.NotificationsEnabled then
-        ShowNotification("دخول لاعب", player.Name .. " دخل اللعبة")
+        ShowNotification("✅ دخول لاعب", player.Name .. " دخل اللعبة\n👥 اصبح عدد اللاعبين: " .. count, 3)
+        PlaySound()
     end
 end)
 
-game.Players.PlayerRemoving:Connect(function(player)
+Players.PlayerRemoving:Connect(function(player)
+    local count = #Players:GetPlayers() - 1
+    updatePlayerCount(count)
     if _G.NotificationsEnabled then
-        ShowNotification("خروج لاعب", player.Name .. " غادر اللعبة")
+        ShowNotification("❌ خروج لاعب", player.Name .. " غادر اللعبة\n👥 اصبح عدد اللاعبين: " .. count, 3)
+        PlaySound()
     end
 end)
 
@@ -183,35 +207,16 @@ AddToggle(Main, {
     end
 })
 
-AddToggle(Main, {
-    Name = "اشعارات النظام", 
-    Default = false,
-    Callback = function(Value)
-        _G.SystemNotificationsEnabled = Value
-        if Value then
-            ShowNotification("النظام", "تم تفعيل اشعارات النظام", 5)
-        end
-    end
-})
-
-AddToggle(Main, {
-    Name = "اشعارات القتل",
-    Default = false, 
-    Callback = function(Value)
-        _G.KillNotificationsEnabled = Value
-        if Value then
-            ShowNotification("القتل", "تم تفعيل اشعارات القتل", 5)
-        end
-    end
-})
-
 AddButton(Main, {
     Name = "اختبار الاشعارات",
     Callback = function()
-        if _G.NotificationsEnabled or _G.SystemNotificationsEnabled or _G.KillNotificationsEnabled then
-            ShowNotification("اختبار", "تم اختبار الاشعارات", 3)
+        local count = #Players:GetPlayers()
+        updatePlayerCount(count)
+        if _G.NotificationsEnabled then
+            ShowNotification("🔔 اختبار", "العدد الحالي للاعبين: " .. count, 3)
+            PlaySound()
         else
-            print("⚠️ فعل واحد من التبديلات حتى تجرب الإشعارات.")
+            print("⚠️ فعل خيار الاشعارات حتى تجربها.")
         end
     end
 })
@@ -474,15 +479,6 @@ local function GetOtherPlayerNames()
         end
     end
     return names
-end
-
--- دالة عرض إشعار التحديث
-local function ShowListUpdatedNotification()
-    MakeNotifi({
-        Title = "تحديث",
-        Text = "تحدثت القائمة تلقائيًا",
-        Time = 3
-    })
 end
 
 ---------------------------
