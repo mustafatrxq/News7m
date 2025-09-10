@@ -31,7 +31,7 @@ MinimizeButton({
 
 -- تبويب معلومات السكربت
 local ScriptInfoTab = MakeTab({
-  Name = "معلومات السكربت",
+  Name = "السيرفر والسكربت",
   Image = "rbxassetid://75529783306690",
   TabTitle = false
 })
@@ -53,25 +53,113 @@ AddButton(ScriptInfoTab, {
   end
 })
 
+--========================
+-- خدمات وروابط
+--========================
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local TeleportService = game:GetService("TeleportService")
+local StarterGui = game:GetService("StarterGui")
+local SoundService = game:GetService("SoundService")
+local placeId = game.PlaceId
 
-local Label = AddTextLabel(ScriptInfoTab,
-  "User: " .. LocalPlayer.Name .. "\n" ..
-  "Map: " .. game.PlaceId .. "\n" ..
-  "Time: " .. os.date("%H:%M:%S")
-)
+--========================
+-- Label مركب للعرض
+--========================
+local InfoLabel = AddTextLabel(ScriptInfoTab, "")
+local function UpdateLabel()
+    InfoLabel.Text = 
+        "User: " .. LocalPlayer.Name .. "\n" ..
+        "Map: " .. game.PlaceId .. "\n" ..
+        "Time: " .. os.date("%H:%M:%S") .. "\n" ..
+        "Players: " .. #Players:GetPlayers()
+end
 
+-- تحديث أولي
+UpdateLabel()
+
+--========================
+-- تحديث الوقت وعدد اللاعبين كل ثانية
+--========================
 task.spawn(function()
-  while true do
-    task.wait(1)
-    Label.Update(
-      "User: " .. LocalPlayer.Name .. "\n" ..
-      "Map: " .. game.PlaceId .. "\n" ..
-      "Time: " .. os.date("%H:%M:%S")
-    )
-  end
+    while true do
+        task.wait(1)
+        UpdateLabel()
+    end
 end)
+
+--========================
+-- الأصوات للإشعارات
+--========================
+local function PlaySound()
+    local sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid://142376088" -- صوت لطيف
+    sound.Volume = 0.7
+    sound.PlaybackSpeed = 1
+    sound.Parent = SoundService
+    sound:Play()
+    game:GetService("Debris"):AddItem(sound, 5)
+end
+
+--========================
+-- إشعارات دخول وخروج مع عدد اللاعبين
+--========================
+_G.NotificationsEnabled = false
+
+local function ShowNotification(title, text, duration)
+    StarterGui:SetCore("SendNotification", {
+        Title = title,
+        Text = text,
+        Duration = duration or 3
+    })
+end
+
+Players.PlayerAdded:Connect(function(player)
+    UpdateLabel()
+    if _G.NotificationsEnabled then
+        ShowNotification("✅ دخول لاعب", player.Name .. " دخل اللعبة\n👥 اصبح عدد اللاعبين: " .. #Players:GetPlayers(), 3)
+        PlaySound()
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    UpdateLabel()
+    if _G.NotificationsEnabled then
+        ShowNotification("❌ خروج لاعب", player.Name .. " غادر اللعبة\n👥 اصبح عدد اللاعبين: " .. #Players:GetPlayers(), 3)
+        PlaySound()
+    end
+end)
+
+AddToggle(ScriptInfoTab, {
+    Name = "اشعارات دخول وخروج",
+    Default = false,
+    Callback = function(Value)
+        _G.NotificationsEnabled = Value
+    end
+})
+
+AddButton(ScriptInfoTab, {
+    Name = "اختبار الاشعارات",
+    Callback = function()
+        if _G.NotificationsEnabled then
+            ShowNotification("🔔 اختبار", "العدد الحالي للاعبين: " .. #Players:GetPlayers(), 3)
+            PlaySound()
+        else
+            print("⚠️ فعل خيار الاشعارات حتى تجربها.")
+        end
+    end
+})
+
+--========================
+-- زر إعادة دخول السيرفر
+--========================
+AddButton(ScriptInfoTab, {
+    Name = "اعادة دخول السيرفر",
+    Callback = function()
+        local currentJobId = game.JobId
+        TeleportService:TeleportToPlaceInstance(placeId, currentJobId, LocalPlayer)
+    end
+})
 
 -- تبويب المطورين
 local DevelopersTab = MakeTab({
@@ -113,122 +201,6 @@ AddButton(DevelopersTab, {
             Text = "نسخت يوزر تيليجرام المطور ساموراي",
             Duration = 3
         })
-    end
-})
-
-local Main = MakeTab({
-    Name = "السيرفر",
-    Image = "rbxassetid://108520547056160",
-    TabTitle = false
-})
-
---========================
--- خدمات وروابط
---========================
-local Players = game:GetService("Players")
-local LocalPlayer = game.Players.LocalPlayer
-local TeleportService = game:GetService("TeleportService")
-local StarterGui = game:GetService("StarterGui")
-local SoundService = game:GetService("SoundService")
-local placeId = game.PlaceId
-
---========================
--- العداد + الوقت
---========================
-local playerCountLabel = AddTextLabel(Main, "الاعبين في السيرفر: 0")
-local timeLabel = AddTextLabel(Main, "وقت: --:--:--")
-
-local function updatePlayerCount(count)
-    playerCountLabel.Text = "الاعبين في السيرفر: " .. tostring(count or #Players:GetPlayers())
-end
-
--- تحديث أولي
-task.delay(1, function()
-    updatePlayerCount()
-end)
-
--- تحديث الوقت كل ثانية
-task.spawn(function()
-    while task.wait(1) do
-        local currentTime = os.date("%X")
-        timeLabel.Text = "وقت: " .. currentTime
-    end
-end)
-
---========================
--- الأصوات للإشعارات
---========================
-local function PlaySound()
-    local sound = Instance.new("Sound")
-    sound.SoundId = "rbxassetid://142376088" -- صوت لطيف
-    sound.Volume = 0.7
-    sound.PlaybackSpeed = 1
-    sound.Parent = SoundService
-    sound:Play()
-    game:GetService("Debris"):AddItem(sound, 5)
-end
-
---========================
--- الإشعارات (مع العدد)
---========================
-_G.NotificationsEnabled = false
-
-local function ShowNotification(title, text, duration)
-    StarterGui:SetCore("SendNotification", {
-        Title = title,
-        Text = text,
-        Duration = duration or 3
-    })
-end
-
-Players.PlayerAdded:Connect(function(player)
-    local count = #Players:GetPlayers() + 1
-    updatePlayerCount(count)
-    if _G.NotificationsEnabled then
-        ShowNotification("✅ دخول لاعب", player.Name .. " دخل اللعبة\n👥 اصبح عدد اللاعبين: " .. count, 3)
-        PlaySound()
-    end
-end)
-
-Players.PlayerRemoving:Connect(function(player)
-    local count = #Players:GetPlayers() - 1
-    updatePlayerCount(count)
-    if _G.NotificationsEnabled then
-        ShowNotification("❌ خروج لاعب", player.Name .. " غادر اللعبة\n👥 اصبح عدد اللاعبين: " .. count, 3)
-        PlaySound()
-    end
-end)
-
-AddToggle(Main, {
-    Name = "اشعارات دخول وخروج",
-    Default = false,
-    Callback = function(Value)
-        _G.NotificationsEnabled = Value
-    end
-})
-
-AddButton(Main, {
-    Name = "اختبار الاشعارات",
-    Callback = function()
-        local count = #Players:GetPlayers()
-        updatePlayerCount(count)
-        if _G.NotificationsEnabled then
-            ShowNotification("🔔 اختبار", "العدد الحالي للاعبين: " .. count, 3)
-            PlaySound()
-        else
-            print("⚠️ فعل خيار الاشعارات حتى تجربها.")
-        end
-    end
-})
-
---========================
--- زر إعادة دخول السيرفر
---========================
-AddButton(Main, {
-    Name = "اعادة دخول السيرفر",
-    Callback = function()
-        local currentJobId = game.JobId
-        TeleportService:TeleportToPlaceInstance(placeId, currentJobId, LocalPlayer)
     end
 })
 
