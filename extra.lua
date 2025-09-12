@@ -156,6 +156,40 @@ AddButton(ScriptInfoTab, {
     end
 })
 
+local Main = MakeTab({
+    Name = "الكشف",
+    Image = "rbxassetid://126288298358369",
+    TabTitle = false
+})
+
+local ESP = loadstring(game:HttpGet("https://kiriot22.com/releases/ESP.lua"))()
+ESP:Toggle(true)
+ESP.Players = false
+ESP.Names = false
+
+local Toggle = AddToggle(Main, {
+  Name = "الكشف",
+  Default = false,
+  Callback = function(Value)
+    ESP.Players = Value
+  end
+})
+
+local Toggle = AddToggle(Main, {
+  Name = "أسماء اللاعبين",
+  Default = false,
+  Callback = function(Value)
+    ESP.Names = Value
+  end
+})
+AddColorPicker(Main, {
+  Name = "اللون",
+  Default = Color3.fromRGB(255, 255, 0),
+  Callback = function(Value)
+    ESP.Color = Value
+  end
+})
+
 -- تبويب المطورين
 local DevelopersTab = MakeTab({
     Name = "المطورين",
