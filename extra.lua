@@ -53,6 +53,219 @@ AddButton(ScriptInfoTab, {
   end
 })
 
+AddSection(Main, {"الكشف)
+
+
+--== ESP Module ==--
+local ESP = {
+    Enabled = true,
+    Boxes = true,
+    Names = true,
+    DistanceEnabled = true,
+    Color = Color3.fromRGB(255,170,0),
+    ColorName = Color3.fromRGB(255,255,255),
+    ColorDistance = Color3.fromRGB(255,255,255),
+    Thickness = 2,
+    AttachShift = 1,
+    TeamMates = true,
+    Players = true,
+    Objects = setmetatable({}, {__mode="kv"})
+}
+
+local plrs = game:GetService("Players")
+local plr = plrs.LocalPlayer
+local cam = workspace.CurrentCamera
+local RunService = game:GetService("RunService")
+
+-- دالة لإنشاء الرسومات
+local function Draw(objType, props)
+    local new = Drawing.new(objType)
+    for i,v in pairs(props or {}) do
+        new[i] = v
+    end
+    return new
+end
+
+-- إضافة Box/Name/Distance/Tracer للاعب
+function ESP:Add(obj)
+    local box = {
+        Object = obj,
+        Components = {},
+        Player = plrs:GetPlayerFromCharacter(obj),
+        PrimaryPart = obj:FindFirstChild("HumanoidRootPart")
+    }
+    if not box.PrimaryPart then return end
+
+    box.Components["Quad"] = Draw("Quad",{Thickness=ESP.Thickness,Color=ESP.Color,Filled=false,Visible=ESP.Enabled})
+    box.Components["Name"] = Draw("Text",{Text=box.Player.Name,Color=ESP.ColorName,Center=true,Outline=true,Size=19,Visible=ESP.Enabled})
+    box.Components["Distance"] = Draw("Text",{Text="",Color=ESP.ColorDistance,Center=true,Outline=true,Size=19,Visible=ESP.Enabled})
+    box.Components["Tracer"] = Draw("Line",{Color=ESP.Color,Thickness=ESP.Thickness,Visible=ESP.Enabled})
+
+    ESP.Objects[obj] = box
+    return box
+end
+
+-- تحديث Box لكل لاعب
+function ESP:UpdateBox(box)
+    if not box.PrimaryPart then return end
+
+    local cf = box.PrimaryPart.CFrame
+    local size = Vector3.new(4,6,0)
+
+    -- المربعات
+    if ESP.Boxes and box.Components.Quad then
+        local topLeft, vis1 = cam:WorldToViewportPoint(cf.Position + Vector3.new(-size.X/2,size.Y/2,0))
+        local topRight, vis2 = cam:WorldToViewportPoint(cf.Position + Vector3.new(size.X/2,size.Y/2,0))
+        local bottomLeft, vis3 = cam:WorldToViewportPoint(cf.Position + Vector3.new(-size.X/2,-size.Y/2,0))
+        local bottomRight, vis4 = cam:WorldToViewportPoint(cf.Position + Vector3.new(size.X/2,-size.Y/2,0))
+        local quad = box.Components.Quad
+        if vis1 or vis2 or vis3 or vis4 then
+            quad.Visible = true
+            quad.PointA = Vector2.new(topRight.X, topRight.Y)
+            quad.PointB = Vector2.new(topLeft.X, topLeft.Y)
+            quad.PointC = Vector2.new(bottomLeft.X, bottomLeft.Y)
+            quad.PointD = Vector2.new(bottomRight.X, bottomRight.Y)
+            quad.Color = ESP.Color
+        else
+            quad.Visible = false
+        end
+    end
+
+    -- الاسم والمسافة
+    local tagPos, visTag = cam:WorldToViewportPoint(cf.Position + Vector3.new(0,size.Y/2,0))
+    if visTag then
+        if ESP.Names then
+            box.Components.Name.Visible = true
+            box.Components.Name.Position = Vector2.new(tagPos.X, tagPos.Y)
+            box.Components.Name.Text = box.Player.Name
+            box.Components.Name.Color = ESP.ColorName
+        else
+            box.Components.Name.Visible = false
+        end
+        if ESP.DistanceEnabled then
+            box.Components.Distance.Visible = true
+            local dist = (cam.CFrame.Position - cf.Position).Magnitude
+            box.Components.Distance.Text = math.floor(dist).."m"
+            box.Components.Distance.Position = Vector2.new(tagPos.X, tagPos.Y + 14)
+            box.Components.Distance.Color = ESP.ColorDistance
+        else
+            box.Components.Distance.Visible = false
+        end
+    else
+        box.Components.Name.Visible = false
+        box.Components.Distance.Visible = false
+    end
+
+    -- Tracer
+    if box.Components.Tracer then
+        local torsoPos, visTorso = cam:WorldToViewportPoint(cf.Position)
+        if visTorso then
+            box.Components.Tracer.Visible = true
+            box.Components.Tracer.From = Vector2.new(torsoPos.X, torsoPos.Y)
+            box.Components.Tracer.To = Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/ESP.AttachShift)
+            box.Components.Tracer.Color = ESP.Color
+        else
+            box.Components.Tracer.Visible = false
+        end
+    end
+end
+
+-- تحديث كل اللاعبين
+function ESP:Update()
+    for _,p in pairs(plrs:GetPlayers()) do
+        if p ~= plr and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local box = ESP.Objects[p.Character] or ESP:Add(p.Character)
+            ESP:UpdateBox(box)
+        end
+    end
+end
+
+-- RenderStepped لتحديث مستمر
+RunService.RenderStepped:Connect(function()
+    if ESP.Enabled then
+        ESP:Update()
+    end
+end)
+
+--== الأزرار والـ ColorPickers ==--
+
+-- Toggle ESP كامل
+AddToggle(Main, {
+    Name = "تشغيل/إيقاف ESP بالكامل",
+    Default = true,
+    Callback = function(value)
+        ESP:Toggle(value)
+    end
+})
+
+print("\n") -- فراغ
+
+-- Toggle المربع
+AddToggle(Main, {
+    Name = "تشغيل/إيقاف المربع",
+    Default = true,
+    Callback = function(value)
+        ESP.Boxes = value
+    end
+})
+
+print("\n") -- فراغ
+
+-- Toggle الاسم
+AddToggle(Main, {
+    Name = "تشغيل/إيقاف الاسم",
+    Default = true,
+    Callback = function(value)
+        ESP.Names = value
+    end
+})
+
+print("\n") -- فراغ
+
+-- Toggle المسافة
+AddToggle(Main, {
+    Name = "تشغيل/إيقاف المسافة",
+    Default = true,
+    Callback = function(value)
+        ESP.DistanceEnabled = value
+    end
+})
+
+print("\n") -- فراغ
+
+-- ColorPicker الاسم
+AddColorPicker(Main, {
+    Name = "تغيير لون الاسم",
+    Default = ESP.ColorName,
+    Callback = function(value)
+        ESP.ColorName = value
+    end
+})
+
+print("\n") -- فراغ
+
+-- ColorPicker المربع
+AddColorPicker(Main, {
+    Name = "تغيير لون المربع",
+    Default = ESP.Color,
+    Callback = function(value)
+        ESP.Color = value
+    end
+})
+
+print("\n") -- فراغ
+
+-- ColorPicker المسافة
+AddColorPicker(Main, {
+    Name = "تغيير لون المسافة",
+    Default = ESP.ColorDistance,
+    Callback = function(value)
+        ESP.ColorDistance = value
+    end
+})
+
+return ESP
+
 --========================
 -- خدمات وروابط
 --========================
