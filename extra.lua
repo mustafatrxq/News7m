@@ -53,10 +53,6 @@ AddButton(ScriptInfoTab, {
   end
 })
 
-AddSection(Main, {"الكشف)
-
-
---== ESP Module ==--
 local ESP = {
     Enabled = true,
     Boxes = true,
