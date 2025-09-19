@@ -265,14 +265,6 @@ MinimizeButton({
   StrokeColor = Color3.fromRGB(255, 125, 0)
 })
 
-local ScriptInfoTab = MakeTab({
-  Name = "االتحديثات,
-  Image = "rbxassetid://10734885015",
-  TabTitle = false
-})
-
-AddSection(Main, {"السكنات الصغيره"})
-
 -- تبويب معلومات السكربت
 local ScriptInfoTab = MakeTab({
   Name = "السيرفر والسكربت",
